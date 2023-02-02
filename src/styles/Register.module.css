@@ -1,0 +1,87 @@
+.background {
+    animation: move 10s ease infinite;
+    transform: translate3d(0, 0, 0);
+    background: linear-gradient(45deg, #4cc997 10%, #84b7e0 90%);
+    height: 100vh;
+}
+
+.formplace {
+    width: 90%;
+    max-width: 340px;
+    margin: auto;
+    padding-top: 10vh;
+}
+
+.header {
+    text-align: center;
+    opacity: 0;
+    transform: translate3d(0, 0, 0);
+    animation: arrive 500ms ease-in-out 0.7s forwards;
+}
+
+.form-input {
+    display: block;
+    width: 100%;
+    padding: 20px;
+    -webkit-appearance: none;
+    border: 0;
+    outline: 0;
+    transition: .3s;
+    color: black;
+    caret-color: black;
+}
+
+.button {
+    display: block;
+    width: 100%;
+    padding: 20px;
+    -webkit-appearance: none;
+    outline: 0;
+    border: 0;
+    color: white;
+    background: #4c8bff;
+    transition: 0.3s;
+}
+
+.button:hover {
+    background:#3a70d4;
+}
+
+.form-input:focus {
+    background: darken(#fff, 5%);
+}
+
+.form {
+    margin-top: 20px;
+    border-radius: 6px;
+    overflow: hidden;
+    opacity: 0;
+    transform: translate3d(0, 0, 0);
+    animation: arrive 500ms ease-in-out 0.9s forwards;
+}
+
+@keyframes arrive {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 50px, 0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes move {
+    0% {
+        background-position: 0 0
+    }
+
+    50% {
+        background-position: 100% 0
+    }
+
+    100% {
+        background-position: 0 0
+    }
+}

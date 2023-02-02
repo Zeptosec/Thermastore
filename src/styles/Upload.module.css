@@ -1,0 +1,5 @@
+.upload {
+  display: grid;
+  align-items: center;
+  gap: 10px;
+}
