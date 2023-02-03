@@ -5,6 +5,13 @@ export default function Document() {
     <Html lang="en">
       <Head >
         <link href='https://css.gg/close-o.css' rel='stylesheet'/>
+        <link href='https://css.gg/link.css' rel='stylesheet'/>
+        <link href='https://css.gg/arrow-left.css' rel='stylesheet'></link>
+        <link href='https://css.gg/add-r.css' rel='stylesheet'></link>
+        <link href='https://css.gg/folder-add.css' rel='stylesheet'></link>
+        <link href='https://css.gg/arrow-down-r.css' rel='stylesheet'></link>
+        <link href='https://css.gg/close-r.css' rel='stylesheet'></link>
+        <link href='https://css.gg/arrow-right.css' rel='stylesheet'/>
       </Head>
       <body>
         <Main />

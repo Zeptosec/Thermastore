@@ -70,7 +70,7 @@ export default function navbar({ isUploading }: any) {
             }   w-full lg:inline-flex lg:flex-grow lg:w-auto`}
         >
           <div className='lg:inline-flex lg:flex-row lg:ml-auto lg:w-auto w-full lg:items-center flex flex-col lg:h-auto items-end'>
-            {!user ? <><Link href='/register'  className={isUploading ? "pointer-events-none" : ""}>
+            {!user ? <><Link href='/register' className={isUploading ? "pointer-events-none" : ""}>
               <div className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center hover:bg-navhover hover:text-cyan-300 transition-colors duration-200 '>
                 Register
               </div>
@@ -83,19 +83,20 @@ export default function navbar({ isUploading }: any) {
               <div className="lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center">
                 {user.email}
               </div>
-              <button onClick={handleLogout} disabled={isUploading}  className={isUploading ? "pointer-events-none" : ""}>
+              <button onClick={handleLogout} disabled={isUploading} className={isUploading ? "pointer-events-none" : ""}>
                 <div className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center hover:bg-navhover hover:text-cyan-300 transition-colors duration-200'>
                   Logout
                 </div>
-              </button></>}
+              </button>
+              <Link href='/files' className={isUploading ? "pointer-events-none" : ""}>
+                <div className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center hover:bg-navhover hover:text-cyan-300 transition-colors duration-200'>
+                  Files
+                </div>
+              </Link>
+            </>}
             <Link href='/upload' className={isUploading ? "pointer-events-none" : ""}>
               <div className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center hover:bg-navhover hover:text-cyan-300 transition-colors duration-200'>
                 Upload
-              </div>
-            </Link>
-            <Link href='/files' className={isUploading ? "pointer-events-none" : ""}>
-              <div className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center hover:bg-navhover hover:text-cyan-300 transition-colors duration-200'>
-                Files
               </div>
             </Link>
           </div>

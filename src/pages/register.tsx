@@ -20,13 +20,11 @@ export default function registerPage() {
                 },
                 body: JSON.stringify({ email, password })
             })
+            const { error, data } = await res.json();
             if (res.ok) {
-                const { error, data } = await res.json();
-                if (error) {
-                    setErrors(error);
-                } else {
-                    setErrors("Email confirmation has been sent. Go check your inbox")
-                }
+                setErrors("Email confirmation has been sent. Go check your inbox")
+            } else {
+                setErrors(error);
             }
         }
     }

@@ -1,3 +1,5 @@
+import { SupabaseClient } from "@supabase/supabase-js";
+
 export const chunkSize = 8 * 1024 ** 2;
 
 const marks = ["B", "KB", "MB", "GB", "TB", "PB"];
@@ -46,4 +48,73 @@ export function TimeToReadable(seconds: number) {
     if (str.length > 0) str += " ";
     str += `${secs}s`;
     return str;
+}
+
+export interface Directory {
+    id: number,
+    name: string,
+    created_at: string,
+    dir: number
+}
+
+export interface DirFile {
+    id: number,
+    name: string,
+    created_at: string,
+    size: number,
+    data: string,
+    dir: number
+}
+
+export async function getFilesWithDir(supabase: SupabaseClient<any, "public", any>, dir: number | null, page: number, pageSize: number = 50, prevFiles: (DirFile | Directory)[]) {
+    const prevDirsCount = prevFiles.filter(w => 'data' in w ? false : true).length;
+    let arr: (Directory | DirFile)[] = [];
+    let from = (page - 1) * pageSize;
+    let to = page * pageSize;
+    const dirs = dir === null ?
+        await supabase
+            .from('directories')
+            .select('id, name, created_at, dir', { count: 'estimated' })
+            .is('dir', null)
+            .range(from, to) :
+        await supabase
+            .from('directories')
+            .select('id, name, created_at, dir')
+            .eq('dir', dir)
+            .range(from, to);
+    if (dirs.error) {
+        console.log(dirs.error);
+    } else {
+        arr.push(...dirs.data);
+    }
+
+    if (dirs.count)
+        to -= dirs.count;
+    from -= prevDirsCount;
+    to -= prevDirsCount;
+
+    if (from < to) {
+        const files = dir === null ?
+            await supabase
+                .from('files')
+                .select('id, name, created_at, size, data, dir')
+                .is('dir', null)
+                .range(from, to) :
+            await supabase
+                .from('files')
+                .select('id, name, created_at, size, data, dir')
+                .eq('dir', dir)
+                .range(from, to)
+        if (!files.error) {
+            arr.push(...files.data);
+        } else {
+            console.log(files.error);
+        }
+    }
+    let next = false;
+    if (arr.length === pageSize + 1) {
+        next = true;
+        arr.pop();
+    }
+    return { arr, next };
 }
