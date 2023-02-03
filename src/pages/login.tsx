@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import styles from "@/styles/Register.module.css";
 import { useRouter } from "next/router";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import Head from "next/head";
 
 export default function LoginPage() {
     const [email, setEmail] = useState<string>("");
@@ -24,6 +25,9 @@ export default function LoginPage() {
 
     return (
         <div className={styles.background}>
+            <Head>
+                <title>Login</title>
+            </Head>
             <div className={styles.formplace}>
                 <div className={styles.header}>
                     <h2 className=" text-white text-2xl">Login</h2>

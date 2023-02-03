@@ -3,6 +3,7 @@ import CoolButton from "@/components/CoolButton";
 import CoolLoader from "@/components/CoolLoading2";
 import { downloadFile, DownloadStatus, getFileData } from "@/utils/FileDownload";
 import { BytesToReadable, TimeToReadable } from "@/utils/FileFunctions";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
@@ -57,6 +58,9 @@ export default function downloadPage() {
 
     return (
         <div>
+            <Head>
+                <title>Download {fData.name}</title>
+            </Head>
             <BubbleBackground />
             <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4">
                 <div className="grid gap-4">

@@ -12,6 +12,7 @@ export default function Document() {
         <link href='https://css.gg/arrow-down-r.css' rel='stylesheet'></link>
         <link href='https://css.gg/close-r.css' rel='stylesheet'></link>
         <link href='https://css.gg/arrow-right.css' rel='stylesheet'/>
+        <link href='https://css.gg/remove-r.css' rel='stylesheet'/>
       </Head>
       <body>
         <Main />

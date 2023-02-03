@@ -1,5 +1,6 @@
 import { FormEvent, useState } from "react";
 import styles from "@/styles/Register.module.css";
+import Head from "next/head";
 
 export default function registerPage() {
     const [email, setEmail] = useState<string>("");
@@ -31,6 +32,9 @@ export default function registerPage() {
 
     return (
         <div className={styles.background}>
+            <Head>
+                <title>Register</title>
+            </Head>
             <div className={styles.formplace}>
                 <div className={styles.header}>
                     <h2 className=" text-white text-2xl">Register</h2>

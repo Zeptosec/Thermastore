@@ -8,6 +8,7 @@ import { BytesToReadable, chunkSize, TimeToReadable } from "@/utils/FileFunction
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useUser } from "@supabase/auth-helpers-react";
+import Head from "next/head";
 
 const uploadPage = ({ setIsUploading }: any) => {
 
@@ -93,6 +94,9 @@ const uploadPage = ({ setIsUploading }: any) => {
 
     return (
         <div>
+            <Head>
+                <title>Upload</title>
+            </Head>
             <BubbleBackground />
             <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4">
                 <div className="grid gap-4">

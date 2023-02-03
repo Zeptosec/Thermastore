@@ -3,6 +3,7 @@ import CoolLoader from "@/components/CoolLoading2";
 import ShowFiles from "@/components/ShowFiles";
 import { Directory, DirFile, getFilesWithDir } from "@/utils/FileFunctions";
 import { useSessionContext, useSupabaseClient, useUser } from "@supabase/auth-helpers-react"
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
@@ -23,7 +24,7 @@ export default function filesPage() {
     async function fetchData() {
         setStillLoading(true);
         if (isLoading) return;
-        if(!user) router.push("/");
+        if (!user) router.push("/");
         setMsg("Fetching info about files...");
         const dir = dirHistory.length === 0 ? null : dirHistory[dirHistory.length - 1]
         const { arr, next } = await getFilesWithDir(supabase, dir, currPage, currPageSize, files);
@@ -101,8 +102,44 @@ export default function filesPage() {
         setSelected([]);
     }
 
+    async function deleteSelected() {
+        if (!confirm("Files will still be available from links, but won't be visible here anymore. Confirm this choice.")) return;
+        const filFiles = selected.filter(w => 'data' in w);
+        const filDirs = selected.filter(w => 'data' in w ? false : true);
+        if (filFiles.length > 0) {
+            const res = await supabase
+                .from('files')
+                .delete()
+                .in('id', filFiles.map(w => w.id));
+            if (res.error) {
+                alert("Failed to delete. " + res.error.message);
+                return;
+            }
+        }
+        if (filDirs.length > 0) {
+            const res = await supabase
+                .from('directories')
+                .delete()
+                .in('id', filDirs.map(w => w.id));
+            if (res.error) {
+                console.log(res.error)
+                if (res.error.code === '23503') {
+                    alert("Failed to delete. Directory contains elements. Please remove them first.");
+                } else {
+                    alert("Failed to delete. " + res.error.message);
+                }
+                return;
+            }
+        }
+        setSelected([]);
+        await fetchData();
+    }
+
     return (
         <div>
+            <Head>
+                <title>Files</title>
+            </Head>
             <BubbleBackground />
             <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[72px]">
                 <div className="grid gap-4">
@@ -118,6 +155,7 @@ export default function filesPage() {
                             {selected.length > 0 ? <div className="flex gap-2 items-center">
                                 <abbr title="Move selected here"><i onClick={() => MoveSelected(dirHistory.length > 0 ? dirHistory[dirHistory.length - 1] : null, true)} className="gg-add-r cursor-pointer transition-colors duration-200 hover:text-blue-700"></i></abbr>
                                 <abbr onClick={() => setSelected([])} title="Deselect all"><i className="gg-close-r cursor-pointer transition-colors duration-200 hover:text-blue-700"></i></abbr>
+                                <abbr onClick={() => deleteSelected()} title="Delete selected"><i className="gg-remove-r cursor-pointer transition-colors duration-200 hover:text-blue-700"></i></abbr>
                             </div> : ""}
                         </div>
                         <ShowFiles
