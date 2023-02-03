@@ -22,6 +22,13 @@ export default async function handler(
     if (rs2.data.length !== 1) {
         return res.status(401).json({ error: "This email is not on the allowed list. Ask admin for permission." });
     }
+    if (rs2.data[0].used) {
+        return res.status(401).json({ error: "This email is already in use" });
+    }
+    const rs3 = await supabase
+        .from('allowedEmails')
+        .update({ used: true })
+        .eq('id', rs2.data[0].id);
     const rs1 = await supabase.auth.signUp({ email, password })
     if (!rs1.error) {
         const rs = await supabase
