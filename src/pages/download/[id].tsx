@@ -1,6 +1,7 @@
 import BubbleBackground from "@/components/BubbleBackground";
 import CoolButton from "@/components/CoolButton";
 import CoolLoader from "@/components/CoolLoading2";
+import PreviewFile from "@/components/PreviewFile";
 import { downloadFile, DownloadStatus, getFileData } from "@/utils/FileDownload";
 import { BytesToReadable, TimeToReadable } from "@/utils/FileFunctions";
 import Head from "next/head";
@@ -92,6 +93,7 @@ export default function downloadPage() {
                                             </div>
                                         </div>
                                     </>}
+                                    {(id && !Array.isArray(id)) ? <PreviewFile file={fData} id={id} /> : ""}
                             </>
                     }
                 </div>
