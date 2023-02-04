@@ -7,10 +7,10 @@ interface Props {
 
 export default function PreviewFile({ file, id }: Props) {
 
-    function hasExtension(ext: string) {
+    function hasExtension(ext: string[]) {
         if (!file.name.includes('.')) return false;
         const parts = file.name.split('.');
-        if (parts[parts.length - 1].toLowerCase() === ext)
+        if (ext.includes(parts[parts.length - 1].toLowerCase()))
             return true;
         else
             return false;
@@ -18,10 +18,10 @@ export default function PreviewFile({ file, id }: Props) {
 
     return (
         <div>
-            {hasExtension('mp4') ? <div>
+            {hasExtension(['mp4', 'mkv']) ? <div>
                 <video className="w-full outline-none" controls controlsList="nodownload" src={`https://the-streamer-nigerete123.koyeb.app/stream/${id}`}></video>
             </div> : ""}
-            {hasExtension('mp3') ? <div>
+            {hasExtension(['mp3', 'wav', 'ogg']) ? <div>
                 <audio className="w-full outline-none" controls controlsList="nodownload" src={`https://the-streamer-nigerete123.koyeb.app/stream/${id}`}></audio>
             </div> : ""}
         </div>
