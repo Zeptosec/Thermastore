@@ -13,6 +13,11 @@ export default function Document() {
         <link href='https://css.gg/close-r.css' rel='stylesheet'></link>
         <link href='https://css.gg/arrow-right.css' rel='stylesheet'/>
         <link href='https://css.gg/remove-r.css' rel='stylesheet'/>
+        <link href='https://css.gg/file.css' rel='stylesheet'></link>
+        <link href='https://css.gg/music-note.css' rel='stylesheet'/>
+        <link href='https://css.gg/file-document.css' rel='stylesheet'></link>
+        <link href='https://css.gg/film.css' rel='stylesheet'></link>
+        <link href='https://css.gg/folder.css' rel='stylesheet'></link>
       </Head>
       <body>
         <Main />
