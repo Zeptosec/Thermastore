@@ -118,3 +118,24 @@ export async function getFilesWithDir(supabase: SupabaseClient<any, "public", an
     }
     return { arr, next };
 }
+
+export function getFileIconName(name: string) {
+    if (!name.includes('.')) return "file";
+    const parts = name.split('.');
+    switch (parts[parts.length - 1].toLowerCase()) {
+        case "mp3":
+        case "ogg":
+        case "wav":
+            return "music-note";
+        case "txt":
+        case "doc":
+        case "docx":
+            return "file-document";
+
+        case "mkv":
+        case "mp3":
+            return "film";
+        default:
+            return "file";
+    }
+}
