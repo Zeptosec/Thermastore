@@ -223,7 +223,7 @@ async function uploadFile(file: FileStatus, user: boolean) {
         i = (i + 1) % 16;
     }, 1000);
 
-    while (start !== end) {
+    while (end !== filesize) {
         const { index, endpoint } = await getReservedSlot();
         let cSize = endpoint.chunkSize ? endpoint.chunkSize : chunkSize;
         start = end;

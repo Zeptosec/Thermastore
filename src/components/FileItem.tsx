@@ -15,7 +15,6 @@ export default function FileItem({ file, selected, setSelected }: Props) {
     }
 
     function clicked(w: any) {
-        console.log(refCopy.current.contains(w.target));
         if (!(lref.current && lref.current.contains(w.target) ||
             refCopy.current && refCopy.current.contains(w.target))) {
             const rez = selected.findIndex(el => el.created_at === file.created_at);
@@ -41,7 +40,7 @@ export default function FileItem({ file, selected, setSelected }: Props) {
                 <abbr
                     ref={refCopy}
                     title="Copy link"
-                    onClick={w => copyClipboard()}
+                    onClick={() => copyClipboard()}
                     className="w-6 h-6 cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200">
                     <i className="gg-link mt-3 ml-2 "></i>
                 </abbr>
