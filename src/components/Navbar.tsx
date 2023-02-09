@@ -99,6 +99,11 @@ export default function navbar({ isUploading }: any) {
                 Upload
               </div>
             </Link>
+            <Link href='/settings' className={isUploading ? "pointer-events-none" : ""}>
+              <div className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center hover:bg-navhover hover:text-cyan-300 transition-colors duration-200'>
+                Settings
+              </div>
+            </Link>
           </div>
         </div>
       </div>

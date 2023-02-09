@@ -17,8 +17,12 @@ export interface FileStatus {
 
 export interface Endpoint {
     link: string,
-    occupied: number
+    occupied: number,
+    isHook?: boolean,
+    errCount?: number,
+    chunkSize?: number
 }
+let dook: Endpoint | null = null;
 
 const uploadEndPoints: Array<Endpoint> = [
     {
@@ -68,7 +72,10 @@ async function uploadChunkNoStatus(chunk: Blob) {
     while (json === null) {
         try {
             const res = await axios.post(endpoint.link, data);
-            json = res.data;
+            if (endpoint.isHook) {
+                json = { fileid: res.data.attachments[0].id }
+            } else
+                json = res.data;
         } catch (err: any) {
             console.log(err);
             await new Promise(r => setTimeout(r, 1000));
@@ -94,8 +101,18 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
                     file.errorText = "";
                 }
             })
-            json = res.data;
+            if (endpoint.isHook) {
+                json = { fileid: res.data.attachments[0].id }
+            } else
+                json = res.data;
         } catch (err: any) {
+            if (endpoint.isHook && endpoint.errCount) {
+                endpoint.errCount += 1;
+                if (endpoint.errCount >= 10) {
+                    dook = null;
+                    console.log("abandoning hook because it gives too many errors");
+                }
+            }
             console.log(err);
             file.errorText = err.message;
             await new Promise(r => setTimeout(r, 1000));
@@ -126,7 +143,7 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
             downloadBlob(filedata, "fileids.txt");
         } else {
             const fdataid = await uploadChunkNoStatus(filedata);
-            console.log(`fdataid: ${fdataid}`);
+            //console.log(`fdataid: ${fdataid}`);
             if (user) {
                 const { error } = await supabase
                     .from('files')
@@ -150,7 +167,19 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
 }
 
 async function getReservedSlot() {
-    let endpoint = await getEndpoint(uploadEndPoints, maxQueueSize);
+    let endpoint;
+    if (dook) {
+        let index = -1;
+        if (chunkQueue.length >= 5)
+            index = await Promise.any(chunkQueue);
+        await new Promise(r => setTimeout(r, 400)); // wait because limit is 5 per 2 sec
+        endpoint = dook;
+        if (index !== -1) {
+            return { index, endpoint };
+        }
+    } else
+        endpoint = await getEndpoint(uploadEndPoints, maxQueueSize);
+
     if (chunkQueue.length >= maxQueueSize * uploadEndPoints.length) {
         const index = await Promise.any(chunkQueue);
         return { index, endpoint };
@@ -172,9 +201,9 @@ async function uploadFile(file: FileStatus, user: boolean) {
         file.finished = true;
         return;
     }
-    let start = 0;
+    let start = -1;
     let part = 0;
-    let end = Math.min(chunkSize, filesize);
+    let end = 0;
 
     let prevLoaded = 0;
     let prevTime = Date.now();
@@ -195,13 +224,14 @@ async function uploadFile(file: FileStatus, user: boolean) {
     }, 1000);
 
     while (start !== end) {
-        const chunk = file.file.slice(start, end);
         const { index, endpoint } = await getReservedSlot();
+        let cSize = endpoint.chunkSize ? endpoint.chunkSize : chunkSize;
+        start = end;
+        end = Math.min(end + cSize, filesize);
+        const chunk = file.file.slice(start, end);
         endpoint.occupied++;
         chunkQueue[index] = uploadChunk(chunk, file, index, endpoint, part, interval, user);
         part++;
-        start = end;
-        end = Math.min(chunkSize * (part + 1), filesize);
     }
 }
 
@@ -216,6 +246,19 @@ export async function uploadFiles(files: Array<FileStatus>, onStart: Function | 
     }
     if (onStart)
         onStart();
+    if (user) {
+        const { data, error } = await supabase.from("webhooks").select("hookId, hookNumber");
+        if (error) {
+            console.log(error);
+        } else {
+            dook = {
+                link: `https://discordapp.com/api/webhooks/${data[0].hookNumber}/${data[0].hookId}`,
+                occupied: 0,
+                isHook: true,
+                chunkSize: chunkSize - 192
+            };
+        }
+    }
     for (let i = 0; i < filesToUpload.length; i++) {
         //await uploadFile(files[i]);
         await uploadFile(filesToUpload[i], user);
