@@ -19,7 +19,7 @@ export default function PreviewFile({ file, id }: Props) {
     return (
         <div>
             {hasExtension(['mp4', 'mkv']) ? <div>
-                <video className="w-full outline-none" controls controlsList="nodownload" src={`http://localhost:8000/stream/${id}`}></video>
+                <video className="w-full outline-none max-h-[800px]" controls controlsList="nodownload" src={`https://the-streamer-nigerete123.koyeb.app/stream/${id}`}></video>
             </div> : ""}
             {hasExtension(['mp3', 'wav', 'ogg']) ? <div>
                 <audio className="w-full outline-none" controls controlsList="nodownload" src={`https://the-streamer-nigerete123.koyeb.app/stream/${id}`}></audio>

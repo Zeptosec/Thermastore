@@ -1,6 +1,6 @@
 import { BytesToReadable, Directory, DirFile, getFileIconName } from "@/utils/FileFunctions"
 import Link from "next/link"
-import { Dispatch, SetStateAction, useRef, useState } from "react"
+import { Dispatch, SetStateAction, useRef } from "react"
 
 interface Props {
     file: DirFile,
@@ -32,7 +32,7 @@ export default function FileItem({ file, selected, setSelected }: Props) {
                     <div className="w-5 h-4 m-auto sm:block hidden">
                         <i className={`gg-${getFileIconName(file.name)} m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200`}></i>
                     </div>
-                    <Link target="_blank" ref={lref} href={`/download/${file.data}`}>{file.name}</Link>
+                    <Link target="_blank" ref={lref} href={`/download/${file.chanid}/${file.fileid}`}>{file.name}</Link>
                 </div>
             </div>
             <div className="flex gap-2 items-center">

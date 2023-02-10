@@ -68,9 +68,9 @@ export default function filesPage() {
     }
 
     async function MoveSelected(dirId: number | null, isHere: boolean) {
-        const filetered = selected.filter(w => ('data' in w ? true : w.id !== dirId) && w.dir !== dirId);
+        const filetered = selected.filter(w => ('fileid' in w ? true : w.id !== dirId) && w.dir !== dirId);
         const changedPaths = filetered.map(w => ({ ...w, dir: dirId }));
-        const direcs: Directory[] = changedPaths.filter(w => 'data' in w ? false : true) as Directory[];
+        const direcs: Directory[] = changedPaths.filter(w => 'fileid' in w ? false : true) as Directory[];
         let moved: (Directory | DirFile)[] = [];
         if (direcs.length > 0) {
             const res = await supabase
@@ -83,7 +83,7 @@ export default function filesPage() {
             moved.push(...direcs);
         }
 
-        const filesToMove: DirFile[] = changedPaths.filter(w => 'data' in w) as DirFile[];
+        const filesToMove: DirFile[] = changedPaths.filter(w => 'fileid' in w) as DirFile[];
 
         if (filesToMove.length > 0) {
             const res = await supabase
@@ -104,8 +104,8 @@ export default function filesPage() {
 
     async function deleteSelected() {
         if (!confirm("Files will still be available from links, but won't be visible here anymore. Confirm this choice.")) return;
-        const filFiles = selected.filter(w => 'data' in w);
-        const filDirs = selected.filter(w => 'data' in w ? false : true);
+        const filFiles = selected.filter(w => 'fileid' in w);
+        const filDirs = selected.filter(w => 'fileid' in w ? false : true);
         if (filFiles.length > 0) {
             const res = await supabase
                 .from('files')

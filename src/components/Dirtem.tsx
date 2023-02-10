@@ -9,7 +9,6 @@ interface Props {
     MoveSelected: Function
 }
 export default function DirItem({ dir, setDirHistory, selected, setSelected, MoveSelected }: Props) {
-    const refSel = useRef<any>(null);
     const refName = useRef<any>(null);
 
     function clicked(w: any) {

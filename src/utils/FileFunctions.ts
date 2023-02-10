@@ -62,12 +62,13 @@ export interface DirFile {
     name: string,
     created_at: string,
     size: number,
-    data: string,
+    chanid: string,
+    fileid: string,
     dir: number
 }
 
 export async function getFilesWithDir(supabase: SupabaseClient<any, "public", any>, dir: number | null, page: number, pageSize: number = 50, prevFiles: (DirFile | Directory)[]) {
-    const prevDirsCount = prevFiles.filter(w => 'data' in w ? false : true).length;
+    const prevDirsCount = prevFiles.filter(w => 'fileid' in w ? false : true).length;
     let arr: (Directory | DirFile)[] = [];
     let from = (page - 1) * pageSize;
     let to = page * pageSize;
@@ -97,12 +98,12 @@ export async function getFilesWithDir(supabase: SupabaseClient<any, "public", an
         const files = dir === null ?
             await supabase
                 .from('files')
-                .select('id, name, created_at, size, data, dir')
+                .select('id, name, created_at, size, chanid, fileid, dir')
                 .is('dir', null)
                 .range(from, to) :
             await supabase
                 .from('files')
-                .select('id, name, created_at, size, data, dir')
+                .select('id, name, created_at, size, chanid, fileid, dir')
                 .eq('dir', dir)
                 .range(from, to)
         if (!files.error) {

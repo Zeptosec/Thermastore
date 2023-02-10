@@ -10,23 +10,23 @@ import { useEffect, useState } from "react";
 
 export default function downloadPage() {
     const router = useRouter();
-    const { id } = router.query;
+    const { fid, cid } = router.query;
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
-    const [fData, setFdata] = useState<DownloadStatus>({ name: "", size: -1, chunks: [], downloadedBytes: 0, speed: 0, timeleft: 0, precentage: 0 });
+    const [fData, setFdata] = useState<DownloadStatus>({ name: "", size: -1, chunks: [], downloadedBytes: 0, speed: 0, timeleft: 0, precentage: 0, channel_id: "1025526944776867952" });
 
     const [downloading, setDownloading] = useState(false);
 
     useEffect(() => {
-        if (!id) return;
+        if (!fid || !cid) return;
         const fetchData = async () => {
-            let data = await getFileData(id as string, setLoadError);
+            let data = await getFileData(fid as string, cid as string, setLoadError);
             if (data)
                 setFdata(w => ({ ...w, ...data }));
             setLoading(false);
         }
         fetchData();
-    }, [id]);
+    }, [fid, cid]);
 
     const confMsg = "You are still downloading the file!"
     function beforeUnloadHandler(e: BeforeUnloadEvent) {
@@ -96,7 +96,7 @@ export default function downloadPage() {
                                             </div>
                                         </div>
                                     </>}
-                                {(id && !Array.isArray(id)) ? <PreviewFile file={fData} id={id} /> : ""}
+                                {(fid && !Array.isArray(fid)) ? <PreviewFile file={fData} id={fid} /> : ""}
                             </>
                     }
                 </div>

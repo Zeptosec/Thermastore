@@ -27,16 +27,18 @@ let dook: Endpoint | null = null;
 
 const uploadEndPoints: Array<Endpoint> = [
     {
-        link: 'https://thermostore.onrender.com/api/upload',
+        link: "http://localhost:4000/api/upload",
         occupied: 0
-    },
-    {
-        link: 'https://spangle-curly-seaplane.glitch.me/api/upload',
-        occupied: 0
-    },
-    {
-        link: 'https://receptive-large-tennis.glitch.me/api/upload',
-        occupied: 0
+        //     link: 'https://thermostore.onrender.com/api/upload',
+        //     occupied: 0
+        // },
+        // {
+        //     link: 'https://spangle-curly-seaplane.glitch.me/api/upload',
+        //     occupied: 0
+        // },
+        // {
+        //     link: 'https://receptive-large-tennis.glitch.me/api/upload',
+        //     occupied: 0
     }];
 
 interface ChunkQueueObject {
@@ -104,6 +106,7 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
     data.append('file', chunk);
     let prevLoaded = 0;
     let json = null;
+    let chanid = "1025526944776867952";
     while (json === null) {
         try {
             const res = await axios.post(endpoint.link, data, {
@@ -124,6 +127,7 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
                     reset: res.headers['x-ratelimit-reset'],
                     after: res.headers['x-ratelimit-reset-after']
                 }
+                chanid = res.data.channel_id;
             } else
                 json = res.data;
         } catch (err: any) {
@@ -165,6 +169,7 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
             name: file.file.name,
             size: file.file.size,
             chunks: file.uploadedParts,
+            channel_id: chanid,
             chunkSize: endpoint.chunkSize ? endpoint.chunkSize : 8 * 1024 ** 2
         });
         const filedata = new Blob([str], { type: 'text/plain' });
@@ -182,7 +187,8 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
                     .insert({
                         name: file.file.name,
                         size: file.file.size,
-                        data: fdataid
+                        fileid: fdataid,
+                        chanid
                     });
                 if (error) {
                     console.error(error);
@@ -287,7 +293,7 @@ export async function uploadFiles(files: Array<FileStatus>, onStart: Function | 
         const { data, error } = await supabase.from("webhooks").select("hookId, hookNumber");
         if (error) {
             console.log(error);
-        } else {
+        } else if (data.length > 0) {
             dook = {
                 link: `https://discordapp.com/api/webhooks/${data[0].hookNumber}/${data[0].hookId}`,
                 occupied: 0,

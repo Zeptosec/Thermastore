@@ -8,8 +8,9 @@ export interface DownloadStatus {
     downloadedBytes: number,
     name: string,
     size: number,
-    chunks: Array<number>,
+    chunks: Array<string>,
     precentage: number,
+    channel_id: string,
 }
 
 const maxConns = 10;
@@ -18,14 +19,21 @@ let endPoints: Array<Endpoint> = [{
     occupied: 0
 }];
 
-export async function getFileData(id: string, setError: Dispatch<SetStateAction<string>> | null = null) {
+/**
+ * 
+ * @param fid File id
+ * @param cid Channel id
+ * @param setError Function to set error text
+ * @returns Data with other file ids and order
+ */
+export async function getFileData(fid: string, cid: string, setError: Dispatch<SetStateAction<string>> | null = null) {
     let data = null;
     let endpoint = await getEndpoint(endPoints, maxConns);
     endpoint.occupied += 1;
     let failCnt = 0;
     while (!data && failCnt < 5) {
         try {
-            const res: AxiosResponse = await axios.get(`${endpoint.link}/${id}`);
+            const res: AxiosResponse = await axios.get(`${endpoint.link}/${cid}/${fid}`);
             data = res.data;
             if (!data.size || !data.name || !data.chunks) {
                 failCnt = 1000;
@@ -36,20 +44,20 @@ export async function getFileData(id: string, setError: Dispatch<SetStateAction<
                 setError("");
         } catch (err: any) {
             if (setError) {
-                if(err.request.status)
-                setError("File not found");
+                if (err.request.status)
+                    setError("File not found");
             }
             console.log(err);
             failCnt++;
             await new Promise(r => setTimeout(r, 1000));
-        } finally {
-            endpoint.occupied -= 1;
         }
     }
+    endpoint.occupied -= 1;
+
     return data;
 }
 
-async function downloadChunk(chunkId: number, arrayIndex: number, chunkIndex: number, downStatus: DownloadStatus) {
+async function downloadChunk(chunkId: string, chanId: string, arrayIndex: number, chunkIndex: number, downStatus: DownloadStatus) {
     let data = null;
     while (!data) {
         const endpoint = await getEndpoint(endPoints, maxConns);
@@ -57,7 +65,7 @@ async function downloadChunk(chunkId: number, arrayIndex: number, chunkIndex: nu
 
         try {
             let prev = 0;
-            const res = await axios.get(`${endpoint.link}/${chunkId}`, {
+            const res = await axios.get(`${endpoint.link}/${chanId}/${chunkId}`, {
                 onDownloadProgress: (w: AxiosProgressEvent) => {
                     const diff = w.loaded - prev;
                     prev = w.loaded;
@@ -90,7 +98,7 @@ export function downloadBlob(file: Blob, name: string) {
 }
 
 export async function downloadFileChunks(file: DownloadStatus, setFile: Dispatch<SetStateAction<DownloadStatus>>, onStart: Function | null = null, onFinished: Function | null = null) {
-    if(onStart) onStart();
+    if (onStart) onStart();
     let speeds: Array<number> = [];
     let prevTime = Date.now();
     let prevLoaded = 0;
@@ -125,18 +133,18 @@ export async function downloadFileChunks(file: DownloadStatus, setFile: Dispatch
             chunks[chunkIndex] = data;
             ind = arrayIndex;
         }
-        promises[ind] = downloadChunk(file.chunks[i], ind, i, file);
+        promises[ind] = downloadChunk(file.chunks[i], file.channel_id, ind, i, file);
     }
     (await Promise.all(promises)).forEach(w => chunks[w.chunkIndex] = w.data);
     clearInterval(interval);
-    if(onFinished) onFinished();
+    if (onFinished) onFinished();
     return chunks;
 }
 
 export async function downloadFile(file: DownloadStatus, setFile: Dispatch<SetStateAction<DownloadStatus>>, onStart: Function | null = null, onFinished: Function | null = null) {
     const chunks = await downloadFileChunks(file, setFile, onStart, onFinished);
     let dwnFile = new Blob(chunks);
-    setFile(w=> ({
+    setFile(w => ({
         ...w,
         precentage: 1,
         downloadedBytes: file.size,

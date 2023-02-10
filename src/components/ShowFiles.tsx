@@ -15,7 +15,7 @@ export default function ShowFilesPage({ files, setDirHistory, selected, setSelec
     return (
         <div className="grid gap-1">
             {files.map((w, ind) => (
-                'data' in w ?
+                'fileid' in w ?
                     <FileItem key={ind} file={w} setSelected={setSelected} selected={selected} />
                     : <DirItem key={ind} dir={w} setDirHistory={setDirHistory} selected={selected} setSelected={setSelected} MoveSelected={MoveSelected} />
             ))}
