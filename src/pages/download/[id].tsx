@@ -60,7 +60,10 @@ export default function downloadPage() {
     return (
         <div>
             <Head>
-                <title>Download {fData.name}</title>
+                {(!loading && loadError.length === 0) ?
+                    <title>{fData.name}</title> :
+                    <title>Download</title>
+                }
             </Head>
             <BubbleBackground />
             <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4">
@@ -93,7 +96,7 @@ export default function downloadPage() {
                                             </div>
                                         </div>
                                     </>}
-                                    {(id && !Array.isArray(id)) ? <PreviewFile file={fData} id={id} /> : ""}
+                                {(id && !Array.isArray(id)) ? <PreviewFile file={fData} id={id} /> : ""}
                             </>
                     }
                 </div>

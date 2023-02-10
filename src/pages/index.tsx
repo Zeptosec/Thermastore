@@ -85,6 +85,7 @@ const uploadPage = ({ setIsUploading }: any) => {
             uploadedPartsCount: 0,
             speed: 0,
             timeleft: 0,
+            errorTime: 0
         }));
         setFilesToUpload(w => [...w, ...filestatus])
         setPreviewFiles([]);

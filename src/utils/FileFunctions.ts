@@ -1,6 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
-export const chunkSize = 8 * 1024 ** 2;
+export const chunkSize = 8 * 1024 ** 2 - 192;
 
 const marks = ["B", "KB", "MB", "GB", "TB", "PB"];
 
@@ -133,7 +133,7 @@ export function getFileIconName(name: string) {
             return "file-document";
 
         case "mkv":
-        case "mp3":
+        case "mp4":
             return "film";
         default:
             return "file";
