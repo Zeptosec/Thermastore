@@ -27,18 +27,16 @@ let dook: Endpoint | null = null;
 
 const uploadEndPoints: Array<Endpoint> = [
     {
-        link: "http://localhost:4000/api/upload",
+        link: 'https://thermostore.onrender.com/api/upload',
         occupied: 0
-        //     link: 'https://thermostore.onrender.com/api/upload',
-        //     occupied: 0
-        // },
-        // {
-        //     link: 'https://spangle-curly-seaplane.glitch.me/api/upload',
-        //     occupied: 0
-        // },
-        // {
-        //     link: 'https://receptive-large-tennis.glitch.me/api/upload',
-        //     occupied: 0
+    },
+    {
+        link: 'https://spangle-curly-seaplane.glitch.me/api/upload',
+        occupied: 0
+    },
+    {
+        link: 'https://receptive-large-tennis.glitch.me/api/upload',
+        occupied: 0
     }];
 
 interface ChunkQueueObject {
