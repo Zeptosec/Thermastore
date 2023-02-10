@@ -192,7 +192,7 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
                     console.error(error);
                 }
             }
-            file.link = "/download/" + fdataid;
+            file.link = `/download/${chanid}/${fdataid}`;
         }
 
         file.finished = true;
