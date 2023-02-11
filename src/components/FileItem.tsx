@@ -1,6 +1,7 @@
 import { BytesToReadable, Directory, DirFile, getFileIconName } from "@/utils/FileFunctions"
+import { supabase } from "@/utils/Supabase";
 import Link from "next/link"
-import { Dispatch, SetStateAction, useRef } from "react"
+import { Dispatch, SetStateAction, useRef, useState } from "react"
 
 interface Props {
     file: DirFile,
@@ -10,6 +11,8 @@ interface Props {
 export default function FileItem({ file, selected, setSelected }: Props) {
     const lref = useRef<any>(null);
     const refCopy = useRef<any>(null);
+    const [isNaming, setIsNaming] = useState(false);
+    const [name, setName] = useState<string>(file.name);
     function copyClipboard() {
         navigator.clipboard.writeText(lref.current.href);
     }
@@ -22,6 +25,27 @@ export default function FileItem({ file, selected, setSelected }: Props) {
             else setSelected(el => [...el.slice(0, rez), ...el.slice(rez + 1)]);
         }
     }
+
+    async function saveName() {
+        setIsNaming(false);
+        if (name.length < 3) {
+            setName(file.name);
+            alert("Directory name is too short");
+        } else if (name.length > 42) {
+            setName(file.name);
+            alert("Directory name is too long");
+        } else {
+            const { error } = await supabase
+                .from("files")
+                .update({ name })
+                .eq("id", file.id);
+            if (error) {
+                console.log(error);
+                alert(error.message);
+            }
+        }
+    }
+
     return (
         <div onClick={w => clicked(w)} className="flex justify-between card group gap-1">
             <div className={`flex transition-all duration-200 items-center ${selected.length > 0 ? `gap-2` : ``}`}>
@@ -32,18 +56,24 @@ export default function FileItem({ file, selected, setSelected }: Props) {
                     <div className="w-5 h-4 m-auto sm:block hidden">
                         <i className={`gg-${getFileIconName(file.name)} m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200`}></i>
                     </div>
-                    <Link target="_blank" ref={lref} href={`/download/${file.chanid}/${file.fileid}`}>{file.name}</Link>
+                    {isNaming ?
+                        <form ref={lref} onSubmit={w => { w.preventDefault(); saveName(); }}>
+                            <input type="text" autoFocus value={name} onChange={w => setName(w.target.value)} onBlur={saveName} />
+                        </form> :
+                        <Link target="_blank" ref={lref} href={`/download/${file.chanid}/${file.fileid}`}>{name}</Link>}
                 </div>
             </div>
             <div className="flex gap-2 items-center">
                 <p>{BytesToReadable(file.size)}</p>
-                <abbr
-                    ref={refCopy}
-                    title="Copy link"
-                    onClick={() => copyClipboard()}
-                    className="w-6 h-6 cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200">
-                    <i className="gg-link mt-3 ml-2 "></i>
-                </abbr>
+                <div ref={refCopy} className="flex gap-2 items-center">
+                    <abbr
+                        title="Copy link"
+                        onClick={() => copyClipboard()}
+                        className="w-6 h-6 cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200">
+                        <i className="gg-link mt-3 ml-2 "></i>
+                    </abbr>
+                    {!isNaming ? <abbr className="sm:block hidden" onClick={() => setIsNaming(w => !w)} title="Rename"><i className="gg-rename cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200"></i></abbr> : ""}
+                </div>
             </div>
         </div>
     )

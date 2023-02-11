@@ -18,6 +18,7 @@ export default function Document() {
         <link href='https://css.gg/file-document.css' rel='stylesheet'></link>
         <link href='https://css.gg/film.css' rel='stylesheet'></link>
         <link href='https://css.gg/folder.css' rel='stylesheet'></link>
+        <link href='https://css.gg/rename.css' rel='stylesheet'/>
       </Head>
       <body>
         <Main />

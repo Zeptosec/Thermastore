@@ -59,7 +59,14 @@ export default function filesPage() {
                     .insert({ name, dir })
                     .select('id, name, created_at, dir');
                 if (res.error) {
-                    alert(res.error)
+                    switch (res.error.code) {
+                        case "42501":
+                            alert("You have reached your file and folder limit");
+                            break;
+                        default:
+                            alert(res.error.message);
+                    }
+                    console.log(res.error);
                 } else {
                     setFiles(w => [res.data[0], ...w]);
                 }
