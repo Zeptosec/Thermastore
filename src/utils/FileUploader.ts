@@ -20,8 +20,7 @@ export interface Endpoint {
     link: string,
     occupied: number,
     isHook?: boolean,
-    errCount?: number,
-    chunkSize?: number
+    errCount?: number
 }
 let dook: Endpoint | null = null;
 
@@ -168,7 +167,7 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
             size: file.file.size,
             chunks: file.uploadedParts,
             channel_id: chanid,
-            chunkSize: endpoint.chunkSize ? endpoint.chunkSize : 8 * 1024 ** 2
+            chunkSize
         });
         const filedata = new Blob([str], { type: 'text/plain' });
         if (filedata.size > chunkSize) {
@@ -266,9 +265,8 @@ async function uploadFile(file: FileStatus, user: boolean) {
 
     while (end !== filesize) {
         const { index, endpoint } = await getReservedSlot();
-        let cSize = endpoint.chunkSize ? endpoint.chunkSize : chunkSize;
         start = end;
-        end = Math.min(end + cSize, filesize);
+        end = Math.min(end + chunkSize, filesize);
         const chunk = file.file.slice(start, end);
         endpoint.occupied++;
         chunkQueue[index] = uploadChunk(chunk, file, index, endpoint, part, interval, user);
@@ -296,7 +294,6 @@ export async function uploadFiles(files: Array<FileStatus>, onStart: Function | 
                 link: `https://discordapp.com/api/webhooks/${data[0].hookNumber}/${data[0].hookId}`,
                 occupied: 0,
                 isHook: true,
-                chunkSize: chunkSize - 192,
                 errCount: 0
             };
         }

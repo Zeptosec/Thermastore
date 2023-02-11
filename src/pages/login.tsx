@@ -24,7 +24,7 @@ export default function LoginPage() {
     }
 
     return (
-        <div className={styles.background}>
+        <div className={styles.background + " pt-9"}>
             <Head>
                 <title>Login</title>
             </Head>

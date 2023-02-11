@@ -99,7 +99,7 @@ const uploadPage = ({ setIsUploading }: any) => {
                 <title>Upload</title>
             </Head>
             <BubbleBackground />
-            <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4">
+            <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[72px]">
                 <div className="grid gap-4">
                     <div className={styles.upload}>
                         <DropComp filesChanged={handleChange} files={previewFiles} remove={removeFile} />

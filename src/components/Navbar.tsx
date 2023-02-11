@@ -34,7 +34,7 @@ export default function navbar({ isUploading }: any) {
     }
   };
   return (
-    <nav className='flex select-none items-start z-50 flex-wrap justify-between absolute p-3 w-full '>
+    <nav className='flex select-none items-start z-50 flex-wrap justify-between absolute p-3 w-full'>
       <div className="py-0.5">
         <Link href='/' className={isUploading ? "pointer-events-none" : ""}>
           <div className='inline-flex items-center p-2 '>
@@ -93,15 +93,15 @@ export default function navbar({ isUploading }: any) {
                   Files
                 </div>
               </Link>
+              <Link href='/settings' className={isUploading ? "pointer-events-none" : ""}>
+                <div className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center hover:bg-navhover hover:text-cyan-300 transition-colors duration-200'>
+                  Settings
+                </div>
+              </Link>
             </>}
             <Link href='/' className={isUploading ? "pointer-events-none" : ""}>
               <div className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center hover:bg-navhover hover:text-cyan-300 transition-colors duration-200'>
                 Upload
-              </div>
-            </Link>
-            <Link href='/settings' className={isUploading ? "pointer-events-none" : ""}>
-              <div className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center hover:bg-navhover hover:text-cyan-300 transition-colors duration-200'>
-                Settings
               </div>
             </Link>
           </div>

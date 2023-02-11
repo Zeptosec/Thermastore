@@ -2,10 +2,11 @@ import { DownloadStatus } from "@/utils/FileDownload"
 
 interface Props {
     file: DownloadStatus,
-    id: string
+    fid: string,
+    cid: string
 }
 
-export default function PreviewFile({ file, id }: Props) {
+export default function PreviewFile({ file, fid, cid }: Props) {
 
     function hasExtension(ext: string[]) {
         if (!file.name.includes('.')) return false;
@@ -19,10 +20,10 @@ export default function PreviewFile({ file, id }: Props) {
     return (
         <div>
             {hasExtension(['mp4', 'mkv']) ? <div>
-                <video className="w-full outline-none max-h-[800px]" controls controlsList="nodownload" src={`https://the-streamer-nigerete123.koyeb.app/stream/${id}`}></video>
+                <video className="w-full outline-none max-h-[800px]" controls controlsList="nodownload" src={`https://the-streamer-nigerete123.koyeb.app/stream/${cid}/${fid}`}></video>
             </div> : ""}
             {hasExtension(['mp3', 'wav', 'ogg']) ? <div>
-                <audio className="w-full outline-none" controls controlsList="nodownload" src={`https://the-streamer-nigerete123.koyeb.app/stream/${id}`}></audio>
+                <audio className="w-full outline-none" controls controlsList="nodownload" src={`https://the-streamer-nigerete123.koyeb.app/stream/${cid}/${fid}`}></audio>
             </div> : ""}
         </div>
     )

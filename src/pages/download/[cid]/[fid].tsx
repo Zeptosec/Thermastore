@@ -66,7 +66,7 @@ export default function downloadPage() {
                 }
             </Head>
             <BubbleBackground />
-            <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4">
+            <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[72px]">
                 <div className="grid gap-4">
                     {loading ? <>
                         <CoolLoader />
@@ -96,7 +96,7 @@ export default function downloadPage() {
                                             </div>
                                         </div>
                                     </>}
-                                {(fid && !Array.isArray(fid)) ? <PreviewFile file={fData} id={fid} /> : ""}
+                                {(fid && !Array.isArray(fid) && cid && !Array.isArray(cid)) ? <PreviewFile file={fData} fid={fid} cid={cid} /> : ""}
                             </>
                     }
                 </div>

@@ -31,7 +31,7 @@ export default function registerPage() {
     }
 
     return (
-        <div className={styles.background}>
+        <div className={styles.background + " pt-9"}>
             <Head>
                 <title>Register</title>
             </Head>

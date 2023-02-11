@@ -93,7 +93,7 @@ export default function settingsPage() {
     return (
         <div>
             <BubbleBackground />
-            <div className="h-100vh pt-[72px] px-4">
+            <div className="h-100vh py-[72px] px-4">
                 {pageLoading ? <p className="text-4xl text-center">{msg}</p> :
                     <div className="grid gap-2 text-center">
                         <div>
