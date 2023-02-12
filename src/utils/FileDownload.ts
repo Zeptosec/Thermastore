@@ -108,8 +108,6 @@ export async function downloadFileChunks(file: DownloadStatus, setFile: Dispatch
         const speed = speeds.reduce((a, b) => a + b, 0) / speeds.length;
         const timeleft = (file.size - file.downloadedBytes) / speed;
         const precentage = file.downloadedBytes / file.size
-        console.log(speeds);
-        console.log(speed);
         setFile(w => ({
             ...w,
             speed,
