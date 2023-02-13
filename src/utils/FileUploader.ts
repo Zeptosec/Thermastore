@@ -14,6 +14,7 @@ export interface FileStatus {
     uploadedPartsCount: number,
     speed: number, // bytes/sec
     timeleft: number, // seconds
+    controller: AbortController,
 }
 
 export interface Endpoint {
@@ -107,6 +108,7 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
     while (json === null) {
         try {
             const res = await axios.post(endpoint.link, data, {
+                signal: file.controller.signal,
                 onUploadProgress: function (event) {
                     // for small files on fast internet otherwise overshoots
                     let loaded = Math.min(event.loaded, chunk.size);
@@ -128,6 +130,11 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
             } else
                 json = res.data;
         } catch (err: any) {
+            console.log(err);
+            if (file.controller.signal.aborted) {
+                clearInterval(interval);
+                return { index: qindex };
+            }
             file.errorTime = Date.now();
             if (endpoint.isHook && endpoint.errCount != undefined) {
                 endpoint.errCount += 1;
@@ -242,8 +249,8 @@ async function uploadFile(file: FileStatus, user: boolean) {
         return;
     }
     let start = -1;
-    let part = 0;
-    let end = 0;
+    let part = file.uploadedPartsCount;
+    let end = part * chunkSize;
 
     let prevLoaded = 0;
     let prevTime = Date.now();
@@ -265,6 +272,10 @@ async function uploadFile(file: FileStatus, user: boolean) {
 
     while (end !== filesize) {
         const { index, endpoint } = await getReservedSlot();
+        if (file.controller.signal.aborted) {
+            endpoint.occupied -= 1;
+            return;
+        }
         start = end;
         end = Math.min(end + chunkSize, filesize);
         const chunk = file.file.slice(start, end);
@@ -309,4 +320,13 @@ export async function uploadFiles(files: Array<FileStatus>, onStart: Function | 
     if (onFinished)
         onFinished();
     filesToUpload = [];
+}
+
+export function Stop(fs: FileStatus) {
+    fs.controller.abort();
+    const firstUndefInd = fs.uploadedParts.findIndex(w => w === undefined);
+    const ptCount = firstUndefInd === -1 ? fs.uploadedParts.length : firstUndefInd;
+    fs.uploadedPartsCount = ptCount;
+    fs.uploadedBytes = ptCount * chunkSize;
+    fs.errorText = "Upload stopped by user";
 }

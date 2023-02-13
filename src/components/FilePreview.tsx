@@ -8,9 +8,11 @@ export default function FilePreview({ file, remove }: PreviewFile) {
 
     return (
         <div className="relative text-lg flex justify-between items-center">
-            <p>{file.name}</p>
+            <div className="flex gap-2 items-center">
+                <abbr onClick={() => remove(file)} title="Remove from the list"><i className="gg-close-r cursor-pointer transition-colors duration-200 hover:text-blue-700"></i></abbr>
+                <p>{file.name}</p>
+            </div>
             <p>{BytesToReadable(file.size)}</p>
-            <button onClick={w => remove(file)} className="close absolute left-[-25px] top-[4px]"><i className="gg-close-o"></i></button>
         </div>
     )
 }

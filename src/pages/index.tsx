@@ -3,7 +3,7 @@ import DropComp from "@/components/DropComp";
 import styles from "@/styles/Upload.module.css";
 import CoolButton from "@/components/CoolButton";
 import BubbleBackground from "@/components/BubbleBackground";
-import { FileStatus, uploadFiles } from "@/utils/FileUploader";
+import { FileStatus, Stop, uploadFiles } from "@/utils/FileUploader";
 import { BytesToReadable, chunkSize, TimeToReadable } from "@/utils/FileFunctions";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -85,13 +85,18 @@ const uploadPage = ({ setIsUploading }: any) => {
             uploadedPartsCount: 0,
             speed: 0,
             timeleft: 0,
-            errorTime: 0
+            errorTime: 0,
+            controller: new AbortController()
         }));
         setFilesToUpload(w => [...w, ...filestatus])
         setPreviewFiles([]);
         await uploadFiles(filestatus, onStart, onFinished, user !== null);
     }
 
+    async function ContinueDownload(w: FileStatus) {
+        w.controller = new AbortController();
+        await uploadFiles([w], onStart, onFinished, user !== null)
+    }
 
     return (
         <div>
@@ -126,10 +131,13 @@ const uploadPage = ({ setIsUploading }: any) => {
                                             <div style={{ width: `${w.uploadedBytes / w.file.size * 100}%` }} className="h-full -z-10 duration-1000 bg-blue-400 opacity-60 top-0 left-0 absolute"></div>
                                             <p>{w.file.name}</p>
                                             {w.errorText.length > 0 ? <p>{w.errorText}</p> : ""}
-                                            <div className="flex gap-4">
+                                            <div className="flex gap-4 items-center">
                                                 <p>{TimeToReadable(w.timeleft)}</p>
                                                 <p>{BytesToReadable(w.speed)}/s</p>
                                                 <p>{BytesToReadable(w.uploadedBytes)}/{BytesToReadable(w.file.size)}</p>
+                                                {w.controller.signal.aborted ?
+                                                    <abbr title="Continue download" className="cursor-pointer text-white transition-colors duration-200 hover:text-blue-700" onClick={() => ContinueDownload(w)}><i className="gg-play-button-r"></i></abbr> :
+                                                    <abbr title="Stop download" className="cursor-pointer text-white transition-colors duration-200 hover:text-blue-700" onClick={() => Stop(w)}><i className="gg-play-stop-r"></i></abbr>}
                                             </div>
                                         </>}
                                 </div>))}

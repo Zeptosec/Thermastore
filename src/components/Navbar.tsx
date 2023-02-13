@@ -34,7 +34,7 @@ export default function navbar({ isUploading }: any) {
     }
   };
   return (
-    <nav className='flex select-none items-start z-50 flex-wrap justify-between absolute p-3 w-full'>
+    <nav className='flex select-none items-center z-50 flex-wrap justify-between absolute p-3 w-full'>
       <div className="py-0.5">
         <Link href='/' className={isUploading ? "pointer-events-none" : ""}>
           <div className='inline-flex items-center p-2 '>
