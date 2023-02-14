@@ -6,6 +6,19 @@ body {
     background-color: #232323;
 }
 
+.text-left-side {
+    flex: 0 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: pre;
+}
+
+.text-right-side {
+    flex: 1 0 auto;
+    overflow: hidden;
+    white-space: pre;
+}
+
 .drop-area {
     max-width: 800px;
     margin: 0 auto;

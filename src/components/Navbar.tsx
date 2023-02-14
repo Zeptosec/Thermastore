@@ -44,7 +44,7 @@ export default function navbar({ isUploading }: any) {
           </div>
         </Link>
       </div>
-      <div className="grid absolute right-3">
+      <div className="grid absolute right-3 top-3">
         <button ref={ham}
           className=' inline-flex p-3 hover:bg-navhover rounded lg:hidden text-white ml-auto hover:text-white outline-none'
           onClick={handleClick}

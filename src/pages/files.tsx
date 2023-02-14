@@ -36,7 +36,7 @@ export default function filesPage() {
     useEffect(() => {
         fetchData();
         //fetch files
-    }, [isLoading, user, currPage]);
+    }, [isLoading, currPage]);
 
     useEffect(() => {
         if (currPage === 1)

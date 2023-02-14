@@ -311,6 +311,10 @@ export async function uploadFiles(files: Array<FileStatus>, onStart: Function | 
     }
     for (let i = 0; i < filesToUpload.length; i++) {
         //await uploadFile(files[i]);
+        if (filesToUpload[i].file.name.length > 142) {
+            filesToUpload[i].errorText = "File name is too long max 42 symbols";
+            continue;
+        }
         await uploadFile(filesToUpload[i], user);
         //last check before clearing
         if (i === filesToUpload.length - 1) {
@@ -322,11 +326,11 @@ export async function uploadFiles(files: Array<FileStatus>, onStart: Function | 
     filesToUpload = [];
 }
 
-export function Stop(fs: FileStatus) {
+export function Stop(fs: FileStatus, errtxt: string) {
     fs.controller.abort();
     const firstUndefInd = fs.uploadedParts.findIndex(w => w === undefined);
     const ptCount = firstUndefInd === -1 ? fs.uploadedParts.length : firstUndefInd;
     fs.uploadedPartsCount = ptCount;
     fs.uploadedBytes = ptCount * chunkSize;
-    fs.errorText = "Upload stopped by user";
+    fs.errorText = errtxt;
 }

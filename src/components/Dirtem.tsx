@@ -43,6 +43,13 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
         }
     }
 
+    function openDir() {
+        const rez = selected.findIndex(el => el.created_at === dir.created_at);
+        if (rez !== -1)
+            setSelected(w => [...w.slice(0, rez), ...w.slice(rez + 1)])
+        setDirHistory(prev => [...prev, dir.id])
+    }
+
     return (
         <div onClick={w => clicked(w)} className="flex justify-between card group">
             <div className={`flex transition-all duration-200 items-center ${selected.length > 0 ? `gap-2` : ``}`}>
@@ -57,7 +64,7 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
                         <form onSubmit={w => { w.preventDefault(); saveName(); }}>
                             <input type="text" autoFocus value={name} onChange={w => setName(w.target.value)} onBlur={saveName} />
                         </form> :
-                        <p ref={refName} onClick={w => setDirHistory(prev => [...prev, dir.id])} className="cursor-pointer">{name}</p>}
+                        <p ref={refName} onClick={w => openDir()} className="cursor-pointer">{name}</p>}
                 </div>
             </div>
             <div ref={refOptions} className={`flex items-center gap-2`}>

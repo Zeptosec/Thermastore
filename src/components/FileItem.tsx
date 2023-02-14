@@ -2,6 +2,7 @@ import { BytesToReadable, Directory, DirFile, getFileIconName } from "@/utils/Fi
 import { supabase } from "@/utils/Supabase";
 import Link from "next/link"
 import { Dispatch, SetStateAction, useRef, useState } from "react"
+import StrechableText from "./StrechableText";
 
 interface Props {
     file: DirFile,
@@ -30,10 +31,10 @@ export default function FileItem({ file, selected, setSelected }: Props) {
         setIsNaming(false);
         if (name.length < 3) {
             setName(file.name);
-            alert("Directory name is too short");
+            alert("File name is too short");
         } else if (name.length > 42) {
             setName(file.name);
-            alert("Directory name is too long");
+            alert("File name is too long");
         } else {
             const { error } = await supabase
                 .from("files")
@@ -47,12 +48,12 @@ export default function FileItem({ file, selected, setSelected }: Props) {
     }
 
     return (
-        <div onClick={w => clicked(w)} className="flex justify-between card group gap-1">
-            <div className={`flex transition-all duration-200 items-center ${selected.length > 0 ? `gap-2` : ``}`}>
-                <div className={`border-blue-900 rounded-full cursor-pointer flex justify-center items-center transition-all duration-200 ${selected.length > 0 ? `w-3.5 h-3.5 border` : `w-0 h-0`}`}>
+        <div onClick={w => clicked(w)} className="flex justify-between card group gap-1 overflow-hidden">
+            <div className={`flex transition-all duration-200 items-center overflow-hidden ${selected.length > 0 ? `gap-2` : ``}`}>
+                <div className={`border-blue-900 rounded-full cursor-pointer flex justify-center items-center transition-all duration-200 ${selected.length > 0 ? `min-w-[14px] h-[14px] border` : `min-w-0 w-0 h-0`}`}>
                     <div className={`rounded-full w-2 h-2 bg-blue-700 transition-opacity duration-200 ${selected.findIndex(w => w.created_at === file.created_at) !== -1 ? "opacity-100" : "opacity-0 group-hover:opacity-40"}`}></div>
                 </div>
-                <div className="flex gap-2 items-center justify-center">
+                <div className="flex gap-2 items-center overflow-hidden">
                     <div className="w-5 h-4 m-auto sm:block hidden">
                         <i className={`gg-${getFileIconName(file.name)} m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200`}></i>
                     </div>
@@ -60,11 +61,13 @@ export default function FileItem({ file, selected, setSelected }: Props) {
                         <form ref={lref} onSubmit={w => { w.preventDefault(); saveName(); }}>
                             <input type="text" autoFocus value={name} onChange={w => setName(w.target.value)} onBlur={saveName} />
                         </form> :
-                        <Link target="_blank" ref={lref} href={`/download/${file.chanid}/${file.fileid}`}>{name}</Link>}
+                        <Link className="flex overflow-hidden" target="_blank" ref={lref} href={`/download/${file.chanid}/${file.fileid}`}>
+                            <StrechableText text={name} />
+                        </Link>}
                 </div>
             </div>
             <div className="flex gap-2 items-center">
-                <p>{BytesToReadable(file.size)}</p>
+                <p className="whitespace-nowrap">{BytesToReadable(file.size)}</p>
                 <div ref={refCopy} className="flex gap-2 items-center">
                     <abbr
                         title="Copy link"

@@ -13,7 +13,7 @@ interface Props {
 
 export default function ShowFilesPage({ files, setDirHistory, selected, setSelected, MoveSelected }: Props) {
     return (
-        <div className="grid gap-1">
+        <div className="grid gap-1 overflow-hidden">
             {files.map((w, ind) => (
                 'fileid' in w ?
                     <FileItem key={ind} file={w} setSelected={setSelected} selected={selected} />

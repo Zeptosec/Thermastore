@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useUser } from "@supabase/auth-helpers-react";
 import Head from "next/head";
+import StrechableText from "@/components/StrechableText";
 
 const uploadPage = ({ setIsUploading }: any) => {
 
@@ -114,30 +115,30 @@ const uploadPage = ({ setIsUploading }: any) => {
                     {filesToUpload.length > 0 ?
                         <div className="grid items-start gap-4">
                             {filesToUpload.map((w, ind) => (
-                                <div key={ind} className={`card relative flex justify-between flex-col sm:flex-row`}>
+                                <div key={ind} className={`card relative flex sm:gap-4 justify-between flex-col sm:flex-row overflow-hidden`}>
                                     {w.finished ? w.errorText.length > 0 ?
                                         <>
                                             <div className="w-full h-full -z-10 duration-1000 bg-red-400 opacity-60 top-0 left-0 absolute"></div>
-                                            <p>{w.file.name}</p>
+                                            <StrechableText text={w.file.name} />
                                             <p className="text-red-600">{w.errorText}</p>
-                                            <p>{BytesToReadable(w.file.size)}</p>
+                                            <p className="whitespace-nowrap">{BytesToReadable(w.file.size)}</p>
                                         </> :
                                         <>
                                             <div className="w-full h-full -z-10 duration-1000 bg-blue-400 opacity-60 top-0 left-0 absolute"></div>
-                                            <Link href={w.link} target="_blank">{w.file.name}</Link>
-                                            <p>{BytesToReadable(w.file.size)}</p>
+                                            <Link className="overflow-hidden" href={w.link} target="_blank"><StrechableText text={w.file.name} /></Link>
+                                            <p className="whitespace-nowrap">{BytesToReadable(w.file.size)}</p>
                                         </> :
                                         <>
                                             <div style={{ width: `${w.uploadedBytes / w.file.size * 100}%` }} className="h-full -z-10 duration-1000 bg-blue-400 opacity-60 top-0 left-0 absolute"></div>
-                                            <p>{w.file.name}</p>
+                                            <div className="sm:m-0 flex justify-center overflow-hidden mb-1"><StrechableText text={w.file.name} /></div>
                                             {w.errorText.length > 0 ? <p>{w.errorText}</p> : ""}
-                                            <div className="flex gap-4 items-center">
-                                                <p>{TimeToReadable(w.timeleft)}</p>
-                                                <p>{BytesToReadable(w.speed)}/s</p>
-                                                <p>{BytesToReadable(w.uploadedBytes)}/{BytesToReadable(w.file.size)}</p>
+                                            <div className="flex sm:flex-row text-center sm:text-left flex-col gap-1 sm:gap-4 items-center justify-between sm:justify-end">
+                                                <p className="whitespace-nowrap">{TimeToReadable(w.timeleft)}</p>
+                                                <p className="whitespace-nowrap">{BytesToReadable(w.speed)}/s</p>
+                                                <p className="whitespace-nowrap">{BytesToReadable(w.uploadedBytes)}/{BytesToReadable(w.file.size)}</p>
                                                 {w.controller.signal.aborted ?
-                                                    <abbr title="Continue download" className="cursor-pointer text-white transition-colors duration-200 hover:text-blue-700" onClick={() => ContinueDownload(w)}><i className="gg-play-button-r"></i></abbr> :
-                                                    <abbr title="Stop download" className="cursor-pointer text-white transition-colors duration-200 hover:text-blue-700" onClick={() => Stop(w)}><i className="gg-play-stop-r"></i></abbr>}
+                                                    <abbr title="Continue download" className="flex justify-center sm:block cursor-pointer text-white transition-colors duration-200 hover:text-blue-700" onClick={() => ContinueDownload(w)}><i className="gg-play-button-r"></i></abbr> :
+                                                    <abbr title="Stop download" className="flex justify-center sm:block cursor-pointer text-white transition-colors duration-200 hover:text-blue-700" onClick={() => Stop(w, "Upload stopped by user")}><i className="gg-play-stop-r"></i></abbr>}
                                             </div>
                                         </>}
                                 </div>))}
