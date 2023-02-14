@@ -1,5 +1,5 @@
-import { DownloadStatus } from "@/utils/FileDownload"
-import { useState } from "react";
+import { DownloadStatus, getImageHref } from "@/utils/FileDownload"
+import { useEffect, useState } from "react";
 
 interface Props {
     file: DownloadStatus,
@@ -14,6 +14,7 @@ const streams: string[] = [
 
 export default function PreviewFile({ file, fid, cid }: Props) {
     const [sid, setSid] = useState(0);
+    const [href, setHref] = useState("");
     function hasExtension(ext: string[]) {
         if (!file.name.includes('.')) return false;
         const parts = file.name.split('.');
@@ -22,6 +23,18 @@ export default function PreviewFile({ file, fid, cid }: Props) {
         else
             return false;
     }
+
+    useEffect(() => {
+        async function showImage() {
+            if (file.size > 1024 ** 2) return;
+            const hr = await getImageHref(file, cid);
+            setHref(hr);
+        }
+        if (hasExtension(['png', 'jpg', 'jpeg', 'gif', 'bmp']))
+            showImage();
+    }, [])
+
+
 
     return (
         <div>
@@ -41,6 +54,10 @@ export default function PreviewFile({ file, fid, cid }: Props) {
                         <audio className="w-full outline-none" controls controlsList="nodownload" src={`${streams[sid]}/stream/${cid}/${fid}`}></audio>
                     </div> : ""}
                 </> : ""}
+            {(hasExtension(['png', 'jpg', 'jpeg', 'gif', 'bmp']) && href !== "") ? <div className="grid justify-center">
+                <p className="text-center text-2xl pb-4">Preview</p>
+                <img src={href} />
+            </div> : ""}
         </div>
     )
 }

@@ -97,6 +97,13 @@ export function downloadBlob(file: Blob, name: string) {
     URL.revokeObjectURL(href);
 }
 
+export async function getImageHref(file: DownloadStatus, chanId: string) {
+    const { chunkIndex, data, arrayIndex } = await downloadChunk(file.chunks[0], chanId, 0, 0, file);
+    let dwnFile = new Blob([data]);
+    const href = URL.createObjectURL(dwnFile);
+    return href;
+}
+
 export async function downloadFileChunks(file: DownloadStatus, setFile: Dispatch<SetStateAction<DownloadStatus>>, onStart: Function | null = null, onFinished: Function | null = null) {
     if (onStart) onStart();
     let speeds: Array<number> = [];
