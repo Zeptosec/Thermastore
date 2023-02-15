@@ -1,0 +1,95 @@
+.search {
+    display: table;
+}
+
+.search input {
+    background: none;
+    border: none;
+    outline: none;
+    width: 28px;
+    min-width: 0;
+    padding: 0;
+    z-index: 1;
+    position: relative;
+    line-height: 18px;
+    margin: 5px 0;
+    font-size: 14px;
+    -webkit-appearance: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    color: #fff;
+}
+
+.search input+div {
+    position: relative;
+    height: 28px;
+    width: 100%;
+    margin: -28px 0 0 0;
+}
+
+.search input+div svg {
+    display: block;
+    position: absolute;
+    height: 28px;
+    width: 120px;
+    right: 0;
+    top: 0;
+    fill: none;
+    stroke: #fff;
+    stroke-width: 1.5px;
+    stroke-dashoffset: 271.908;
+    stroke-dasharray: 59 212.908;
+    transition: all 0.3s ease;
+}
+
+.search input:hover+div svg {
+    stroke: rgb(29 78 216);
+}
+
+.search input:not(:-moz-placeholder-shown) {
+    width: 120px;
+    padding: 0 4px;
+    cursor: text;
+}
+
+.search input:not(:-ms-input-placeholder) {
+    width: 120px;
+    padding: 0 4px;
+    cursor: text;
+}
+
+.search input:not(:placeholder-shown),
+.search input:focus {
+    width: 120px;
+    padding: 0 4px;
+    cursor: text;
+}
+
+.search input:not(:-moz-placeholder-shown)+div svg {
+    stroke-dasharray: 150 212.908;
+    stroke-dashoffset: 300;
+}
+
+.search input:not(:-ms-input-placeholder)+div svg {
+    stroke-dasharray: 150 212.908;
+    stroke-dashoffset: 300;
+}
+
+.search input:not(:placeholder-shown)+div svg,
+.search input:focus+div svg {
+    stroke-dasharray: 150 212.908;
+    stroke-dashoffset: 300;
+    stroke: rgb(29 78 216);
+}
+
+.dribbble {
+    position: fixed;
+    display: block;
+    right: 24px;
+    bottom: 24px;
+}
+
+.dribbble img {
+    display: block;
+    width: 76px;
+}

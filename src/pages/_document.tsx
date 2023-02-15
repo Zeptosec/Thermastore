@@ -20,6 +20,7 @@ export default function Document() {
         <link href='https://css.gg/rename.css' rel='stylesheet'/>
         <link href='https://css.gg/play-stop-r.css' rel='stylesheet'></link>
         <link href='https://css.gg/play-button-r.css' rel='stylesheet'></link>
+        <link href='https://css.gg/globe-alt.css' rel='stylesheet'></link>
       </Head>
       <body>
         <Main />

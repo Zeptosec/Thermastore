@@ -1,5 +1,6 @@
 import BubbleBackground from "@/components/BubbleBackground";
 import CoolLoader from "@/components/CoolLoading2";
+import CoolSearch from "@/components/CoolSearch";
 import ShowFiles from "@/components/ShowFiles";
 import { Directory, DirFile, getFilesWithDir } from "@/utils/FileFunctions";
 import { useSessionContext, useSupabaseClient, useUser } from "@supabase/auth-helpers-react"
@@ -20,6 +21,8 @@ export default function filesPage() {
     const [currPageSize, setCurrPageSize] = useState(50);
     const [selected, setSelected] = useState<(Directory | DirFile)[]>([]);
     const [canNext, setCanNext] = useState<boolean>();
+    const [searchStr, setSearchStr] = useState("");
+    const [isGlobal, setIsGlobal] = useState(false);
 
     async function fetchData() {
         setStillLoading(true);
@@ -27,7 +30,7 @@ export default function filesPage() {
         if (!user) router.push("/");
         setMsg("Fetching info about files...");
         const dir = dirHistory.length === 0 ? null : dirHistory[dirHistory.length - 1]
-        const { arr, next } = await getFilesWithDir(supabase, dir, currPage, currPageSize, files);
+        const { arr, next } = await getFilesWithDir(supabase, dir, currPage, currPageSize, files, searchStr, isGlobal);
         setFiles(arr);
         setCanNext(next);
         setStillLoading(false);
@@ -36,14 +39,22 @@ export default function filesPage() {
     useEffect(() => {
         fetchData();
         //fetch files
-    }, [isLoading, currPage]);
+    }, [isLoading, currPage, searchStr]);
 
     useEffect(() => {
-        if (currPage === 1)
+        if (searchStr.length > 0) {
+            setSearchStr("");
+        } else if (currPage === 1)
             fetchData();
         else
             setCurrPage(1);
-    }, [dirHistory])
+    }, [dirHistory]);
+
+    useEffect(() => {
+        if (searchStr.length > 0) {
+            fetchData();
+        }
+    }, [isGlobal]);
 
     async function AddFolder() {
         let name = prompt("Directory name", "Folder");
@@ -142,6 +153,17 @@ export default function filesPage() {
         await fetchData();
     }
 
+    const [interval, setInterval] = useState<null | NodeJS.Timeout>(null);
+    function searchChanged(str: string) {
+        if (interval) {
+            clearTimeout(interval);
+        }
+        setInterval(setTimeout(() => {
+            setSearchStr(str);
+            setCurrPage(1);
+        }, 1500))
+    }
+
     return (
         <div>
             <Head>
@@ -164,6 +186,10 @@ export default function filesPage() {
                                 <abbr onClick={() => setSelected([])} title="Deselect all"><i className="gg-close-r cursor-pointer transition-colors duration-200 hover:text-blue-700"></i></abbr>
                                 <abbr onClick={() => deleteSelected()} title="Delete selected"><i className="gg-remove-r cursor-pointer transition-colors duration-200 hover:text-blue-700"></i></abbr>
                             </div> : ""}
+                            <div className="flex items-center gap-2">
+                                <abbr title="Search for files"><CoolSearch inputChanged={searchChanged} text={searchStr} /></abbr>
+                                <abbr onClick={() => setIsGlobal(w => !w)} className={`cursor-pointer transition-colors duration-200 ${isGlobal ? "text-green-700 hover:text-green-800" : "text-red-500 hover:text-red-600"}`} title={`Global search is ${isGlobal ? "enabled" : "disabled"}`}><i className="gg-globe-alt"></i></abbr>
+                            </div>
                         </div>
                         <ShowFiles
                             files={files}
