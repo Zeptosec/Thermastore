@@ -182,9 +182,9 @@ export default function filesPage() {
                                 <abbr title="New directory"><i className="gg-folder-add cursor-pointer transition-colors duration-200 hover:text-blue-700" onClick={() => AddFolder()}></i></abbr>
                             </div>
                             {selected.length > 0 ? <div className="flex gap-2 items-center">
-                                <abbr title="Move selected here"><i onClick={() => MoveSelected(dirHistory.length > 0 ? dirHistory[dirHistory.length - 1] : null, true)} className="gg-add-r cursor-pointer transition-colors duration-200 hover:text-blue-700"></i></abbr>
-                                <abbr onClick={() => setSelected([])} title="Deselect all"><i className="gg-close-r cursor-pointer transition-colors duration-200 hover:text-blue-700"></i></abbr>
-                                <abbr onClick={() => deleteSelected()} title="Delete selected"><i className="gg-remove-r cursor-pointer transition-colors duration-200 hover:text-blue-700"></i></abbr>
+                                <abbr className="cursor-pointer transition-colors duration-200 hover:text-blue-700 w-[22px] h-[22px] flex justify-center items-center" title="Move selected here"><i onClick={() => MoveSelected(dirHistory.length > 0 ? dirHistory[dirHistory.length - 1] : null, true)} className="gg-add-r"></i></abbr>
+                                <abbr className="cursor-pointer transition-colors duration-200 hover:text-blue-700 w-[22px] h-[22px] flex justify-center items-center" onClick={() => setSelected([])} title="Deselect all"><i className="gg-close-r"></i></abbr>
+                                <abbr className="cursor-pointer transition-colors duration-200 hover:text-blue-700 w-[22px] h-[22px] flex justify-center items-center" onClick={() => deleteSelected()} title="Delete selected"><i className="gg-trash"></i></abbr>
                             </div> : ""}
                             <div className="flex items-center gap-2">
                                 <abbr title="Search for files"><CoolSearch inputChanged={searchChanged} text={searchStr} /></abbr>

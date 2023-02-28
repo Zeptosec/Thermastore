@@ -1,6 +1,7 @@
 import { Directory, DirFile } from "@/utils/FileFunctions"
 import { supabase } from "@/utils/Supabase";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
+import SelectionBubble from "./SelectionBubble";
 
 interface Props {
     dir: Directory,
@@ -52,10 +53,7 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
 
     return (
         <div onClick={w => clicked(w)} className="flex justify-between card group">
-            <div className={`flex transition-all duration-200 items-center ${selected.length > 0 ? `gap-2` : ``}`}>
-                <div className={`border-blue-900 rounded-full cursor-pointer flex justify-center items-center transition-all duration-200 ${selected.length > 0 ? `w-3.5 h-3.5 border` : `w-0 h-0`}`}>
-                    <div className={`rounded-full w-2 h-2 bg-blue-700 transition-opacity duration-200 ${selected.findIndex(w => w.created_at === dir.created_at) !== -1 ? "opacity-100" : "opacity-0 group-hover:opacity-40"}`}></div>
-                </div>
+            <SelectionBubble file={dir} selected={selected}>
                 <div className="flex gap-2 items-center justify-center">
                     <div className="w-5 h-4 m-auto sm:block hidden">
                         <i className="gg-folder m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i>
@@ -66,7 +64,7 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
                         </form> :
                         <p ref={refName} onClick={w => openDir()} className="cursor-pointer">{name}</p>}
                 </div>
-            </div>
+            </SelectionBubble>
             <div ref={refOptions} className={`flex items-center gap-2`}>
                 {selected.length > 0 ? <abbr title="Move to this directory"><i onClick={() => MoveSelected(dir.id, false)} className={`gg-add-r cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200`}></i></abbr> : ""}
                 {!isNaming ? <abbr onClick={() => setIsNaming(w => !w)} title="Rename"><i className="gg-rename cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200"></i></abbr> : ""}

@@ -11,7 +11,7 @@ export default function Document() {
         <link href='https://unpkg.com/css.gg@2.0.0/icons/css/arrow-down-r.css' rel='stylesheet'></link>
         <link href='https://unpkg.com/css.gg@2.0.0/icons/css/close-r.css' rel='stylesheet'></link>
         <link href='https://unpkg.com/css.gg@2.0.0/icons/css/arrow-right.css' rel='stylesheet'/>
-        <link href='https://unpkg.com/css.gg@2.0.0/icons/css/remove-r.css' rel='stylesheet'/>
+        <link href='https://unpkg.com/css.gg@2.0.0/icons/css/trash.css' rel='stylesheet'/>
         <link href='https://unpkg.com/css.gg@2.0.0/icons/css/file.css' rel='stylesheet'></link>
         <link href='https://unpkg.com/css.gg@2.0.0/icons/css/music-note.css' rel='stylesheet'/>
         <link href='https://unpkg.com/css.gg@2.0.0/icons/css/file-document.css' rel='stylesheet'></link>

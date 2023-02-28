@@ -2,6 +2,7 @@ import { BytesToReadable, Directory, DirFile, getFileIconName } from "@/utils/Fi
 import { supabase } from "@/utils/Supabase";
 import Link from "next/link"
 import { Dispatch, SetStateAction, useRef, useState } from "react"
+import SelectionBubble from "./SelectionBubble";
 import StrechableText from "./StrechableText";
 
 interface Props {
@@ -49,13 +50,11 @@ export default function FileItem({ file, selected, setSelected }: Props) {
 
     return (
         <div onClick={w => clicked(w)} className="flex justify-between card group gap-1 overflow-hidden">
-            <div className={`flex transition-all duration-200 items-center overflow-hidden ${selected.length > 0 ? `gap-2` : ``}`}>
-                <div className={`border-blue-900 rounded-full cursor-pointer flex justify-center items-center transition-all duration-200 ${selected.length > 0 ? `min-w-[14px] h-[14px] border` : `min-w-0 w-0 h-0`}`}>
-                    <div className={`rounded-full w-2 h-2 bg-blue-700 transition-opacity duration-200 ${selected.findIndex(w => w.created_at === file.created_at) !== -1 ? "opacity-100" : "opacity-0 group-hover:opacity-40"}`}></div>
-                </div>
+            <SelectionBubble file={file} selected={selected}>
                 <div className="flex gap-2 items-center overflow-hidden">
                     <div className="w-5 h-4 m-auto sm:block hidden">
                         <i className={`gg-${getFileIconName(file.name)} m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200`}></i>
+                        {/* Maybe add file feature like play button for audio */}
                     </div>
                     {isNaming ?
                         <form ref={lref} onSubmit={w => { w.preventDefault(); saveName(); }}>
@@ -65,7 +64,7 @@ export default function FileItem({ file, selected, setSelected }: Props) {
                             <StrechableText text={name} />
                         </Link>}
                 </div>
-            </div>
+            </SelectionBubble>
             <div className="flex gap-2 items-center">
                 <p className="whitespace-nowrap">{BytesToReadable(file.size)}</p>
                 <div ref={refCopy} className="flex gap-2 items-center">
