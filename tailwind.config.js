@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+const plugin = require('tailwindcss/plugin')
 module.exports = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx}",
@@ -14,5 +15,11 @@ module.exports = {
       }
     },
   },
-  plugins: [],
+  plugins: [plugin(function({ addUtilities }) {
+    addUtilities({
+      '.flip-y': {
+        'transform': 'rotateY(180deg)',
+      }
+    })
+  })],
 }

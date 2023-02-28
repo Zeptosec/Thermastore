@@ -208,6 +208,23 @@ export async function getFilesWithDir(supabase: SupabaseClient<any, "public", an
         return await getFilesWithSearch(supabase, from, to, dir, prevDirsCount, pageSize, searchStr, isGlobal);
 }
 
+export function FileEndsWith(name: string, ends: string[]) {
+    if (!name.includes('.')) return false;
+    else {
+        const parts = name.split('.');
+        const ext = parts[parts.length - 1].toLowerCase();
+        for (let i = 0; i < ends.length; i++) {
+            if (ends[i].toLowerCase() === ext)
+                return true;
+        }
+        return false;
+    }
+}
+
+export function IsAudioFile(name: string){
+    return FileEndsWith(name, ['mp3', 'ogg', 'wav']);
+}
+
 export function getFileIconName(name: string) {
     if (!name.includes('.')) return "file";
     const parts = name.split('.');
@@ -215,16 +232,16 @@ export function getFileIconName(name: string) {
         case "mp3":
         case "ogg":
         case "wav":
-            return "music-note";
+            return "music-note mt-1";
         case "txt":
         case "doc":
         case "docx":
-            return "file-document";
+            return "file-document mt-0.5";
 
         case "mkv":
         case "mp4":
-            return "film";
+            return "film mt-0.5";
         default:
-            return "file";
+            return "file mt-0.5";
     }
 }

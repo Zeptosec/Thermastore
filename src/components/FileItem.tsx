@@ -1,7 +1,8 @@
-import { BytesToReadable, Directory, DirFile, getFileIconName } from "@/utils/FileFunctions"
+import { BytesToReadable, Directory, DirFile, getFileIconName, IsAudioFile } from "@/utils/FileFunctions"
 import { supabase } from "@/utils/Supabase";
 import Link from "next/link"
 import { Dispatch, SetStateAction, useRef, useState } from "react"
+import FlipCard from "./FlipCard";
 import SelectionBubble from "./SelectionBubble";
 import StrechableText from "./StrechableText";
 
@@ -12,16 +13,22 @@ interface Props {
 }
 export default function FileItem({ file, selected, setSelected }: Props) {
     const lref = useRef<any>(null);
+    const audioRef = useRef<any>(null);
     const refCopy = useRef<any>(null);
+    const audioBtn = useRef<any>(null);
     const [isNaming, setIsNaming] = useState(false);
     const [name, setName] = useState<string>(file.name);
+    const [isPlaying, setIsPlaying] = useState(false);
     function copyClipboard() {
         navigator.clipboard.writeText(lref.current.href);
     }
 
     function clicked(w: any) {
+        console.log(w.target)
+        console.log(audioBtn.current);
         if (!(lref.current && lref.current.contains(w.target) ||
-            refCopy.current && refCopy.current.contains(w.target))) {
+            refCopy.current && refCopy.current.contains(w.target) ||
+            audioBtn.current && audioBtn.current.contains(w.target))) {
             const rez = selected.findIndex(el => el.created_at === file.created_at);
             if (rez === -1) setSelected(el => [...el, file]);
             else setSelected(el => [...el.slice(0, rez), ...el.slice(rez + 1)]);
@@ -48,13 +55,40 @@ export default function FileItem({ file, selected, setSelected }: Props) {
         }
     }
 
+    function play() {
+        if (audioRef.current) {
+            setIsPlaying(true);
+            audioRef.current.play();
+        }
+    }
+
+    function pause() {
+        if (audioRef.current) {
+            setIsPlaying(false);
+            audioRef.current.pause();
+        }
+    }
+
     return (
         <div onClick={w => clicked(w)} className="flex justify-between card group gap-1 overflow-hidden">
             <SelectionBubble file={file} selected={selected}>
                 <div className="flex gap-2 items-center overflow-hidden">
-                    <div className="w-5 h-4 m-auto sm:block hidden">
-                        <i className={`gg-${getFileIconName(file.name)} m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200`}></i>
-                        {/* Maybe add file feature like play button for audio */}
+                    <div className="w-5 h-5 m-auto sm:block hidden">
+                        <audio preload="none" onEnded={() => setIsPlaying(false)} ref={audioRef} src={`https://streamer.teisingas.repl.co/stream/${file.chanid}/${file.fileid}`} />
+                        {IsAudioFile(file.name) ? isPlaying ?
+                            <div ref={audioBtn}>
+                                <button onClick={pause}><i className="gg-play-pause-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
+                            </div> :
+                            <FlipCard>
+                                <i className={`gg-${getFileIconName(file.name)} m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200`}></i>
+                                <div ref={audioBtn}>
+                                    <button className={isPlaying ? "hidden" : ""} onClick={play}><i className="gg-play-button-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
+                                    <button className={!isPlaying ? "hidden" : "" } onClick={pause}><i className="gg-play-pause-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
+                                </div>
+                            </FlipCard> :
+                            <i className={`gg-${getFileIconName(file.name)} m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200`}></i>
+                        }
+
                     </div>
                     {isNaming ?
                         <form ref={lref} onSubmit={w => { w.preventDefault(); saveName(); }}>
