@@ -6,6 +6,14 @@ body {
     background-color: #232323;
 }
 
+.mt-1 {
+    margin-top: 4px;
+}
+
+.mt-05 {
+    margin-top: 2px;
+}
+
 .text-left-side {
     flex: 0 1 auto;
     overflow: hidden;
@@ -36,7 +44,7 @@ body {
     color: black;
 }
 
-.card a{ 
+.card a {
     color: black;
     transition: 0.3s;
 }

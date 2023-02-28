@@ -236,12 +236,12 @@ export function getFileIconName(name: string) {
         case "txt":
         case "doc":
         case "docx":
-            return "file-document mt-0.5";
+            return "file-document mt-05";
 
         case "mkv":
         case "mp4":
-            return "film mt-0.5";
+            return "film mt-05";
         default:
-            return "file mt-0.5";
+            return "file mt-05";
     }
 }
