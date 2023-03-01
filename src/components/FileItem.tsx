@@ -9,16 +9,17 @@ import StrechableText from "./StrechableText";
 interface Props {
     file: DirFile,
     selected: (DirFile | Directory)[],
-    setSelected: Dispatch<SetStateAction<(DirFile | Directory)[]>>
+    setSelected: Dispatch<SetStateAction<(DirFile | Directory)[]>>,
+    playing: DirFile | undefined,
+    togglePlay: Function
 }
-export default function FileItem({ file, selected, setSelected }: Props) {
+export default function FileItem({ file, selected, setSelected, playing, togglePlay }: Props) {
     const lref = useRef<any>(null);
     const audioRef = useRef<any>(null);
     const refCopy = useRef<any>(null);
     const audioBtn = useRef<any>(null);
     const [isNaming, setIsNaming] = useState(false);
     const [name, setName] = useState<string>(file.name);
-    const [isPlaying, setIsPlaying] = useState(false);
     function copyClipboard() {
         navigator.clipboard.writeText(lref.current.href);
     }
@@ -55,35 +56,20 @@ export default function FileItem({ file, selected, setSelected }: Props) {
         }
     }
 
-    function play() {
-        if (audioRef.current) {
-            setIsPlaying(true);
-            audioRef.current.play();
-        }
-    }
-
-    function pause() {
-        if (audioRef.current) {
-            setIsPlaying(false);
-            audioRef.current.pause();
-        }
-    }
-
     return (
         <div onClick={w => clicked(w)} className="flex justify-between card group gap-1 overflow-hidden">
             <SelectionBubble file={file} selected={selected}>
                 <div className="flex gap-2 items-center overflow-hidden">
                     <div className="w-5 h-5 m-auto sm:block hidden">
-                        <audio preload="none" onEnded={() => setIsPlaying(false)} ref={audioRef} src={`https://streamer.teisingas.repl.co/stream/${file.chanid}/${file.fileid}`} />
-                        {IsAudioFile(file.name) ? isPlaying ?
+                        {IsAudioFile(file.name) ? playing?.created_at === file.created_at ?
                             <div ref={audioBtn}>
-                                <button onClick={pause}><i className="gg-play-pause-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
+                                <button onClick={() => togglePlay(file)}><i className="gg-play-pause-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
                             </div> :
                             <FlipCard>
                                 <i className={`gg-${getFileIconName(file.name)} m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200`}></i>
                                 <div ref={audioBtn}>
-                                    <button className={isPlaying ? "hidden" : ""} onClick={play}><i className="gg-play-button-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
-                                    <button className={!isPlaying ? "hidden" : "" } onClick={pause}><i className="gg-play-pause-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
+                                    <button className={playing?.created_at === file.created_at ? "hidden" : ""} onClick={() => togglePlay(file)}><i className="gg-play-button-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
+                                    <button className={playing?.created_at !== file.created_at ? "hidden" : "" } onClick={() => togglePlay(file)}><i className="gg-play-pause-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
                                 </div>
                             </FlipCard> :
                             <i className={`gg-${getFileIconName(file.name)} m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200`}></i>
