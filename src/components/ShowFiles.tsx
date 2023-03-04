@@ -16,6 +16,7 @@ export interface PlayStatus {
     playFile: DirFile,
     paused: boolean,
     start: boolean,
+    percent: number
 }
 
 export default function ShowFilesPage({ files, setDirHistory, selected, setSelected, MoveSelected, selectable }: Props) {
@@ -27,25 +28,25 @@ export default function ShowFilesPage({ files, setDirHistory, selected, setSelec
                 audioRef.current.pause();
             setCurrPlayingFile(undefined);
         } else {
-            if (file.created_at === currPlayingFile?.playFile.created_at) {
+            if (currPlayingFile && file.created_at === currPlayingFile.playFile.created_at) {
                 if (!audioRef.current) return;
                 if (audioRef.current.paused) {
                     audioRef.current.play();
-                    setCurrPlayingFile({ playFile: file, paused: false, start: false });
+                    setCurrPlayingFile(w => w ? { ...w, paused: false, start: false } : w);
                 } else {
                     audioRef.current.pause();
-                    setCurrPlayingFile({ playFile: file, paused: true, start: false });
+                    setCurrPlayingFile(w => w ? { ...w, paused: true, start: false } : w);
                 }
             } else {
-                setCurrPlayingFile({ playFile: file, paused: false, start: true });
+                setCurrPlayingFile({ playFile: file, paused: false, start: true, percent: 0 });
             }
         }
     }
 
     useEffect(() => {
         const keyDownHandler = (e: KeyboardEvent) => {
-            if(!audioRef.current) return;
-            switch(e.code){
+            if (!audioRef.current) return;
+            switch (e.code) {
                 case 'ArrowLeft':
                     audioRef.current.currentTime -= 5;
                     break;
@@ -67,7 +68,7 @@ export default function ShowFilesPage({ files, setDirHistory, selected, setSelec
 
     return (
         <div className="grid gap-1 overflow-hidden">
-            {currPlayingFile ? <audio preload="none" onEnded={() => playAudio(undefined)} ref={audioRef} src={`https://streamer.teisingas.repl.co/stream/${currPlayingFile.playFile.chanid}/${currPlayingFile.playFile.fileid}`} /> : ""}
+            {currPlayingFile ? <audio onTimeUpdate={() => setCurrPlayingFile(w => w ? {...w, percent: audioRef.current.currentTime / audioRef.current.duration * 100} : w)} preload="none" onEnded={() => playAudio(undefined)} ref={audioRef} src={`https://streamer.teisingas.repl.co/stream/${currPlayingFile.playFile.chanid}/${currPlayingFile.playFile.fileid}`} /> : ""}
             {files.map((w, ind) => (
                 'fileid' in w ?
                     <FileItem key={ind} file={w} setSelected={setSelected} selected={selected} playing={currPlayingFile} togglePlay={playAudio} selectable={selectable} />

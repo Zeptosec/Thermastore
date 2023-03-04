@@ -63,16 +63,15 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
                 <div className="flex gap-2 items-center overflow-hidden">
                     <div className="w-5 h-5 m-auto sm:block hidden">
                         {IsAudioFile(file.name) ? playing?.playFile.created_at === file.created_at ?
-                            <div ref={audioBtn}>
-                                {playing.paused ? <button className="outline-none" onClick={() => togglePlay(file)}><i className="gg-play-button-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
-                                    :
-                                    <button className="outline-none" onClick={() => togglePlay(file)}><i className="gg-play-pause-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>}
+                            <div onClick={() => togglePlay(file)} ref={audioBtn}>
+                                <PlayCircle className="cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200" radius={11} percent={playing?.percent} stroke={1} paused={playing?.paused} />
                             </div> :
                             <FlipCard>
                                 <i className={`gg-${getFileIconName(file.name)} m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200`}></i>
-                                <div ref={audioBtn}>
-                                    <button className={playing?.playFile.created_at === file.created_at ? "hidden" : ""} onClick={() => togglePlay(file)}><i className="gg-play-button-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
-                                    <button className={playing?.playFile.created_at !== file.created_at ? "hidden" : ""} onClick={() => togglePlay(file)}><i className="gg-play-pause-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
+                                <div onClick={() => togglePlay(file)} ref={audioBtn}>
+                                    <PlayCircle className="cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200" radius={11} stroke={1} />
+                                    {/* <button className={playing?.playFile.created_at === file.created_at ? "hidden" : ""} onClick={() => togglePlay(file)}><i className="gg-play-button-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
+                                    <button className={playing?.playFile.created_at !== file.created_at ? "hidden" : ""} onClick={() => togglePlay(file)}><i className="gg-play-pause-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button> */}
                                 </div>
                             </FlipCard> :
                             <i className={`gg-${getFileIconName(file.name)} m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200`}></i>

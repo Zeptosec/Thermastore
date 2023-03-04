@@ -1,26 +1,45 @@
 
 interface Props {
-    paused: boolean,
-    currentTime: number
+    percent?: number,
+    paused?: boolean
+    radius: number,
+    stroke: number,
+    onClick?: any,
+    className?: string
 }
 
-export default function PlayCircle({ paused, currentTime }: Props) {
-
+export default function PlayCircle({ percent, radius, stroke, paused, onClick, className }: Props) {
+    let normalizedRadius = radius - stroke;
+    let circumference = normalizedRadius * 2 * Math.PI;
+    let prc = percent ?? 0;
+    let isPaused = paused ?? true;
     return (
-        <div>
+        <div className={`relative ${className}`} onClick={onClick}>
             <style jsx>{`
         circle {
-            fill: white;
-            stroke: black;
-            stroke-width: 2;
-            stroke-dasharray: 250;
-            stroke-dashoffset: 1000;
-            animation: rotate 5s linear infinite;
-          }
+            transition: stroke-dashoffset 0.2s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
       `}</style>
-            <svg height="22" width="22">
-                <circle cx="10" cy="10" r="9" />
+            <svg
+                height={`${radius * 2}`}
+                width={`${radius * 2}`}
+            >
+                <circle
+                    stroke="blue"
+                    stroke-dasharray={`${circumference} ${circumference}`}
+                    style={{ strokeDashoffset: `${circumference - prc / 100 * circumference}` }}
+                    stroke-width={stroke}
+                    fill="transparent"
+                    r={normalizedRadius}
+                    cx={radius}
+                    cy={radius}
+                />
             </svg>
-        </div>
+            {isPaused ?
+                <abbr className="absolute top-0 left-0" title="Play"><i className="gg-play-button"></i></abbr> :
+                <abbr className="absolute top-1.5 left-[7px]" title="Pause"><i className="gg-play-pause"></i></abbr>}
+        </div >
     )
 }
