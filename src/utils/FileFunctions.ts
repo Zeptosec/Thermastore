@@ -1,4 +1,4 @@
-import { SupabaseClient } from "@supabase/supabase-js";
+import { PostgrestResponse, SupabaseClient } from "@supabase/supabase-js";
 
 export const chunkSize = 8 * 1024 ** 2 - 192;
 
@@ -54,7 +54,8 @@ export interface Directory {
     id: number,
     name: string,
     created_at: string,
-    dir: number
+    dir: number,
+    shared: boolean
 }
 
 export interface DirFile {
@@ -67,19 +68,85 @@ export interface DirFile {
     dir: number
 }
 
-async function getFilesNoSearch(supabase: SupabaseClient<any, "public", any>, from: number, to: number, dir: number | null, prevDirsCount: number, pageSize: number) {
+async function getDirectories(supabase: SupabaseClient<any, "public", any>, from: number, to: number, dir: number | null, searchStr: string, isGlobal: boolean) {
+    if (searchStr.length > 0) {
+        return isGlobal ?
+            await supabase
+                .from('directories')
+                .select('id, name, created_at, dir, shared', { count: 'estimated' })
+                .like('name', `%${searchStr}%`)
+                .range(from, to)
+            : dir === null ?
+                await supabase
+                    .from('directories')
+                    .select('id, name, created_at, dir, shared', { count: 'estimated' })
+                    .is('dir', null)
+                    .like('name', `%${searchStr}%`)
+                    .range(from, to)
+                :
+                await supabase
+                    .from('directories')
+                    .select('id, name, created_at, dir, shared')
+                    .eq('dir', dir)
+                    .like('name', `%${searchStr}%`)
+                    .range(from, to);
+    } else {
+        return dir === null ?
+            await supabase
+                .from('directories')
+                .select('id, name, created_at, dir, shared', { count: 'estimated' })
+                .is('dir', null)
+                .range(from, to)
+            :
+            await supabase
+                .from('directories')
+                .select('id, name, created_at, dir, shared', { count: 'estimated' })
+                .eq('dir', dir)
+                .range(from, to);
+    }
+}
+
+async function getFiles(supabase: SupabaseClient<any, "public", any>, from: number, to: number, dir: number | null, searchStr: string, isGlobal: boolean) {
+    if (searchStr.length > 0) {
+        return isGlobal ?
+            await supabase
+                .from('files')
+                .select('id, name, created_at, size, chanid, fileid, dir')
+                .like('name', `%${searchStr}%`)
+                .range(from, to)
+            :
+            dir === null ?
+                await supabase
+                    .from('files')
+                    .select('id, name, created_at, size, chanid, fileid, dir')
+                    .is('dir', null)
+                    .like('name', `%${searchStr}%`)
+                    .range(from, to) :
+                await supabase
+                    .from('files')
+                    .select('id, name, created_at, size, chanid, fileid, dir')
+                    .eq('dir', dir)
+                    .like('name', `%${searchStr}%`)
+                    .range(from, to)
+
+    } else {
+        return dir === null ?
+            await supabase
+                .from('files')
+                .select('id, name, created_at, size, chanid, fileid, dir')
+                .is('dir', null)
+                .range(from, to) :
+            await supabase
+                .from('files')
+                .select('id, name, created_at, size, chanid, fileid, dir')
+                .eq('dir', dir)
+                .range(from, to)
+    }
+}
+
+export async function fetchFilesFromDB(supabase: SupabaseClient<any, "public", any>, from: number, to: number, dir: number | null | object, prevDirsCount: number, pageSize: number, getDirsFunc: Function, getFilesFunc: Function, searchStr: string, isGlobal: boolean) {
     let arr: (Directory | DirFile)[] = [];
-    const dirs = dir === null ?
-        await supabase
-            .from('directories')
-            .select('id, name, created_at, dir', { count: 'estimated' })
-            .is('dir', null)
-            .range(from, to) :
-        await supabase
-            .from('directories')
-            .select('id, name, created_at, dir', { count: 'estimated' })
-            .eq('dir', dir)
-            .range(from, to);
+    const dirs = await getDirsFunc(supabase, from, to, dir, searchStr, isGlobal);
     if (dirs.error) {
         console.log(dirs.error);
     } else {
@@ -92,17 +159,7 @@ async function getFilesNoSearch(supabase: SupabaseClient<any, "public", any>, fr
     to -= prevDirsCount;
 
     if (from < to) {
-        const files = dir === null ?
-            await supabase
-                .from('files')
-                .select('id, name, created_at, size, chanid, fileid, dir')
-                .is('dir', null)
-                .range(from, to) :
-            await supabase
-                .from('files')
-                .select('id, name, created_at, size, chanid, fileid, dir')
-                .eq('dir', dir)
-                .range(from, to)
+        const files = await getFilesFunc(supabase, from, to, dir, searchStr, isGlobal);
         if (!files.error) {
             arr.push(...files.data);
         } else {
@@ -117,95 +174,11 @@ async function getFilesNoSearch(supabase: SupabaseClient<any, "public", any>, fr
     return { arr, next };
 }
 
-async function getFilesWithSearch(supabase: SupabaseClient<any, "public", any>, from: number, to: number, dir: number | null, prevDirsCount: number, pageSize: number, searchStr: string, isGlobal: boolean) {
-    let arr: (Directory | DirFile)[] = [];
-    let dirs;
-    if (isGlobal) {
-        dirs = await supabase
-            .from('directories')
-            .select('id, name, created_at, dir', { count: 'estimated' })
-            .like('name', `%${searchStr}%`)
-            .range(from, to)
-        if (dirs.error) {
-            console.log(dirs.error);
-        } else {
-            arr.push(...dirs.data);
-        }
-    } else {
-        dirs = dir === null ?
-            await supabase
-                .from('directories')
-                .select('id, name, created_at, dir', { count: 'estimated' })
-                .is('dir', null)
-                .like('name', `%${searchStr}%`)
-                .range(from, to) :
-            await supabase
-                .from('directories')
-                .select('id, name, created_at, dir')
-                .eq('dir', dir)
-                .like('name', `%${searchStr}%`)
-                .range(from, to);
-        if (dirs.error) {
-            console.log(dirs.error);
-        } else {
-            arr.push(...dirs.data);
-        }
-    }
-
-    if (dirs.count)
-        to -= dirs.count;
-    from -= prevDirsCount;
-    to -= prevDirsCount;
-
-    if (from < to) {
-        if (isGlobal) {
-            const files = await supabase
-                .from('files')
-                .select('id, name, created_at, size, chanid, fileid, dir')
-                .like('name', `%${searchStr}%`)
-                .range(from, to)
-            if (!files.error) {
-                arr.push(...files.data);
-            } else {
-                console.log(files.error);
-            }
-        } else {
-            const files = dir === null ?
-                await supabase
-                    .from('files')
-                    .select('id, name, created_at, size, chanid, fileid, dir')
-                    .is('dir', null)
-                    .like('name', `%${searchStr}%`)
-                    .range(from, to) :
-                await supabase
-                    .from('files')
-                    .select('id, name, created_at, size, chanid, fileid, dir')
-                    .eq('dir', dir)
-                    .like('name', `%${searchStr}%`)
-                    .range(from, to)
-            if (!files.error) {
-                arr.push(...files.data);
-            } else {
-                console.log(files.error);
-            }
-        }
-    }
-    let next = false;
-    if (arr.length === pageSize + 1) {
-        next = true;
-        arr.pop();
-    }
-    return { arr, next };
-}
-
 export async function getFilesWithDir(supabase: SupabaseClient<any, "public", any>, dir: number | null, page: number, pageSize: number = 50, prevFiles: (DirFile | Directory)[], searchStr: string, isGlobal: boolean) {
     const prevDirsCount = prevFiles.filter(w => 'fileid' in w ? false : true).length;
     let from = (page - 1) * pageSize;
     let to = page * pageSize;
-    if (searchStr.length === 0)
-        return await getFilesNoSearch(supabase, from, to, dir, prevDirsCount, pageSize);
-    else
-        return await getFilesWithSearch(supabase, from, to, dir, prevDirsCount, pageSize, searchStr, isGlobal);
+    return await fetchFilesFromDB(supabase, from, to, dir, prevDirsCount, pageSize, getDirectories, getFiles, searchStr, isGlobal);
 }
 
 export function FileEndsWith(name: string, ends: string[]) {
@@ -221,7 +194,7 @@ export function FileEndsWith(name: string, ends: string[]) {
     }
 }
 
-export function IsAudioFile(name: string){
+export function IsAudioFile(name: string) {
     return FileEndsWith(name, ['mp3', 'ogg', 'wav']);
 }
 

@@ -68,11 +68,11 @@ export default function filesPage() {
                 const res = await supabase
                     .from("directories")
                     .insert({ name, dir })
-                    .select('id, name, created_at, dir');
+                    .select('id, name, created_at, dir, shared');
                 if (res.error) {
                     switch (res.error.code) {
                         case "42501":
-                            alert("You have reached your file and folder limit");
+                            alert("You have reached your file and directory limit");
                             break;
                         default:
                             alert(res.error.message);
@@ -196,7 +196,8 @@ export default function filesPage() {
                             setDirHistory={setDirHistory}
                             selected={selected}
                             setSelected={setSelected}
-                            MoveSelected={MoveSelected} />
+                            MoveSelected={MoveSelected}
+                            selectable={true} />
                         <div className="flex justify-between items-center px-3">
                             <div>
                                 {currPage > 1 ? <i onClick={() => setCurrPage(w => w - 1)} className="gg-arrow-left cursor-pointer transition-colors duration-200 hover:text-blue-700"></i> : ""}

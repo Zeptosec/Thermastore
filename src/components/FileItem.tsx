@@ -3,19 +3,21 @@ import { supabase } from "@/utils/Supabase";
 import Link from "next/link"
 import { Dispatch, SetStateAction, useRef, useState } from "react"
 import FlipCard from "./FlipCard";
+import PlayCircle from "./PlayCircle";
 import SelectionBubble from "./SelectionBubble";
+import { PlayStatus } from "./ShowFiles";
 import StrechableText from "./StrechableText";
 
 interface Props {
     file: DirFile,
-    selected: (DirFile | Directory)[],
-    setSelected: Dispatch<SetStateAction<(DirFile | Directory)[]>>,
-    playing: DirFile | undefined,
-    togglePlay: Function
+    selected?: (DirFile | Directory)[],
+    setSelected?: Dispatch<SetStateAction<(DirFile | Directory)[]>>,
+    playing: PlayStatus | undefined,
+    togglePlay: Function,
+    selectable?: boolean
 }
-export default function FileItem({ file, selected, setSelected, playing, togglePlay }: Props) {
+export default function FileItem({ file, selected, setSelected, playing, togglePlay, selectable }: Props) {
     const lref = useRef<any>(null);
-    const audioRef = useRef<any>(null);
     const refCopy = useRef<any>(null);
     const audioBtn = useRef<any>(null);
     const [isNaming, setIsNaming] = useState(false);
@@ -25,8 +27,7 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
     }
 
     function clicked(w: any) {
-        console.log(w.target)
-        console.log(audioBtn.current);
+        if (!selectable || !selected || !setSelected) return;
         if (!(lref.current && lref.current.contains(w.target) ||
             refCopy.current && refCopy.current.contains(w.target) ||
             audioBtn.current && audioBtn.current.contains(w.target))) {
@@ -61,15 +62,17 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
             <SelectionBubble file={file} selected={selected}>
                 <div className="flex gap-2 items-center overflow-hidden">
                     <div className="w-5 h-5 m-auto sm:block hidden">
-                        {IsAudioFile(file.name) ? playing?.created_at === file.created_at ?
+                        {IsAudioFile(file.name) ? playing?.playFile.created_at === file.created_at ?
                             <div ref={audioBtn}>
-                                <button onClick={() => togglePlay(file)}><i className="gg-play-pause-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
+                                {playing.paused ? <button className="outline-none" onClick={() => togglePlay(file)}><i className="gg-play-button-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
+                                    :
+                                    <button className="outline-none" onClick={() => togglePlay(file)}><i className="gg-play-pause-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>}
                             </div> :
                             <FlipCard>
                                 <i className={`gg-${getFileIconName(file.name)} m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200`}></i>
                                 <div ref={audioBtn}>
-                                    <button className={playing?.created_at === file.created_at ? "hidden" : ""} onClick={() => togglePlay(file)}><i className="gg-play-button-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
-                                    <button className={playing?.created_at !== file.created_at ? "hidden" : "" } onClick={() => togglePlay(file)}><i className="gg-play-pause-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
+                                    <button className={playing?.playFile.created_at === file.created_at ? "hidden" : ""} onClick={() => togglePlay(file)}><i className="gg-play-button-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
+                                    <button className={playing?.playFile.created_at !== file.created_at ? "hidden" : ""} onClick={() => togglePlay(file)}><i className="gg-play-pause-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
                                 </div>
                             </FlipCard> :
                             <i className={`gg-${getFileIconName(file.name)} m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200`}></i>
@@ -94,7 +97,7 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
                         className="w-6 h-6 cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200">
                         <i className="gg-link mt-3 ml-2 "></i>
                     </abbr>
-                    {!isNaming ? <abbr className="sm:block hidden" onClick={() => setIsNaming(w => !w)} title="Rename"><i className="gg-rename cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200"></i></abbr> : ""}
+                    {!isNaming && selectable ? <abbr className="sm:block hidden" onClick={() => setIsNaming(w => !w)} title="Rename"><i className="gg-rename cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200"></i></abbr> : ""}
                 </div>
             </div>
         </div>

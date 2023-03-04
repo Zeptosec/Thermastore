@@ -23,6 +23,8 @@ export default function Document() {
         <link href='https://unpkg.com/css.gg@2.0.0/icons/css/globe-alt.css' rel='stylesheet'></link>
         <link href='https://unpkg.com/css.gg@2.0.0/icons/css/play-button-o.css' rel='stylesheet'></link>
         <link href='https://unpkg.com/css.gg@2.0.0/icons/css/play-pause-o.css' rel='stylesheet'></link>
+        <link href='https://unpkg.com/css.gg@2.0.0/icons/css/lock-unlock.css' rel='stylesheet'></link>
+        <link href='https://unpkg.com/css.gg@2.0.0/icons/css/lock.css' rel='stylesheet'></link>
       </Head>
       <body>
         <Main />
