@@ -8,6 +8,7 @@ interface Props {
 }
 
 const streams: string[] = [
+    'https://long-succulent-carbon.glitch.me',
     'https://streamer.teisingas.repl.co',
     'https://the-streamer-nigerete123.koyeb.app'
 ]

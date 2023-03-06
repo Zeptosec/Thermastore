@@ -22,6 +22,47 @@ export interface PlayStatus {
 export default function ShowFilesPage({ files, setDirHistory, selected, setSelected, MoveSelected, selectable }: Props) {
     const [currPlayingFile, setCurrPlayingFile] = useState<PlayStatus>();
     const audioRef = useRef<any>();
+
+    async function SelectMultiple(endSelAt: DirFile | Directory, isSelected: boolean) {
+        const hasSel = document.getSelection();
+        if(hasSel){
+            hasSel.removeAllRanges();
+        }
+        if (selected && setSelected && selected.length > 0) {
+            const lastSelected = selected[selected.length - 1];
+            let startInd = files.indexOf(lastSelected);
+            let endInd = files.indexOf(endSelAt);
+            if (startInd === -1 || endInd === -1) return;
+            const mark = selected.indexOf(endSelAt) === -1;
+            if (startInd > endInd) {
+                const tmp = startInd;
+                startInd = endInd;
+                endInd = tmp;
+            }
+            if (mark) {
+                setSelected(w => {
+                    let tobemarked: (DirFile | Directory)[] = [];
+                    for (let i = startInd; i <= endInd; i++) {
+                        if (!w.includes(files[i]))
+                            tobemarked.push(files[i]);
+                    }
+                    return [...w, ...tobemarked];
+                })
+            } else {
+                setSelected(w => {
+                    let leftMarked = [...w];
+                    for (let i = startInd; i <= endInd; i++) {
+                        let ind = leftMarked.indexOf(files[i]);
+                        if(ind !== -1){
+                            leftMarked.splice(ind, 1);
+                        }
+                    }
+                    return leftMarked;
+                })
+            }
+        }
+    }
+
     function playAudio(file: DirFile | undefined) {
         if (!file) {
             if (audioRef.current && !audioRef.current.paused)
@@ -68,12 +109,12 @@ export default function ShowFilesPage({ files, setDirHistory, selected, setSelec
 
     return (
         <div className="grid gap-1 overflow-hidden">
-            {currPlayingFile ? <audio onTimeUpdate={() => setCurrPlayingFile(w => w ? {...w, percent: audioRef.current.currentTime / audioRef.current.duration * 100} : w)} preload="none" onEnded={() => playAudio(undefined)} ref={audioRef} src={`https://streamer.teisingas.repl.co/stream/${currPlayingFile.playFile.chanid}/${currPlayingFile.playFile.fileid}`} /> : ""}
+            {currPlayingFile ? <audio onTimeUpdate={() => setCurrPlayingFile(w => w ? { ...w, percent: audioRef.current.currentTime / audioRef.current.duration * 100 } : w)} preload="none" onEnded={() => playAudio(undefined)} ref={audioRef} src={`https://the-streamer-nigerete123.koyeb.app/stream/${currPlayingFile.playFile.chanid}/${currPlayingFile.playFile.fileid}`} /> : ""}
             {files.map((w, ind) => (
                 'fileid' in w ?
-                    <FileItem key={ind} file={w} setSelected={setSelected} selected={selected} playing={currPlayingFile} togglePlay={playAudio} selectable={selectable} />
+                    <FileItem key={`fil${ind}`} file={w} SelectMultiple={SelectMultiple} setSelected={setSelected} selected={selected} playing={currPlayingFile} togglePlay={playAudio} selectable={selectable} />
                     :
-                    <DirItem key={ind} dir={w} setDirHistory={setDirHistory} selected={selected} setSelected={setSelected} MoveSelected={MoveSelected} selectable={selectable} />
+                    <DirItem key={`dir${ind}`} dir={w} SelectMultiple={SelectMultiple} setDirHistory={setDirHistory} selected={selected} setSelected={setSelected} MoveSelected={MoveSelected} selectable={selectable} />
             ))}
         </div>
     )

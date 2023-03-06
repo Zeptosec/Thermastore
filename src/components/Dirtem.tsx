@@ -9,9 +9,10 @@ interface Props {
     selected?: (DirFile | Directory)[],
     setSelected?: Dispatch<SetStateAction<(DirFile | Directory)[]>>,
     MoveSelected?: Function,
+    SelectMultiple?: Function,
     selectable?: boolean
 }
-export default function DirItem({ dir, setDirHistory, selected, setSelected, MoveSelected, selectable }: Props) {
+export default function DirItem({ dir, setDirHistory, selected, setSelected, MoveSelected, selectable, SelectMultiple }: Props) {
     const refName = useRef<any>(null);
     const refOptions = useRef<any>(null);
     const [isNaming, setIsNaming] = useState(false);
@@ -21,10 +22,20 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
         if (!selectable || !selected || !setSelected) return;
         if (refName.current && !refName.current.contains(w.target) && refOptions.current && !refOptions.current.contains(w.target)) {
             const rez = selected.findIndex(el => el.created_at === dir.created_at);
-            if (rez === -1) setSelected(el => [...el, dir]);
-            else setSelected(el => [...el.slice(0, rez), ...el.slice(rez + 1)]);
+            if (SelectMultiple && w.shiftKey) {
+                SelectMultiple(dir, rez !== -1);
+            } else if (rez === -1) {
+                setSelected(el => [...el, dir]);
+            } else {
+                setSelected(el => [...el.slice(0, rez), ...el.slice(rez + 1)]);
+            }
         }
     }
+    useEffect(() => {
+        setName(dir.name);
+        setShared(dir.shared);
+        setIsNaming(false);
+    }, [dir])
 
     async function saveName() {
         setIsNaming(false);

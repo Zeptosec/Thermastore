@@ -28,9 +28,9 @@ export default function PlayCircle({ percent, radius, stroke, paused, onClick, c
             >
                 <circle
                     stroke="blue"
-                    stroke-dasharray={`${circumference} ${circumference}`}
+                    strokeDasharray={`${circumference} ${circumference}`}
                     style={{ strokeDashoffset: `${circumference - prc / 100 * circumference}` }}
-                    stroke-width={stroke}
+                    strokeWidth={stroke}
                     fill="transparent"
                     r={normalizedRadius}
                     cx={radius}

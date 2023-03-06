@@ -79,6 +79,7 @@ export default function filesPage() {
                     }
                     console.log(res.error);
                 } else {
+                    console.log(res.data);
                     setFiles(w => [res.data[0], ...w]);
                 }
             }

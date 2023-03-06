@@ -1,7 +1,7 @@
 import { BytesToReadable, Directory, DirFile, getFileIconName, IsAudioFile } from "@/utils/FileFunctions"
 import { supabase } from "@/utils/Supabase";
 import Link from "next/link"
-import { Dispatch, SetStateAction, useRef, useState } from "react"
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
 import FlipCard from "./FlipCard";
 import PlayCircle from "./PlayCircle";
 import SelectionBubble from "./SelectionBubble";
@@ -14,14 +14,20 @@ interface Props {
     setSelected?: Dispatch<SetStateAction<(DirFile | Directory)[]>>,
     playing: PlayStatus | undefined,
     togglePlay: Function,
-    selectable?: boolean
+    selectable?: boolean,
+    SelectMultiple?: Function,
 }
-export default function FileItem({ file, selected, setSelected, playing, togglePlay, selectable }: Props) {
+export default function FileItem({ file, selected, setSelected, playing, togglePlay, selectable, SelectMultiple }: Props) {
     const lref = useRef<any>(null);
     const refCopy = useRef<any>(null);
     const audioBtn = useRef<any>(null);
     const [isNaming, setIsNaming] = useState(false);
     const [name, setName] = useState<string>(file.name);
+
+    useEffect(() => {
+        setName(file.name);
+        setIsNaming(false);
+    }, [file])
     function copyClipboard() {
         navigator.clipboard.writeText(lref.current.href);
     }
@@ -32,8 +38,13 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
             refCopy.current && refCopy.current.contains(w.target) ||
             audioBtn.current && audioBtn.current.contains(w.target))) {
             const rez = selected.findIndex(el => el.created_at === file.created_at);
-            if (rez === -1) setSelected(el => [...el, file]);
-            else setSelected(el => [...el.slice(0, rez), ...el.slice(rez + 1)]);
+            if (SelectMultiple && w.shiftKey) {
+                SelectMultiple(file, rez !== -1);
+            } else if (rez === -1) {
+                setSelected(el => [...el, file]);
+            } else {
+                setSelected(el => [...el.slice(0, rez), ...el.slice(rez + 1)]);
+            }
         }
     }
 
