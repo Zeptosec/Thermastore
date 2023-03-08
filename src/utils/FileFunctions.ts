@@ -194,6 +194,21 @@ export function FileEndsWith(name: string, ends: string[]) {
     }
 }
 
+export async function GetPreviousDir(currDirId: number, supabase: SupabaseClient<any, "public", any>) {
+    const { data, error } = await supabase
+        .from("directories")
+        .select('id, dir')
+        .eq('id', currDirId);
+    if (!error) {
+        if (data.length > 0)
+            return data[0];
+        else return null;
+    } else {
+        console.log(error);
+        return null;
+    }
+}
+
 export function IsAudioFile(name: string) {
     return FileEndsWith(name, ['mp3', 'ogg', 'wav']);
 }

@@ -2,7 +2,7 @@ import BubbleBackground from "@/components/BubbleBackground";
 import CoolLoader from "@/components/CoolLoading2";
 import CoolSearch from "@/components/CoolSearch";
 import ShowFiles from "@/components/ShowFiles";
-import { Directory, DirFile, getFilesWithDir } from "@/utils/FileFunctions";
+import { Directory, DirFile, getFilesWithDir, GetPreviousDir } from "@/utils/FileFunctions";
 import { useSessionContext, useSupabaseClient, useUser } from "@supabase/auth-helpers-react"
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -17,12 +17,14 @@ export default function filesPage() {
     const [stillLoading, setStillLoading] = useState(true);
     const [files, setFiles] = useState<(Directory | DirFile)[]>([]);
     const [dirHistory, setDirHistory] = useState<number[]>([]);
+    const [callDirUpdate, setCallDirUpdate] = useState(true)
     const [currPage, setCurrPage] = useState(1);
     const [currPageSize, setCurrPageSize] = useState(50);
     const [selected, setSelected] = useState<(Directory | DirFile)[]>([]);
     const [canNext, setCanNext] = useState<boolean>();
     const [searchStr, setSearchStr] = useState("");
     const [isGlobal, setIsGlobal] = useState(false);
+    const [gotRouteDir, setGotRouteDir] = useState(false);
 
     async function fetchData() {
         setStillLoading(true);
@@ -37,24 +39,88 @@ export default function filesPage() {
     }
 
     useEffect(() => {
-        fetchData();
+        if (gotRouteDir)
+            fetchData();
         //fetch files
     }, [isLoading, currPage, searchStr]);
 
     useEffect(() => {
-        if (searchStr.length > 0) {
-            setSearchStr("");
-        } else if (currPage === 1)
-            fetchData();
-        else
-            setCurrPage(1);
+        async function asyncEffect() {
+            if (dirHistory.length === 1) {
+                const pdir = await GetPreviousDir(dirHistory[0], supabase);
+                if (pdir && pdir.dir) {
+                    setDirHistory(w => [pdir.dir, ...w]);
+                    return;
+                }
+            }
+            if (searchStr.length > 0) {
+                setSearchStr("");
+            } else if (currPage === 1)
+                fetchData();
+            else
+                setCurrPage(1);
+            let rt = '/files';
+            if (dirHistory.length > 0)
+                rt += `?d=${dirHistory[dirHistory.length - 1]}`;
+            router.push(rt, undefined, { shallow: true });
+        }
+        if (gotRouteDir)
+            asyncEffect();
     }, [dirHistory]);
 
     useEffect(() => {
-        if (searchStr.length > 0) {
+        if (searchStr.length > 0 && gotRouteDir) {
             fetchData();
         }
     }, [isGlobal]);
+
+    useEffect(() => {
+        //console.log(router);
+        router.beforePopState(({ as }) => {
+            if (as !== router.asPath) {
+                const parts = as.split("?");
+                if (parts.length > 1) {
+                    const urlParams = new URLSearchParams(parts[1]);
+                    setDirFromUrl(urlParams.get('d'));
+                } else {
+                    setDirFromUrl(null);
+                }
+            }
+            return true;
+        });
+        if (router.isReady) {
+            if (gotRouteDir) return;
+            setGotRouteDir(true);
+            const rdir = router.query.d;
+            setDirFromUrl(rdir);
+        }
+        return () => {
+            router.beforePopState(() => true);
+        };
+    }, [router])
+
+    function setDirFromUrl(rdir: any) {
+        if (rdir && !Array.isArray(rdir)) {
+            try {
+                const dirnum = parseInt(rdir);
+                if (isNaN(dirnum)) {
+                    setDirHistory([])
+                    return;
+                }
+                const ind = dirHistory.indexOf(dirnum);
+                if (ind === -1)
+                    setDirHistory([dirnum]);
+                else
+                    setDirHistory(w => w.slice(0, ind + 1))
+            } catch (err) {
+                console.log("err");
+                setDirHistory([]);
+                console.log(err);
+            }
+        } else {
+            setDirHistory([]);
+        }
+    }
 
     async function AddFolder() {
         let name = prompt("Directory name", "Folder");
@@ -179,7 +245,7 @@ export default function filesPage() {
                     </> : <>
                         <div className="flex justify-between px-3 h-6">
                             <div className="flex gap-2 items-center">
-                                {dirHistory.length > 0 ? <abbr title="Back" onClick={() => setDirHistory(w => [...w.slice(0, w.length - 1)])}><i className="gg-arrow-left cursor-pointer transition-colors duration-200 hover:text-blue-700"></i></abbr> : ""}
+                                {dirHistory.length > 0 ? <abbr title="Back" onClick={() => setDirHistory(w => w.slice(0, w.length - 1))}><i className="gg-arrow-left cursor-pointer transition-colors duration-200 hover:text-blue-700"></i></abbr> : ""}
                                 <abbr title="New directory"><i className="gg-folder-add cursor-pointer transition-colors duration-200 hover:text-blue-700" onClick={() => AddFolder()}></i></abbr>
                             </div>
                             {selected.length > 0 ? <div className="flex gap-2 items-center">
@@ -210,7 +276,6 @@ export default function filesPage() {
                     </>}
                 </div>
             </div>
-
         </div>
     )
 }
