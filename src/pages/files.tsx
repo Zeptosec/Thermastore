@@ -61,7 +61,7 @@ export default function filesPage() {
                 setCurrPage(1);
             let rt = '/files';
             if (dirHistory.length > 0)
-                rt += `?d=${dirHistory[dirHistory.length - 1]}`;
+                rt += `?d=${dirHistory[dirHistory.length - 1].id}`;
             router.push(rt, undefined, { shallow: true });
         }
         if (gotRouteDir)
