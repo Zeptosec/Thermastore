@@ -44,7 +44,6 @@ async function getSharedFiles(supabase: SupabaseClient<any, "public", any>, from
             .like('name', `%${searchStr}%`)
             .range(from, to)
     } else {
-        console.log(new Date(dir.time).toISOString())
         const rs = await supabase
             .from('files')
             .select('id, name, created_at, size, chanid, fileid, dir, dir!inner(shared, created_at)')
@@ -93,7 +92,6 @@ export default async function handler(
             .gt('created_at', new Date(time).toISOString())
             .eq('id', dirid)
             .eq('shared', true).single();
-        console.log(data);
         if (data) {
             const rs = await getSharedFilesWithDir(supabase, { dir: dirid, time }, page, pageSize, prevFiles, searchStr, false);
             return res.status(200).json({ ...rs, name: data.name })

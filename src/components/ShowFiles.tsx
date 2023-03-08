@@ -5,7 +5,7 @@ import FileItem from "./FileItem"
 
 interface Props {
     files: (Directory | DirFile)[],
-    setDirHistory: Dispatch<SetStateAction<number[]>>,
+    setDirHistory: Dispatch<SetStateAction<Directory[]>>,
     selected?: (DirFile | Directory)[],
     setSelected?: Dispatch<SetStateAction<(DirFile | Directory)[]>>,
     MoveSelected?: Function,

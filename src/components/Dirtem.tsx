@@ -5,7 +5,7 @@ import SelectionBubble from "./SelectionBubble";
 
 interface Props {
     dir: Directory,
-    setDirHistory: Dispatch<SetStateAction<number[]>>,
+    setDirHistory: Dispatch<SetStateAction<Directory[]>>,
     selected?: (DirFile | Directory)[],
     setSelected?: Dispatch<SetStateAction<(DirFile | Directory)[]>>,
     MoveSelected?: Function,
@@ -63,7 +63,7 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
             if (rez !== -1)
                 setSelected(w => [...w.slice(0, rez), ...w.slice(rez + 1)])
         }
-        setDirHistory(prev => [...prev, dir.id])
+        setDirHistory(prev => [...prev, dir])
     }
 
     async function shareManager() {

@@ -197,7 +197,7 @@ export function FileEndsWith(name: string, ends: string[]) {
 export async function GetPreviousDir(currDirId: number, supabase: SupabaseClient<any, "public", any>) {
     const { data, error } = await supabase
         .from("directories")
-        .select('id, dir')
+        .select('id, dir, name, shared, created_at')
         .eq('id', currDirId);
     if (!error) {
         if (data.length > 0)

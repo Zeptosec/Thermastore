@@ -13,7 +13,8 @@ export default function SharedFiles() {
     const [msg, setMsg] = useState("Loading user...");
     const [stillLoading, setStillLoading] = useState(true);
     const [files, setFiles] = useState<(Directory | DirFile)[]>([]);
-    const [dirHistory, setDirHistory] = useState<number[]>([]);
+    const [dirHistory, setDirHistory] = useState<Directory[]>([]);
+    const [dirTimes, setDirTimes] = useState<number[]>([]);
     const [currPage, setCurrPage] = useState(1);
     const [currPageSize, setCurrPageSize] = useState(50);
     const [canNext, setCanNext] = useState<boolean>();
@@ -42,16 +43,17 @@ export default function SharedFiles() {
         setStillLoading(true);
         setMsg("Fetching info about files...");
         let dir = intdir;
-
         if (dirHistory.length > 0) {
-            dir = dirHistory[dirHistory.length - 1]
-            const onlyDirs = files.filter(w => !('fileid' in w))
-            const gotoDir = onlyDirs.find(w => w.id === dirHistory[dirHistory.length - 1]);
-            if (!gotoDir) {
-                setDirHistory(w => [...w.slice(0, w.length - 1)])
-                return;
-            }
-            intime = new Date(gotoDir.created_at).getTime();
+            let thedir = dirHistory[dirHistory.length - 1];
+            dir = thedir.id;
+            intime = new Date(thedir.created_at).getTime();
+        }
+        if (dirHistory.length > dirTimes.length) {
+            setDirTimes(w => [...w, intime]);
+        } else if (dirHistory.length < dirTimes.length) {
+            setDirTimes(w => w.slice(0, w.length - 1))
+        } else {
+            setDirTimes(w => [...w.slice(0, w.length - 1), intime])
         }
         try {
             const res = await fetch(`/api/getshared`, {
@@ -61,7 +63,6 @@ export default function SharedFiles() {
             const json = await res.json();
             if (res.ok) {
                 setFiles(json.arr);
-                console.log(json.arr);
                 setCanNext(json.next);
                 setDirname(json.name);
                 setStillLoading(false);

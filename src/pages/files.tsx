@@ -16,7 +16,7 @@ export default function filesPage() {
     const [msg, setMsg] = useState("Loading user...");
     const [stillLoading, setStillLoading] = useState(true);
     const [files, setFiles] = useState<(Directory | DirFile)[]>([]);
-    const [dirHistory, setDirHistory] = useState<number[]>([]);
+    const [dirHistory, setDirHistory] = useState<Directory[]>([]);
     const [callDirUpdate, setCallDirUpdate] = useState(true)
     const [currPage, setCurrPage] = useState(1);
     const [currPageSize, setCurrPageSize] = useState(50);
@@ -31,7 +31,7 @@ export default function filesPage() {
         if (isLoading) return;
         if (!user) router.push("/");
         setMsg("Fetching info about files...");
-        const dir = dirHistory.length === 0 ? null : dirHistory[dirHistory.length - 1]
+        const dir = dirHistory.length === 0 ? null : dirHistory[dirHistory.length - 1].id
         const { arr, next } = await getFilesWithDir(supabase, dir, currPage, currPageSize, files, searchStr, isGlobal);
         setFiles(arr);
         setCanNext(next);
@@ -47,9 +47,9 @@ export default function filesPage() {
     useEffect(() => {
         async function asyncEffect() {
             if (dirHistory.length === 1) {
-                const pdir = await GetPreviousDir(dirHistory[0], supabase);
+                const pdir = await GetPreviousDir(dirHistory[0].id, supabase);
                 if (pdir && pdir.dir) {
-                    setDirHistory(w => [pdir.dir, ...w]);
+                    setDirHistory(w => [pdir, ...w]);
                     return;
                 }
             }
@@ -107,9 +107,9 @@ export default function filesPage() {
                     setDirHistory([])
                     return;
                 }
-                const ind = dirHistory.indexOf(dirnum);
+                const ind = dirHistory.findIndex(w => w.id === dirnum);
                 if (ind === -1)
-                    setDirHistory([dirnum]);
+                    setDirHistory([{ id: dirnum, name: "", created_at: "", shared: false, dir: 0 }]);
                 else
                     setDirHistory(w => w.slice(0, ind + 1))
             } catch (err) {
@@ -249,7 +249,7 @@ export default function filesPage() {
                                 <abbr title="New directory"><i className="gg-folder-add cursor-pointer transition-colors duration-200 hover:text-blue-700" onClick={() => AddFolder()}></i></abbr>
                             </div>
                             {selected.length > 0 ? <div className="flex gap-2 items-center">
-                                <abbr className="cursor-pointer transition-colors duration-200 hover:text-blue-700 w-[22px] h-[22px] flex justify-center items-center" title="Move selected here"><i onClick={() => MoveSelected(dirHistory.length > 0 ? dirHistory[dirHistory.length - 1] : null, true)} className="gg-add-r"></i></abbr>
+                                <abbr className="cursor-pointer transition-colors duration-200 hover:text-blue-700 w-[22px] h-[22px] flex justify-center items-center" title="Move selected here"><i onClick={() => MoveSelected(dirHistory.length > 0 ? dirHistory[dirHistory.length - 1].id : null, true)} className="gg-add-r"></i></abbr>
                                 <abbr className="cursor-pointer transition-colors duration-200 hover:text-blue-700 w-[22px] h-[22px] flex justify-center items-center" onClick={() => setSelected([])} title="Deselect all"><i className="gg-close-r"></i></abbr>
                                 <abbr className="cursor-pointer transition-colors duration-200 hover:text-blue-700 w-[22px] h-[22px] flex justify-center items-center" onClick={() => deleteSelected()} title="Delete selected"><i className="gg-trash"></i></abbr>
                             </div> : ""}
