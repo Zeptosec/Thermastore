@@ -8,9 +8,10 @@ interface Props {
 }
 
 const streams: string[] = [
-    'https://long-succulent-carbon.glitch.me',
+    'https://thestr.onrender.com',
     'https://streamer.teisingas.repl.co',
-    'https://the-streamer-nigerete123.koyeb.app'
+    'https://long-succulent-carbon.glitch.me',
+    'https://the-streamer-nigerete123.koyeb.app',
 ]
 
 export default function PreviewFile({ file, fid, cid }: Props) {
