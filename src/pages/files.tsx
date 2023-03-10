@@ -130,7 +130,7 @@ export default function filesPage() {
             } else if (name.length > 24) {
                 alert("Directory name is too long");
             } else {
-                const dir = dirHistory.length > 0 ? dirHistory[dirHistory.length - 1] : null;
+                const dir = dirHistory.length > 0 ? dirHistory[dirHistory.length - 1].id : null;
                 const res = await supabase
                     .from("directories")
                     .insert({ name, dir })
