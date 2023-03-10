@@ -49,7 +49,7 @@ export default function filesPage() {
             if (dirHistory.length === 1) {
                 const pdir = await GetPreviousDir(dirHistory[0].id, supabase);
                 if (pdir && pdir.dir) {
-                    setDirHistory(w => [pdir, ...w]);
+                    setDirHistory(w => [pdir.dir, pdir]);
                     return;
                 }
             }
