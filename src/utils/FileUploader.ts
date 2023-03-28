@@ -68,15 +68,12 @@ async function uploadChunkNoStatus(chunk: Blob) {
     var data = new FormData();
     data.append('file', chunk);
     let json: any = null;
-    // to comply with reservation system.
-    const { index, endpoint } = await getReservedSlot();
-    chunkQueue[index] = (async () => {
-        while (json === null)
-            await new Promise(r => setTimeout(r, 1000));
-        if (json.remaining)
-            return { index, remaining: json.remaining, reset: json.reset };
-        else return { index };
-    })()
+    // do no comply with reservation system because you will get locked
+    let endpoint = null;
+    if (dook)
+        endpoint = dook;
+    else endpoint = await getEndpoint(uploadEndPoints, maxQueueSize);
+    await new Promise(r => setTimeout(r, Math.random() * 3000 + 1000));
     // to upload file.
     while (json === null) {
         try {
@@ -167,6 +164,7 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
         console.error("missing fileid");
         console.error(json);
     }
+
     // last part of file finished
     if (file.uploadedPartsCount === file.totalPartsCount) {
         const str = JSON.stringify({
@@ -177,12 +175,13 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
             chunkSize
         });
         const filedata = new Blob([str], { type: 'text/plain' });
+        // this function is for avoiding thread lock when uploading 5 small item and all of them needs to upload data file
         if (filedata.size > chunkSize) {
             // hopefully it will never come to this
-            console.log("file data file was too big");
             file.errorText = "File data file was too big";
             downloadBlob(filedata, "fileids.txt");
         } else {
+
             const fdataid = await uploadChunkNoStatus(filedata);
             //console.log(`fdataid: ${fdataid}`);
             if (user) {
@@ -200,8 +199,8 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
             }
             file.link = `/download/${chanid}/${fdataid}`;
         }
-
         file.finished = true;
+
         clearInterval(interval);
     }
     if (json.remaining)
@@ -316,6 +315,7 @@ export async function uploadFiles(files: Array<FileStatus>, onStart: Function | 
             continue;
         }
         await uploadFile(filesToUpload[i], user);
+
         //last check before clearing
         if (i === filesToUpload.length - 1) {
             await Promise.all(chunkQueue);
@@ -329,8 +329,11 @@ export async function uploadFiles(files: Array<FileStatus>, onStart: Function | 
 export function Stop(fs: FileStatus, errtxt: string) {
     fs.controller.abort();
     const firstUndefInd = fs.uploadedParts.findIndex(w => w === undefined);
-    const ptCount = firstUndefInd === -1 ? fs.uploadedParts.length : firstUndefInd;
+    let ptCount = firstUndefInd === -1 ? fs.uploadedParts.length : firstUndefInd;
+    if (fs.file.size === fs.uploadedBytes)
+        ptCount -= 1;
     fs.uploadedPartsCount = ptCount;
+
     fs.uploadedBytes = ptCount * chunkSize;
     fs.errorText = errtxt;
 }

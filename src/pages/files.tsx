@@ -145,7 +145,6 @@ export default function filesPage() {
                     }
                     console.log(res.error);
                 } else {
-                    console.log(res.data);
                     setFiles(w => [res.data[0], ...w]);
                 }
             }
@@ -245,8 +244,8 @@ export default function filesPage() {
                     </> : <>
                         <div className="flex justify-between px-3 h-6">
                             <div className="flex gap-2 items-center">
-                                {dirHistory.length > 0 ? <abbr title="Back" onClick={() => setDirHistory(w => w.slice(0, w.length - 1))}><i className="gg-arrow-left cursor-pointer transition-colors duration-200 hover:text-blue-700"></i></abbr> : ""}
-                                <abbr title="New directory"><i className="gg-folder-add cursor-pointer transition-colors duration-200 hover:text-blue-700" onClick={() => AddFolder()}></i></abbr>
+                                {dirHistory.length > 0 ? <abbr title="Back" onClick={() => setDirHistory(w => w.slice(0, w.length - 1))}><i className="gg-arrow-left cursor-pointer transition-colors duration-200 text-white hover:text-blue-700"></i></abbr> : ""}
+                                <abbr title="New directory"><i className="gg-folder-add cursor-pointer transition-colors duration-200 text-white hover:text-blue-700" onClick={() => AddFolder()}></i></abbr>
                             </div>
                             {selected.length > 0 ? <div className="flex gap-2 items-center">
                                 <abbr className="cursor-pointer transition-colors duration-200 hover:text-blue-700 w-[22px] h-[22px] flex justify-center items-center" title="Move selected here"><i onClick={() => MoveSelected(dirHistory.length > 0 ? dirHistory[dirHistory.length - 1].id : null, true)} className="gg-add-r"></i></abbr>

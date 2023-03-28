@@ -53,7 +53,7 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
         if (name.length < 3) {
             setName(file.name);
             alert("File name is too short");
-        } else if (name.length > 42) {
+        } else if (name.length > 64) {
             setName(file.name);
             alert("File name is too long");
         } else {

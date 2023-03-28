@@ -83,7 +83,7 @@ export default async function handler(
         return res.status(400).json({ error: `pageSize must be a whole number` });
     if (isNaN(time))
         return res.status(400).json({ error: `time must be a whole number` });
-    const supabase = createServerSupabaseClient({ req, res }, { supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL, supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY });
+    const supabase = createServerSupabaseClient({ req, res }, { supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL, supabaseKey: process.env.SUPABASE_SERVICE_KEY });
     try {
         const { data } = await supabase
             .from("directories")

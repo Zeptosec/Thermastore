@@ -37,13 +37,13 @@ export default function settingsPage() {
 
     async function SetTheHook() {
         const parts = hook.split('/');
-        console.log(parts);
+        //console.log(parts);
         if (parts.length !== 7) {
             setErr("Not a valid hook");
             return;
         }
         try {
-            const res = await axios.post(hook, { content: "This message was sent to verify hook." });
+            const res = await axios.post(hook, { content: "This message was sent to verify hook. Make sure all hooks point to the same channel." });
         } catch (err) {
             setErr("Not a valid hook");
             console.log(err);
@@ -74,12 +74,12 @@ export default function settingsPage() {
         setErr("hook was set successfully");
         setHasHook(true);
     }
-    
-    async function deleteHook(){
-        const {error} = await supabase
-        .from("webhooks")
-        .delete()
-        .eq('id', hookID);
+
+    async function deleteHook() {
+        const { error } = await supabase
+            .from("webhooks")
+            .delete()
+            .eq('id', hookID);
         if (error) {
             setErr(error.message);
             console.log(error);
