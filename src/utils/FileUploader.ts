@@ -24,6 +24,7 @@ export interface Endpoint {
     errCount?: number
 }
 let dook: Endpoint | null = null;
+let dooks: Endpoint[] = [];
 
 const uploadEndPoints: Array<Endpoint> = [
     {
@@ -208,19 +209,22 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
     return { index: qindex };
 }
 
-
+let hookInd = 0;
 async function getReservedSlot() {
     let endpoint;
-    if (dook) {
+    if (dooks.length > 0) {
         let index = -1;
-        if (chunkQueue.length >= 5) {
+        if (chunkQueue.length >= 5 * dooks.length) {
             const rs = await Promise.any(chunkQueue);
             // cloudflare starts blocking
             // if internet speed is too fast big timeout is neccessary
             index = rs.index;
-            await new Promise(r => setTimeout(r, 1500 * index + 1));
+            console.log(index);
+            await new Promise(r => setTimeout(r, 1000 * (index % 5)));
         }
-        endpoint = dook;
+        if(hookInd >= dooks.length) hookInd = 0;
+        endpoint = dooks[hookInd];
+        hookInd++;
         if (index !== -1) {
             return { index, endpoint };
         }
@@ -295,11 +299,19 @@ export async function uploadFiles(files: Array<FileStatus>, onStart: Function | 
     }
     if (onStart)
         onStart();
+
     if (user) {
         const { data, error } = await supabase.from("webhooks").select("hookId, hookNumber");
         if (error) {
             console.log(error);
         } else if (data.length > 0) {
+            dooks = data.map(w => ({
+                link: `https://discordapp.com/api/webhooks/${w.hookNumber}/${w.hookId}`,
+                occupied: 0,
+                isHook: true,
+                errCount: 0
+            }))
+            console.log(dooks);
             dook = {
                 link: `https://discordapp.com/api/webhooks/${data[0].hookNumber}/${data[0].hookId}`,
                 occupied: 0,

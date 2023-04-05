@@ -4,9 +4,13 @@ import { useSessionContext, useSupabaseClient } from "@supabase/auth-helpers-rea
 import axios from "axios";
 import { useEffect, useState } from "react";
 
+interface hookID {
+    id: number,
+    hookNumber: string
+}
+
 export default function settingsPage() {
-    const [hasHook, setHasHook] = useState(false);
-    const [hookID, setHookID] = useState<number>();
+    const [hooksID, setHooksID] = useState<hookID[]>([]);
     const { isLoading, session, error } = useSessionContext();
     const [pageLoading, setPageLoading] = useState(true);
     const supabase = useSupabaseClient();
@@ -20,14 +24,12 @@ export default function settingsPage() {
             setMsg("Checking for data");
             const { data, error, count } = await supabase
                 .from("webhooks")
-                .select("id", { count: "estimated" });
+                .select("id, hookNumber", { count: "estimated" });
             if (error) {
                 setMsg(error.message);
             } else {
                 if (count && count > 0) {
-                    setHasHook(true);
-                    setHookID(data[0].id);
-                    setHook(`https://discordapp.com/api/webhooks/0000000000000000000/...`)
+                    setHooksID(data);
                 }
                 setPageLoading(false);
             }
@@ -35,58 +37,55 @@ export default function settingsPage() {
         fetchData();
     }, [isLoading]);
 
-    async function SetTheHook() {
+    async function addHook() {
         const parts = hook.split('/');
         //console.log(parts);
         if (parts.length !== 7) {
             setErr("Not a valid hook");
             return;
         }
+        if(hooksID.find(w => w.hookNumber === parts[parts.length - 2])) {
+            setErr("Hook already exists");
+            return;
+        }
         try {
-            const res = await axios.post(hook, { content: "This message was sent to verify hook. Make sure all hooks point to the same channel." });
+            const res = await axios.post(`https://discordapp.com/api/webhooks/${parts[parts.length - 2]}/${parts[parts.length - 1]}`, { content: "This message was sent to verify hook. Make sure all hooks point to the same channel." });
         } catch (err) {
             setErr("Not a valid hook");
             console.log(err);
             return;
         }
         const thahook = { hookNumber: parts[parts.length - 2], hookId: parts[parts.length - 1] }
-        if (hasHook) {
-            const { error } = await supabase
-                .from("webhooks")
-                .update(thahook)
-                .eq('id', hookID);
-            if (error) {
-                setErr(error.message);
-                console.log(error);
-                return;
-            }
-        } else {
-            const { error } = await supabase
+        if (hooksID.length < 4) {
+            const { data, error } = await supabase
                 .from('webhooks')
                 .insert(thahook)
+                .select('id')
+                .single();
             if (error) {
                 setErr(error.message);
                 console.log(error);
                 return;
             }
+            setHooksID(w => [...w, { id: data.id, hookNumber: parts[parts.length - 2] }])
+            setHook(`https://discordapp.com/api/webhooks/0000000000000000000/...`);
+            setErr("hook was set successfully");
         }
-        setHook(`https://discordapp.com/api/webhooks/0000000000000000000/...`);
-        setErr("hook was set successfully");
-        setHasHook(true);
     }
 
     async function deleteHook() {
+        if (hooksID.length === 0) return;
         const { error } = await supabase
             .from("webhooks")
             .delete()
-            .eq('id', hookID);
+            .eq('id', hooksID[0].id);
         if (error) {
             setErr(error.message);
             console.log(error);
             return;
         }
-        setErr("hook deleted!");
-        setHasHook(false);
+        setErr("hook deleted! " + hooksID[0].id);
+        setHooksID(w => w.slice(1))
         setHook("");
     }
 
@@ -97,12 +96,12 @@ export default function settingsPage() {
                 {pageLoading ? <p className="text-4xl text-center">{msg}</p> :
                     <div className="grid gap-2 text-center">
                         <div>
-                            <p className="m-0 text-red-500">Disclaimer: Your hook won't be encrypted. Anyone with your account can access it.</p>
-                            <p className="m-0">{hasHook ? "You have a hook and you can change or delete it here" : "You can set up a hook here"}</p>
+                            <p className="m-0 text-red-500">Disclaimer: Your hooks won't be encrypted. Anyone with your account can access them.</p>
+                            <p className="m-0">{hooksID.length > 0 ? `You have (${hooksID.length}) hooks and you can delete it here` : "You can set up a hook here"}</p>
                         </div>
                         <input className="w-64 m-auto text-black p-2 rounded-md text-xl" onChange={w => setHook(w.target.value)} placeholder={`https://discordapp.com/api/webhooks/...`} value={hook} type="text" />
-                        <CoolButton onClick={() => SetTheHook()}>Set hook</CoolButton>
-                        {hasHook ? <CoolButton onClick={() => deleteHook()}>Delete hook</CoolButton> : ""}
+                        <CoolButton onClick={() => addHook()}>Add hook</CoolButton>
+                        {hooksID.length > 0 ? <CoolButton onClick={() => deleteHook()}>Delete hook</CoolButton> : ""}
                         <p className="text-red text-xl">{err}</p>
                     </div>}
             </div>
