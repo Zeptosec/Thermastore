@@ -21,7 +21,8 @@ export interface Endpoint {
     link: string,
     occupied: number,
     isHook?: boolean,
-    errCount?: number
+    errCount?: number,
+    name?: string
 }
 let dook: Endpoint | null = null;
 

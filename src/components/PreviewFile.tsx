@@ -1,4 +1,6 @@
-import { DownloadStatus, getImageHref } from "@/utils/FileDownload"
+import { DownloadStatus, getEarliestEnd, getImageHref } from "@/utils/FileDownload"
+import { IsAudioFile, IsImageFile, IsVideoFile } from "@/utils/FileFunctions";
+import { Endpoint } from "@/utils/FileUploader";
 import { useEffect, useState } from "react";
 
 interface Props {
@@ -7,56 +9,59 @@ interface Props {
     cid: string
 }
 
-const streams: string[] = [
-    'https://thestr.onrender.com',
-    'https://streamer.teisingas.repl.co',
-    'https://long-succulent-carbon.glitch.me',
-    'https://the-streamer-nigerete123.koyeb.app',
+const streams: Endpoint[] = [
+    { link: 'https://thestr.onrender.com', occupied: 0, name: "render" },
+    { link: 'https://streamer.teisingas.repl.co', occupied: 0, name: 'replit' },
+    { link: 'https://long-succulent-carbon.glitch.me', occupied: 0, name: 'glitch' },
+    { link: 'https://the-streamer-nigerete123.koyeb.app', occupied: 0, name: 'koyeb' },
+    { link: 'http://localhost:8000', occupied: 0, name: 'localhost' }
 ]
 
 export default function PreviewFile({ file, fid, cid }: Props) {
     const [sid, setSid] = useState(0);
     const [href, setHref] = useState("");
-    function hasExtension(ext: string[]) {
-        if (!file.name.includes('.')) return false;
-        const parts = file.name.split('.');
-        if (ext.includes(parts[parts.length - 1].toLowerCase()))
-            return true;
-        else
-            return false;
-    }
+    // function hasExtension(ext: string[]) {
+    //     if (!file.name.includes('.')) return false;
+    //     const parts = file.name.split('.');
+    //     if (ext.includes(parts[parts.length - 1].toLowerCase()))
+    //         return true;
+    //     else
+    //         return false;
+    // }
 
     useEffect(() => {
+
         async function showImage() {
             if (file.size > 1024 ** 2) return;
             const hr = await getImageHref(file, cid);
             setHref(hr);
         }
-        if (hasExtension(['png', 'jpg', 'jpeg', 'gif', 'bmp']))
+        if (IsImageFile(file.name))
             showImage();
+
     }, [])
 
 
 
     return (
         <div>
-            {hasExtension(['mp4', 'mkv', 'mp3', 'wav', 'ogg']) ?
+            {IsVideoFile(file.name) ?
                 <>
                     <div className="mb-2 text-black grid items-center justify-center">
                         <select defaultValue={sid} onChange={w => setSid(parseInt(w.target.value))}>
                             {streams.map((w, ind) => (
-                                <option key={ind} value={ind}>Stream server: {ind + 1}</option>
+                                <option key={ind} value={ind}>Stream server: {w.name}</option>
                             ))}
                         </select>
                     </div>
-                    {hasExtension(['mp4', 'mkv']) ? <div>
-                        <video className="w-full outline-none max-h-[800px]" controls controlsList="nodownload" src={`${streams[sid]}/stream/${cid}/${fid}`}></video>
+                    {IsVideoFile(file.name) ? <div>
+                        <video className="w-full outline-none max-h-[800px]" controls controlsList="nodownload" src={`${streams[sid].link}/stream/${cid}/${fid}`}></video>
                     </div> : ""}
-                    {hasExtension(['mp3', 'wav', 'ogg']) ? <div>
-                        <audio className="w-full outline-none" controls controlsList="nodownload" src={`${streams[sid]}/stream/${cid}/${fid}`}></audio>
+                    {IsAudioFile(file.name) ? <div>
+                        <audio className="w-full outline-none" controls controlsList="nodownload" src={`${streams[sid].link}/stream/${cid}/${fid}`}></audio>
                     </div> : ""}
                 </> : ""}
-            {(hasExtension(['png', 'jpg', 'jpeg', 'gif', 'bmp']) && href !== "") ? <div className="grid justify-center">
+            {(IsImageFile(file.name) && href !== "") ? <div className="grid justify-center">
                 <p className="text-center text-2xl pb-4">Preview</p>
                 <img src={href} />
             </div> : ""}

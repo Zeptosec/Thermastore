@@ -186,11 +186,12 @@ export function FileEndsWith(name: string, ends: string[]) {
     else {
         const parts = name.split('.');
         const ext = parts[parts.length - 1].toLowerCase();
-        for (let i = 0; i < ends.length; i++) {
-            if (ends[i].toLowerCase() === ext)
-                return true;
-        }
-        return false;
+        return ends.includes(ext);
+        // for (let i = 0; i < ends.length; i++) {
+        //     if (ends[i].toLowerCase() === ext)
+        //         return true;
+        // }
+        // return false;
     }
 }
 
@@ -211,6 +212,14 @@ export async function GetPreviousDir(currDirId: number, supabase: SupabaseClient
 
 export function IsAudioFile(name: string) {
     return FileEndsWith(name, ['mp3', 'ogg', 'wav']);
+}
+
+export function IsImageFile(name: string){
+    return FileEndsWith(name, ['png', 'jpg', 'jpeg', 'gif', 'bmp']);
+}
+
+export function IsVideoFile(name: string){
+    return FileEndsWith(name, ['mp4', 'mkv', 'mp3', 'wav', 'ogg']);
 }
 
 export function getFileIconName(name: string) {

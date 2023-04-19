@@ -17,7 +17,47 @@ const maxConns = 10;
 let endPoints: Array<Endpoint> = [{
     link: 'https://thermoxy.onrender.com',
     occupied: 0
-}];
+},
+{ link: 'http://localhost:8080', occupied: 0 }];
+
+let workingEnds: Endpoint[] = []
+
+/**
+ * Gets the earliest responding endpoint for faster load time.
+ * @param endpts endpoints list.
+ * @param predicate predicate for condition if endpoint is alive or not
+ * @returns Endpoint that fastest responded to the request.
+ */
+export async function getEarliestEnd(endpts: Endpoint[], predicate: (rs: Response) => Promise<boolean>) {
+    const abortController = new AbortController();
+    let reqs: Promise<Endpoint>[] = [];
+    let failCnt = 0;
+    endpts.forEach(el => {
+        reqs.push(
+            new Promise(async (resolve, reject) => {
+                try {
+                    const rs = await fetch(el.link, { signal: abortController.signal });
+                    if (await predicate(rs)) {
+                        resolve(el);
+                    } else {
+                        throw Error("Response not ok with " + el.link)
+                    }
+                } catch (err) {
+                    console.log(err);
+                    failCnt++;
+                    if (failCnt === endpts.length) {
+                        // if all rejected then return last one rejected to not get stuck on Promise.any
+                        resolve(el)
+                    }
+                }
+            })
+        )
+    })
+
+    const endpt = await Promise.any(reqs);
+    abortController.abort();
+    return endpt;
+}
 
 /**
  * 
@@ -28,7 +68,7 @@ let endPoints: Array<Endpoint> = [{
  */
 export async function getFileData(fid: string, cid: string, setError: Dispatch<SetStateAction<string>> | null = null) {
     let data = null;
-    let endpoint = await getEndpoint(endPoints, maxConns);
+    let endpoint = await getEarliestEnd(endPoints, async (rs) => rs.status === 400);
     endpoint.occupied += 1;
     let failCnt = 0;
     while (!data && failCnt < 5) {
@@ -146,7 +186,32 @@ export async function downloadFileChunks(file: DownloadStatus, setFile: Dispatch
     return chunks;
 }
 
+async function checkEndpoints(workingpts: Endpoint[], endpts: Endpoint[]) {
+    //check if current endpoints are working
+    for (let i = 0; i < workingEnds.length; i++) {
+        try {
+            const rs = await fetch(workingEnds[i].link)
+            if (!rs.ok) workingEnds.splice(i, 1)
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    for (let i = 0; i < endPoints.length; i++) {
+        try {
+            const rs = await fetch(workingEnds[i].link)
+            if (rs.ok) {
+                if (!workingEnds.includes(endPoints[i]))
+                    workingEnds.push(endPoints[i]);
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    }
+}
+
 export async function downloadFile(file: DownloadStatus, setFile: Dispatch<SetStateAction<DownloadStatus>>, onStart: Function | null = null, onFinished: Function | null = null) {
+    checkEndpoints(workingEnds, endPoints);
     const chunks = await downloadFileChunks(file, setFile, onStart, onFinished);
     let dwnFile = new Blob(chunks);
     setFile(w => ({
