@@ -55,10 +55,10 @@ export default function PreviewFile({ file, fid, cid }: Props) {
                         </select>
                     </div>
                     {IsVideoFile(file.name) ? <div>
-                        <video className="w-full outline-none max-h-[800px]" controls controlsList="nodownload" src={`${streams[sid].link}/stream/${cid}/${fid}`}></video>
+                        <video crossOrigin="" className="w-full outline-none max-h-[800px]" controls controlsList="nodownload" src={`${streams[sid].link}/stream/${cid}/${fid}`}></video>
                     </div> : ""}
                     {IsAudioFile(file.name) ? <div>
-                        <audio className="w-full outline-none" controls controlsList="nodownload" src={`${streams[sid].link}/stream/${cid}/${fid}`}></audio>
+                        <audio crossOrigin="" className="w-full outline-none" controls controlsList="nodownload" src={`${streams[sid].link}/stream/${cid}/${fid}`}></audio>
                     </div> : ""}
                 </> : ""}
             {(IsImageFile(file.name) && href !== "") ? <div className="grid justify-center">
