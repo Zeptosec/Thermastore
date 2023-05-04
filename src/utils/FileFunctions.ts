@@ -1,8 +1,34 @@
 import { PostgrestResponse, SupabaseClient } from "@supabase/supabase-js";
+import axios from "axios";
+import { Endpoint } from "./FileUploader";
 
-export const chunkSize = 8 * 1024 ** 2 - 192;
+export const chunkSize = 25 * 1024 ** 2 - 192;
 
 const marks = ["B", "KB", "MB", "GB", "TB", "PB"];
+
+export const endPoints: Endpoint[] = [
+    {
+        link: 'https://thestr.onrender.com',
+        occupied: 0,
+        name: 'render'
+    },
+    {
+        link: 'https://unmarred-accidental-eel.glitch.me',
+        occupied: 0,
+        name: "glitch"
+    },
+    {
+        link: 'https://streamer.teisingas.repl.co',
+        occupied: 0,
+        name: 'replit'
+    },
+    {
+        link: 'https://next-streamer-nigerete123.koyeb.app',
+        occupied: 0,
+        name: 'koyeb'
+    },
+    { link: 'http://localhost:8000', occupied: 0, name: 'localhost' }
+]
 
 /**
  * 
@@ -21,6 +47,22 @@ export function BytesToReadable(size: number, precision: number = 2) {
         size /= bytesToNext;
     }
     return `${Math.round(size * 10 ** precision) / (10 ** precision)} ${marks[ind]}`;
+}
+
+export async function VerifyHook(hook: string) {
+    try {
+        const parts = hook.split('/');
+        //console.log(parts);
+        if (parts.length !== 7) {
+            return { isValid: false };
+        }
+        const lhook = `https://discordapp.com/api/webhooks/${parts[parts.length - 2]}/${parts[parts.length - 1]}`
+        await axios.post(lhook, { content: "This message was sent to verify hook." });
+        return { isValid: true, hookNumber: parts[parts.length - 2], hookId: parts[parts.length - 1], lhook };
+    } catch (err) {
+        console.log(err);
+        return { isValid: false };
+    }
 }
 
 /**
@@ -214,11 +256,11 @@ export function IsAudioFile(name: string) {
     return FileEndsWith(name, ['mp3', 'ogg', 'wav']);
 }
 
-export function IsImageFile(name: string){
+export function IsImageFile(name: string) {
     return FileEndsWith(name, ['png', 'jpg', 'jpeg', 'gif', 'bmp']);
 }
 
-export function IsVideoFile(name: string){
+export function IsVideoFile(name: string) {
     return FileEndsWith(name, ['mp4', 'mkv', 'mp3', 'wav', 'ogg']);
 }
 

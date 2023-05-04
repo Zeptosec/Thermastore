@@ -20,33 +20,35 @@ export interface FileStatus {
 export interface Endpoint {
     link: string,
     occupied: number,
-    isHook?: boolean,
+    // isHook?: boolean,
+    sub?:string,
     errCount?: number,
     name?: string
 }
 let dook: Endpoint | null = null;
 
-const uploadEndPoints: Array<Endpoint> = [
-    {
-        link: 'https://thermostore.onrender.com/api/upload',
-        occupied: 0
-    },
-    {
-        link: 'https://spangle-curly-seaplane.glitch.me/api/upload',
-        occupied: 0
-    },
-    {
-        link: 'https://receptive-large-tennis.glitch.me/api/upload',
-        occupied: 0
-    }];
+// const uploadEndPoints: Array<Endpoint> = [
+//     {
+//         link: 'http://localhost:4000/api/upload',
+//         occupied: 0
+//     },
+//     {
+//         link: 'https://spangle-curly-seaplane.glitch.me/api/upload',
+//         occupied: 0
+//     },
+//     {
+//         link: 'https://receptive-large-tennis.glitch.me/api/upload',
+//         occupied: 0
+//     }
+// ];
 
 interface ChunkQueueObject {
     index: number,
-    remaining?: number,
-    reset?: number
+    remaining?: string,
+    reset?: string
 }
 let chunkQueue: Array<Promise<ChunkQueueObject>> = [];
-const maxQueueSize = 10;
+const maxQueueSize = 5;
 let filesToUpload: Array<FileStatus> = []
 
 export async function getEndpoint(endPoints: Array<Endpoint>, maxSize: number) {
@@ -70,24 +72,25 @@ async function uploadChunkNoStatus(chunk: Blob) {
     data.append('file', chunk);
     let json: any = null;
     // do no comply with reservation system because you will get locked
-    let endpoint = null;
-    if (dook)
-        endpoint = dook;
-    else endpoint = await getEndpoint(uploadEndPoints, maxQueueSize);
+    let endpoint = dook;
+    if (!endpoint)
+        throw Error("No webhook");
+    //    endpoint = dook;
+    //else endpoint = await getEndpoint(uploadEndPoints, maxQueueSize);
     await new Promise(r => setTimeout(r, Math.random() * 3000 + 1000));
     // to upload file.
     while (json === null) {
         try {
             const res = await axios.post(endpoint.link, data);
-            if (endpoint.isHook) {
-                json = {
-                    fileid: res.data.attachments[0].id,
-                    remaining: res.headers['x-ratelimit-remaining'],
-                    reset: res.headers['x-ratelimit-reset'],
-                    after: res.headers['x-ratelimit-reset-after']
-                };
-            } else
-                json = res.data;
+            //if (endpoint.isHook) {
+            json = {
+                fileid: res.data.attachments[0].id,
+                remaining: res.headers['x-ratelimit-remaining'],
+                reset: res.headers['x-ratelimit-reset'],
+                after: res.headers['x-ratelimit-reset-after']
+            };
+            //} else
+            //    json = res.data;
         } catch (err: any) {
             console.log(err);
             await new Promise(r => setTimeout(r, 3000));
@@ -102,7 +105,7 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
     data.append('file', chunk);
     let prevLoaded = 0;
     let json = null;
-    let chanid = "1025526944776867952";
+    let chanid = "";
     while (json === null) {
         try {
             const res = await axios.post(endpoint.link, data, {
@@ -117,16 +120,17 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
                         file.errorText = "";
                 }
             })
-            if (endpoint.isHook) {
-                json = {
-                    fileid: res.data.attachments[0].id,
-                    remaining: res.headers['x-ratelimit-remaining'],
-                    reset: res.headers['x-ratelimit-reset'],
-                    after: res.headers['x-ratelimit-reset-after']
-                }
-                chanid = res.data.channel_id;
-            } else
-                json = res.data;
+            //console.log(`posted to ${endpoint.link} ${partIndex}`)
+            //if (endpoint.isHook) {
+            json = {
+                fileid: res.data.attachments[0].id,
+                remaining: res.headers['x-ratelimit-remaining'],
+                reset: res.headers['x-ratelimit-reset'],
+                after: res.headers['x-ratelimit-reset-after']
+            }
+            chanid = res.data.channel_id;
+            //} else
+            //    json = res.data;
         } catch (err: any) {
             console.log(err);
             if (file.controller.signal.aborted) {
@@ -134,7 +138,7 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
                 return { index: qindex };
             }
             file.errorTime = Date.now();
-            if (endpoint.isHook && endpoint.errCount != undefined) {
+            if (endpoint.errCount != undefined) {
                 endpoint.errCount += 1;
                 if (err.response) {
                     if (err.response.status === 401 || err.response.status === 404) {
@@ -214,7 +218,7 @@ async function getReservedSlot() {
     let endpoint;
     if (dook) {
         let index = -1;
-        if (chunkQueue.length >= 5) {
+        if (chunkQueue.length >= maxQueueSize) {
             const rs = await Promise.any(chunkQueue);
             // cloudflare starts blocking
             // if internet speed is too fast big timeout is neccessary
@@ -226,25 +230,26 @@ async function getReservedSlot() {
             return { index, endpoint };
         }
     } else
-        endpoint = await getEndpoint(uploadEndPoints, maxQueueSize);
+        throw Error("No hook in reservation");
+    //endpoint = await getEndpoint(uploadEndPoints, maxQueueSize);
 
-    if (chunkQueue.length >= maxQueueSize * uploadEndPoints.length) {
-        const rs = await Promise.any(chunkQueue);
-        return { index: rs.index, endpoint };
-    } else {
-        return { index: chunkQueue.length, endpoint }
-    }
+    //if (chunkQueue.length >= maxQueueSize * uploadEndPoints.length) {
+    //    const rs = await Promise.any(chunkQueue);
+    //    return { index: rs.index, endpoint };
+    //} else {
+    return { index: chunkQueue.length, endpoint }
+    //}
 }
 
 async function uploadFile(file: FileStatus, user: boolean) {
     let filesize = file.file.size;
-    if (!user && filesize > 250 * 1024 ** 2) {
-        file.errorText = "File size limit 250MB when not logged in";
+    if (!user && filesize > 1024 ** 3) {
+        file.errorText = "File size limit 1GB when not logged in";
         file.finished = true;
         return;
     }
-    if (user && filesize > 1024 ** 4) {
-        file.errorText = "File is too big limit is 1TB";
+    if (user && filesize > 2 * 1024 ** 4) {
+        file.errorText = "File is too big limit is 2TB";
         file.finished = true;
         return;
     }
@@ -252,7 +257,7 @@ async function uploadFile(file: FileStatus, user: boolean) {
     let part = file.uploadedPartsCount;
     let end = part * chunkSize;
 
-    let prevLoaded = 0;
+    let prevLoaded = file.uploadedBytes;
     let prevTime = Date.now();
     let speeds: Array<number> = [];
     let i = 0;
@@ -280,12 +285,15 @@ async function uploadFile(file: FileStatus, user: boolean) {
         end = Math.min(end + chunkSize, filesize);
         const chunk = file.file.slice(start, end);
         endpoint.occupied++;
+        //if (endpoint.isHook)
         chunkQueue[index] = uploadChunk(chunk, file, index, endpoint, part, interval, user);
+        //else
+        //    await uploadChunk(chunk, file, index, endpoint, part, interval, user)
         part++;
     }
 }
 
-export async function uploadFiles(files: Array<FileStatus>, onStart: Function | null = null, onFinished: Function | null = null, user: boolean) {
+export async function uploadFiles(files: Array<FileStatus>, onStart: Function | null = null, onFinished: Function | null = null, user: boolean, dhook?: Endpoint) {
     if (filesToUpload.length === 0) {
         filesToUpload = [...files];
     } else {
@@ -296,7 +304,10 @@ export async function uploadFiles(files: Array<FileStatus>, onStart: Function | 
     }
     if (onStart)
         onStart();
-    if (user) {
+
+    if (dhook) {
+        dook = dhook;
+    } else if (user) {
         const { data, error } = await supabase.from("webhooks").select("hookId, hookNumber");
         if (error) {
             console.log(error);
@@ -304,15 +315,21 @@ export async function uploadFiles(files: Array<FileStatus>, onStart: Function | 
             dook = {
                 link: `https://discordapp.com/api/webhooks/${data[0].hookNumber}/${data[0].hookId}`,
                 occupied: 0,
-                isHook: true,
+                // isHook: true,
                 errCount: 0
             };
         }
     }
+    if (!dook) {
+        filesToUpload = [];
+        if (onFinished)
+            onFinished();
+        throw { name: "missinghook", message: "Missing a hook" };
+    }
     for (let i = 0; i < filesToUpload.length; i++) {
         //await uploadFile(files[i]);
-        if (filesToUpload[i].file.name.length > 142) {
-            filesToUpload[i].errorText = "File name is too long max 42 symbols";
+        if (filesToUpload[i].file.name.length > 50) {
+            filesToUpload[i].errorText = "File name is too long max 50 symbols";
             continue;
         }
         await uploadFile(filesToUpload[i], user);

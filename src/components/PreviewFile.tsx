@@ -2,6 +2,7 @@ import { DownloadStatus, getEarliestEnd, getImageHref } from "@/utils/FileDownlo
 import { IsAudioFile, IsImageFile, IsVideoFile } from "@/utils/FileFunctions";
 import { Endpoint } from "@/utils/FileUploader";
 import { useEffect, useState } from "react";
+import { endPoints } from "@/utils/FileFunctions";
 
 interface Props {
     file: DownloadStatus,
@@ -9,13 +10,7 @@ interface Props {
     cid: string
 }
 
-const streams: Endpoint[] = [
-    { link: 'https://thestr.onrender.com', occupied: 0, name: "render" },
-    { link: 'https://streamer.teisingas.repl.co', occupied: 0, name: 'replit' },
-    { link: 'https://long-succulent-carbon.glitch.me', occupied: 0, name: 'glitch' },
-    { link: 'https://the-streamer-nigerete123.koyeb.app', occupied: 0, name: 'koyeb' },
-    { link: 'http://localhost:8000', occupied: 0, name: 'localhost' }
-]
+const streams: Endpoint[] = endPoints;
 
 export default function PreviewFile({ file, fid, cid }: Props) {
     const [sid, setSid] = useState(0);

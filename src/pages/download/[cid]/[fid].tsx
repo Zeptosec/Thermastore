@@ -2,6 +2,7 @@ import BubbleBackground from "@/components/BubbleBackground";
 import CoolButton from "@/components/CoolButton";
 import CoolLoader from "@/components/CoolLoading2";
 import PreviewFile from "@/components/PreviewFile";
+import StrechableText from "@/components/StrechableText";
 import { downloadFile, DownloadStatus, getFileData } from "@/utils/FileDownload";
 import { BytesToReadable, TimeToReadable } from "@/utils/FileFunctions";
 import Head from "next/head";
@@ -79,20 +80,22 @@ export default function downloadPage() {
                         </> :
                             <>
                                 {!downloading ? <>
-                                    <div className="card flex justify-between">
-                                        <p>{fData.name}</p>
-                                        <p>{BytesToReadable(fData.size)}</p>
+                                    <div className="card flex justify-between gap-2 overflow-hidden">
+                                        <StrechableText text={fData.name} />
+                                        <p className="whitespace-nowrap">{BytesToReadable(fData.size)}</p>
                                     </div>
                                     <CoolButton onClick={download}>DOWNLOAD</CoolButton>
                                 </> :
                                     <>
-                                        <div className="card flex sm:justify-between relative flex-col sm:flex-row items-center">
+                                        <div className="card overflow-hidden flex sm:justify-between relative flex-col gap-2 sm:flex-row">
                                             <div style={{ width: `${fData.precentage * 100}%` }} className="h-full -z-10 duration-1000 bg-blue-400 opacity-60 top-0 left-0 absolute"></div>
-                                            <p>{fData.name}</p>
-                                            <div className="flex items-end gap-4">
-                                                <p>{TimeToReadable(fData.timeleft)}</p>
-                                                <p>{BytesToReadable(fData.speed)}/s</p>
-                                                <p>{BytesToReadable(fData.downloadedBytes)}/{BytesToReadable(fData.size)}</p>
+                                            <div className="flex justify-center">
+                                                <StrechableText text={fData.name} />
+                                            </div>
+                                            <div className="flex items-end gap-4 justify-center">
+                                                <p className="whitespace-nowrap">{TimeToReadable(fData.timeleft)}</p>
+                                                <p className="whitespace-nowrap">{BytesToReadable(fData.speed)}/s</p>
+                                                <p className="whitespace-nowrap">{BytesToReadable(fData.downloadedBytes)}/{BytesToReadable(fData.size)}</p>
                                             </div>
                                         </div>
                                     </>}

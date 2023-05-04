@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DropComp from "@/components/DropComp";
 import styles from "@/styles/Upload.module.css";
 import CoolButton from "@/components/CoolButton";
 import BubbleBackground from "@/components/BubbleBackground";
-import { FileStatus, Stop, uploadFiles } from "@/utils/FileUploader";
-import { BytesToReadable, chunkSize, TimeToReadable } from "@/utils/FileFunctions";
+import { Endpoint, FileStatus, Stop, uploadFiles } from "@/utils/FileUploader";
+import { BytesToReadable, chunkSize, TimeToReadable, VerifyHook } from "@/utils/FileFunctions";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useUser } from "@supabase/auth-helpers-react";
@@ -15,6 +15,8 @@ const uploadPage = ({ setIsUploading }: any) => {
 
     const [previewFiles, setPreviewFiles] = useState<Array<File>>([]);
     const [filesToUpload, setFilesToUpload] = useState<Array<FileStatus>>([]);
+    const [hook, setHook] = useState<Endpoint>()
+    const [error, setError] = useState("");
     const router = useRouter();
     const user = useUser();
 
@@ -91,7 +93,20 @@ const uploadPage = ({ setIsUploading }: any) => {
         }));
         setFilesToUpload(w => [...w, ...filestatus])
         setPreviewFiles([]);
-        await uploadFiles(filestatus, onStart, onFinished, user !== null);
+        setError("");
+        try {
+            await uploadFiles(filestatus, onStart, onFinished, user !== null, hook);
+        } catch (err: any) {
+            if (err.name === "missinghook") {
+                if(user){
+                    setError("Go into settings and set up a hook");
+                } else {
+                    setError("You need to be logged in");
+                }
+                setFilesToUpload([]);
+            } else
+                console.log(err);
+        }
     }
 
     async function ContinueDownload(w: FileStatus) {
@@ -110,6 +125,7 @@ const uploadPage = ({ setIsUploading }: any) => {
                     <div className={styles.upload}>
                         <DropComp filesChanged={handleChange} files={previewFiles} remove={removeFile} />
                         {previewFiles.length > 0 ? <CoolButton onClick={startUpload}>UPLOAD</CoolButton> : ""}
+                        {error.length > 0 ? <h2 className="text-red-500 font-semibold text-xl text-center">{error}</h2> : ""}
                     </div>
 
                     {filesToUpload.length > 0 ?
@@ -137,8 +153,8 @@ const uploadPage = ({ setIsUploading }: any) => {
                                                 <p className="whitespace-nowrap">{BytesToReadable(w.speed)}/s</p>
                                                 <p className="whitespace-nowrap">{BytesToReadable(w.uploadedBytes)}/{BytesToReadable(w.file.size)}</p>
                                                 {w.controller.signal.aborted ?
-                                                    <abbr title="Continue download" className="flex justify-center sm:block cursor-pointer text-white transition-colors duration-200 hover:text-blue-700" onClick={() => ContinueDownload(w)}><i className="gg-play-button-r"></i></abbr> :
-                                                    <abbr title="Stop download" className="flex justify-center sm:block cursor-pointer text-white transition-colors duration-200 hover:text-blue-700" onClick={() => Stop(w, "Upload stopped by user")}><i className="gg-play-stop-r"></i></abbr>}
+                                                    <abbr title="Continue upload" className="flex justify-center sm:block cursor-pointer text-white transition-colors duration-200 hover:text-blue-700" onClick={() => ContinueDownload(w)}><i className="gg-play-button-r"></i></abbr> :
+                                                    <abbr title="Pause upload" className="flex justify-center sm:block cursor-pointer text-white transition-colors duration-200 hover:text-blue-700" onClick={() => Stop(w, "Upload stopped by user")}><i className="gg-play-stop-r"></i></abbr>}
                                             </div>
                                         </>}
                                 </div>))}

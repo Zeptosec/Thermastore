@@ -1,6 +1,7 @@
 import axios, { AxiosProgressEvent, AxiosResponse } from "axios";
 import { Dispatch, SetStateAction } from "react";
 import { Endpoint, getEndpoint } from "./FileUploader";
+import { endPoints } from "./FileFunctions";
 
 export interface DownloadStatus {
     timeleft: number,
@@ -14,11 +15,6 @@ export interface DownloadStatus {
 }
 
 const maxConns = 10;
-let endPoints: Array<Endpoint> = [{
-    link: 'https://thermoxy.onrender.com',
-    occupied: 0
-},
-{ link: 'http://localhost:8080', occupied: 0 }];
 
 let workingEnds: Endpoint[] = []
 
@@ -42,7 +38,7 @@ export async function getEarliestEnd(endpts: Endpoint[], predicate: (rs: Respons
                     } else {
                         throw Error("Response not ok with " + el.link)
                     }
-                } catch (err) {
+                } catch (err: any) {
                     console.log(err);
                     failCnt++;
                     if (failCnt === endpts.length) {
@@ -68,12 +64,12 @@ export async function getEarliestEnd(endpts: Endpoint[], predicate: (rs: Respons
  */
 export async function getFileData(fid: string, cid: string, setError: Dispatch<SetStateAction<string>> | null = null) {
     let data = null;
-    let endpoint = await getEarliestEnd(endPoints, async (rs) => rs.status === 400);
+    let endpoint = await getEarliestEnd(endPoints, async (rs) => rs.status === 200);
     endpoint.occupied += 1;
     let failCnt = 0;
     while (!data && failCnt < 5) {
         try {
-            const res: AxiosResponse = await axios.get(`${endpoint.link}/${cid}/${fid}`);
+            const res: AxiosResponse = await axios.get(`${endpoint.link}/down/${cid}/${fid}`);
             data = res.data;
             if (!data.size || !data.name || !data.chunks) {
                 failCnt = 1000;
@@ -100,12 +96,12 @@ export async function getFileData(fid: string, cid: string, setError: Dispatch<S
 async function downloadChunk(chunkId: string, chanId: string, arrayIndex: number, chunkIndex: number, downStatus: DownloadStatus) {
     let data = null;
     while (!data) {
-        const endpoint = await getEndpoint(endPoints, maxConns);
+        const endpoint = await getEndpoint(workingEnds, maxConns);
         endpoint.occupied += 1;
-
+        console.log(endpoint)
         try {
             let prev = 0;
-            const res = await axios.get(`${endpoint.link}/${chanId}/${chunkId}`, {
+            const res = await axios.get(`${endpoint.link}/down/${chanId}/${chunkId}`, {
                 onDownloadProgress: (w: AxiosProgressEvent) => {
                     const diff = w.loaded - prev;
                     prev = w.loaded;
@@ -186,7 +182,7 @@ export async function downloadFileChunks(file: DownloadStatus, setFile: Dispatch
     return chunks;
 }
 
-async function checkEndpoints(workingpts: Endpoint[], endpts: Endpoint[]) {
+async function checkEndpoints() {
     //check if current endpoints are working
     for (let i = 0; i < workingEnds.length; i++) {
         try {
@@ -199,7 +195,7 @@ async function checkEndpoints(workingpts: Endpoint[], endpts: Endpoint[]) {
 
     for (let i = 0; i < endPoints.length; i++) {
         try {
-            const rs = await fetch(workingEnds[i].link)
+            const rs = await fetch(endPoints[i].link)
             if (rs.ok) {
                 if (!workingEnds.includes(endPoints[i]))
                     workingEnds.push(endPoints[i]);
@@ -211,7 +207,7 @@ async function checkEndpoints(workingpts: Endpoint[], endpts: Endpoint[]) {
 }
 
 export async function downloadFile(file: DownloadStatus, setFile: Dispatch<SetStateAction<DownloadStatus>>, onStart: Function | null = null, onFinished: Function | null = null) {
-    checkEndpoints(workingEnds, endPoints);
+    checkEndpoints();
     const chunks = await downloadFileChunks(file, setFile, onStart, onFinished);
     let dwnFile = new Blob(chunks);
     setFile(w => ({

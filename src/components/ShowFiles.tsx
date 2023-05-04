@@ -109,7 +109,13 @@ export default function ShowFilesPage({ files, setDirHistory, selected, setSelec
 
     return (
         <div className="grid gap-1 overflow-hidden">
-            {currPlayingFile ? <audio onTimeUpdate={() => setCurrPlayingFile(w => w ? { ...w, percent: audioRef.current.currentTime / audioRef.current.duration * 100 } : w)} preload="none" onEnded={() => playAudio(undefined)} ref={audioRef} src={`https://the-streamer-nigerete123.koyeb.app/stream/${currPlayingFile.playFile.chanid}/${currPlayingFile.playFile.fileid}`} /> : ""}
+            {currPlayingFile ? 
+                <audio 
+                    onTimeUpdate={() => setCurrPlayingFile(w => w ? { ...w, percent: audioRef.current.currentTime / audioRef.current.duration * 100 } : w)} 
+                    preload="none" 
+                    onEnded={() => playAudio(undefined)} 
+                    ref={audioRef} 
+                    src={`https://next-streamer-nigerete123.koyeb.app/stream/${currPlayingFile.playFile.chanid}/${currPlayingFile.playFile.fileid}`} /> : ""}
             {files.map((w, ind) => (
                 'fileid' in w ?
                     <FileItem key={`fil${ind}`} file={w} SelectMultiple={SelectMultiple} setSelected={setSelected} selected={selected} playing={currPlayingFile} togglePlay={playAudio} selectable={selectable} />

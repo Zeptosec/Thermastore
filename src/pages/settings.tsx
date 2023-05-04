@@ -1,7 +1,7 @@
 import BubbleBackground from "@/components/BubbleBackground";
 import CoolButton from "@/components/CoolButton";
+import { VerifyHook } from "@/utils/FileFunctions";
 import { useSessionContext, useSupabaseClient } from "@supabase/auth-helpers-react";
-import axios from "axios";
 import { useEffect, useState } from "react";
 
 export default function settingsPage() {
@@ -36,20 +36,13 @@ export default function settingsPage() {
     }, [isLoading]);
 
     async function SetTheHook() {
-        const parts = hook.split('/');
-        //console.log(parts);
-        if (parts.length !== 7) {
-            setErr("Not a valid hook");
-            return;
-        }
-        try {
-            const res = await axios.post(hook, { content: "This message was sent to verify hook. Make sure all hooks point to the same channel." });
-        } catch (err) {
+        const validHook = await VerifyHook(hook);
+        if (!validHook.isValid) {
             setErr("Not a valid hook");
             console.log(err);
             return;
         }
-        const thahook = { hookNumber: parts[parts.length - 2], hookId: parts[parts.length - 1] }
+        const thahook = { hookNumber: validHook.hookNumber, hookId: validHook.hookId }
         if (hasHook) {
             const { error } = await supabase
                 .from("webhooks")
@@ -61,14 +54,16 @@ export default function settingsPage() {
                 return;
             }
         } else {
-            const { error } = await supabase
+            const { data, error } = await supabase
                 .from('webhooks')
                 .insert(thahook)
+                .select('id').single()
             if (error) {
                 setErr(error.message);
                 console.log(error);
                 return;
             }
+            setHookID(data.id)
         }
         setHook(`https://discordapp.com/api/webhooks/0000000000000000000/...`);
         setErr("hook was set successfully");
