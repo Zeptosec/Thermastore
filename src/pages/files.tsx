@@ -2,7 +2,7 @@ import BubbleBackground from "@/components/BubbleBackground";
 import CoolLoader from "@/components/CoolLoading2";
 import CoolSearch from "@/components/CoolSearch";
 import ShowFiles from "@/components/ShowFiles";
-import { Directory, DirFile, getFilesWithDir, GetPreviousDir } from "@/utils/FileFunctions";
+import { Directory, DirFile, equalDir, getFilesWithDir, GetPreviousDir } from "@/utils/FileFunctions";
 import { useSessionContext, useSupabaseClient, useUser } from "@supabase/auth-helpers-react"
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -180,7 +180,7 @@ export default function filesPage() {
             moved.push(...filesToMove);
         }
         if (!isHere)
-            setFiles(w => [...w.filter(a => !moved.find(b => b.created_at === a.created_at))]);
+            setFiles(w => [...w.filter(a => !moved.find(b => equalDir(b, a)))]);
         else
             setFiles(w => [...w, ...moved]);
         setSelected([]);

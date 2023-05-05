@@ -110,6 +110,15 @@ export interface DirFile {
     dir: number
 }
 
+export function indexOfSelected(selected: (DirFile | Directory)[], file: (DirFile | Directory)) {
+    return selected.findIndex(w => equalDir(w, file));
+}
+
+export function equalDir(file1?: (DirFile | Directory), file2?: (DirFile | Directory)) {
+    if (!file1 || !file2) return false;
+    return file1.created_at === file2.created_at && file1.id === file2.id;
+}
+
 async function getDirectories(supabase: SupabaseClient<any, "public", any>, from: number, to: number, dir: number | null, searchStr: string, isGlobal: boolean) {
     if (searchStr.length > 0) {
         return isGlobal ?

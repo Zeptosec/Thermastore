@@ -1,4 +1,4 @@
-import { Directory, DirFile } from "@/utils/FileFunctions"
+import { Directory, DirFile, equalDir } from "@/utils/FileFunctions"
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
 import DirItem from "./Dirtem"
 import FileItem from "./FileItem"
@@ -69,7 +69,7 @@ export default function ShowFilesPage({ files, setDirHistory, selected, setSelec
                 audioRef.current.pause();
             setCurrPlayingFile(undefined);
         } else {
-            if (currPlayingFile && file.created_at === currPlayingFile.playFile.created_at) {
+            if (currPlayingFile && equalDir(file, currPlayingFile.playFile)) {
                 if (!audioRef.current) return;
                 if (audioRef.current.paused) {
                     audioRef.current.play();

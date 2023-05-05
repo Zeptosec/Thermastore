@@ -1,4 +1,4 @@
-import { Directory, DirFile } from "@/utils/FileFunctions"
+import { Directory, DirFile, indexOfSelected } from "@/utils/FileFunctions"
 import { supabase } from "@/utils/Supabase";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
 import SelectionBubble from "./SelectionBubble";
@@ -21,7 +21,7 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
     function clicked(w: any) {
         if (!selectable || !selected || !setSelected) return;
         if (refName.current && !refName.current.contains(w.target) && refOptions.current && !refOptions.current.contains(w.target)) {
-            const rez = selected.findIndex(el => el.created_at === dir.created_at);
+            const rez = indexOfSelected(selected, dir);
             if (SelectMultiple && w.shiftKey) {
                 SelectMultiple(dir, rez !== -1);
             } else if (rez === -1) {
@@ -59,7 +59,7 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
 
     function openDir() {
         if (selected && setSelected) {
-            const rez = selected.findIndex(el => el.created_at === dir.created_at);
+            const rez = indexOfSelected(selected, dir);
             if (rez !== -1)
                 setSelected(w => [...w.slice(0, rez), ...w.slice(rez + 1)])
         }
