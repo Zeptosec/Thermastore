@@ -195,21 +195,37 @@ async function getFiles(supabase: SupabaseClient<any, "public", any>, from: numb
     }
 }
 
-export async function fetchFilesFromDB(supabase: SupabaseClient<any, "public", any>, from: number, to: number, dir: number | null | object, prevDirsCount: number, pageSize: number, getDirsFunc: Function, getFilesFunc: Function, searchStr: string, isGlobal: boolean) {
+export async function fetchFilesFromDB(supabase: SupabaseClient<any, "public", any>, from: number, to: number, dir: number | null | object, prevDirsCount: number, pageSize: number, getDirsFunc: Function, getFilesFunc: Function, searchStr: string, isGlobal: boolean)
+    : Promise<{ arr: (Directory | DirFile)[], next: boolean, dirs: { count: number, data: Directory[], error: string | undefined, hasNext: boolean } }> {
     let arr: (Directory | DirFile)[] = [];
-    const dirs = await getDirsFunc(supabase, from, to, dir, searchStr, isGlobal);
+
+    let dirs = { count: 0, data: [], error: undefined, hasNext: false };
+    if (from === prevDirsCount) {
+        const dbdirs = await getDirsFunc(supabase, from, to, dir, searchStr, isGlobal);
+        dirs.data = dbdirs.data;
+        dirs.error = dbdirs.error;
+        dirs.count = dbdirs.data.length;
+    }
     if (dirs.error) {
         console.log(dirs.error);
     } else {
+        dirs.count = dirs.data.length;
+        if (dirs.count > pageSize) {
+            dirs.hasNext = true;
+            dirs.data.pop();
+            dirs.count -= 1;
+        }
         arr.push(...dirs.data);
     }
-
+    // console.log(`before`, from, to, dirs.count, prevDirsCount)
     if (dirs.count)
         to -= dirs.count;
     from -= prevDirsCount;
     to -= prevDirsCount;
+    // console.log(`after`, from, to)
 
-    if (from < to) {
+
+    if (from <= to) {
         const files = await getFilesFunc(supabase, from, to, dir, searchStr, isGlobal);
         if (!files.error) {
             arr.push(...files.data);
@@ -222,14 +238,42 @@ export async function fetchFilesFromDB(supabase: SupabaseClient<any, "public", a
         next = true;
         arr.pop();
     }
-    return { arr, next };
+    return { arr, next: next || dirs.hasNext, dirs };
 }
 
-export async function getFilesWithDir(supabase: SupabaseClient<any, "public", any>, dir: number | null, page: number, pageSize: number = 50, prevFiles: (DirFile | Directory)[], searchStr: string, isGlobal: boolean) {
-    const prevDirsCount = prevFiles.filter(w => 'fileid' in w ? false : true).length;
+export interface PageDirCountHistory {
+    counts: number[],
+    pageSize: number,
+    totalCnt: number,
+}
+
+export async function getFilesWithDir(supabase: SupabaseClient<any, "public", any>, dir: number | null, page: number, pageSize: number = 50, pageDirCountHistory: PageDirCountHistory, searchStr: string, isGlobal: boolean) {
+    //const prevDirsCount = prevFiles.filter(w => 'fileid' in w ? false : true).length;
+    if (page === 1) {
+        pageDirCountHistory.counts = [];
+        pageDirCountHistory.totalCnt = 0;
+    }
+    const isNextPage = page > pageDirCountHistory.counts.length;
+    const isPrevPage = page <= pageDirCountHistory.counts.length;
+
     let from = (page - 1) * pageSize;
     let to = page * pageSize;
-    return await fetchFilesFromDB(supabase, from, to, dir, prevDirsCount, pageSize, getDirectories, getFiles, searchStr, isGlobal);
+
+    if (isPrevPage) {
+        const val = pageDirCountHistory.counts.pop();
+        if (val) {
+            pageDirCountHistory.totalCnt -= val;
+        }
+    }
+
+    const { arr, next, dirs } = await fetchFilesFromDB(supabase, from, to, dir, pageDirCountHistory.totalCnt, pageSize, getDirectories, getFiles, searchStr, isGlobal);
+
+    if (isNextPage && dirs.count > 0) {
+        pageDirCountHistory.counts.push(dirs.count);
+        pageDirCountHistory.totalCnt += dirs.count;
+    }
+    // console.log(pageDirCountHistory, isNextPage, isPrevPage);
+    return { arr, next };
 }
 
 export function FileEndsWith(name: string, ends: string[]) {
@@ -238,11 +282,6 @@ export function FileEndsWith(name: string, ends: string[]) {
         const parts = name.split('.');
         const ext = parts[parts.length - 1].toLowerCase();
         return ends.includes(ext);
-        // for (let i = 0; i < ends.length; i++) {
-        //     if (ends[i].toLowerCase() === ext)
-        //         return true;
-        // }
-        // return false;
     }
 }
 
@@ -262,7 +301,7 @@ export async function GetPreviousDir(currDirId: number, supabase: SupabaseClient
 }
 
 export function IsAudioFile(name: string) {
-    return FileEndsWith(name, ['mp3', 'ogg', 'wav']);
+    return FileEndsWith(name, ['mp3', 'ogg', 'wav', 'm4a', 'wma', 'aac']);
 }
 
 export function IsImageFile(name: string) {
@@ -270,26 +309,37 @@ export function IsImageFile(name: string) {
 }
 
 export function IsVideoFile(name: string) {
-    return FileEndsWith(name, ['mp4', 'mkv', 'mp3', 'wav', 'ogg']);
+    return FileEndsWith(name, ['mp4', 'mkv', 'mov', 'avi', 'webm', 'flv']);
+}
+
+export type FileType = 'audio' | 'video' | 'text' | 'image' | 'file';
+export function getFileType(name: string): FileType {
+    if (!name.includes('.')) return "file";
+    if (FileEndsWith(name, ['mp3', 'ogg', 'wav', 'm4a', 'wma', 'aac'])) {
+        return 'audio';
+    } else if (FileEndsWith(name, ['png', 'jpg', 'jpeg', 'gif', 'bmp'])) {
+        return 'image';
+    } else if (FileEndsWith(name, ['mp4', 'mkv', 'mov', 'avi', 'webm', 'flv'])) {
+        return 'video';
+    } else if (FileEndsWith(name, ['txt', 'doc', 'docx'])) {
+        return 'text';
+    } else {
+        return 'file';
+    }
 }
 
 export function getFileIconName(name: string) {
-    if (!name.includes('.')) return "file";
-    const parts = name.split('.');
-    switch (parts[parts.length - 1].toLowerCase()) {
-        case "mp3":
-        case "ogg":
-        case "wav":
+    switch (getFileType(name)) {
+        case 'audio':
             return "music-note mt-1";
-        case "txt":
-        case "doc":
-        case "docx":
-            return "file-document mt-05";
-
-        case "mkv":
-        case "mp4":
+        case 'video':
             return "film mt-05";
+        case 'image':
+            return "image mt-05 ml-05";
+        case 'text':
+            return "file-document mt-05";
         default:
             return "file mt-05";
     }
+    
 }

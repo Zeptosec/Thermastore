@@ -1,8 +1,9 @@
 import BubbleBackground from "@/components/BubbleBackground";
 import CoolLoader from "@/components/CoolLoading2";
 import CoolSearch from "@/components/CoolSearch";
+import Pathline from "@/components/Pathline";
 import ShowFiles from "@/components/ShowFiles";
-import { Directory, DirFile, equalDir, getFilesWithDir, GetPreviousDir } from "@/utils/FileFunctions";
+import { Directory, DirFile, equalDir, getFilesWithDir, GetPreviousDir, PageDirCountHistory } from "@/utils/FileFunctions";
 import { useSessionContext, useSupabaseClient, useUser } from "@supabase/auth-helpers-react"
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -17,7 +18,6 @@ export default function filesPage() {
     const [stillLoading, setStillLoading] = useState(true);
     const [files, setFiles] = useState<(Directory | DirFile)[]>([]);
     const [dirHistory, setDirHistory] = useState<Directory[]>([]);
-    const [callDirUpdate, setCallDirUpdate] = useState(true)
     const [currPage, setCurrPage] = useState(1);
     const [currPageSize, setCurrPageSize] = useState(50);
     const [selected, setSelected] = useState<(Directory | DirFile)[]>([]);
@@ -25,6 +25,7 @@ export default function filesPage() {
     const [searchStr, setSearchStr] = useState("");
     const [isGlobal, setIsGlobal] = useState(false);
     const [gotRouteDir, setGotRouteDir] = useState(false);
+    const [pageDirHistory, setPageDirHistory] = useState<PageDirCountHistory>({ counts: [], pageSize: currPageSize, totalCnt: 0 })
 
     async function fetchData() {
         setStillLoading(true);
@@ -32,7 +33,7 @@ export default function filesPage() {
         if (!user) router.push("/");
         setMsg("Fetching info about files...");
         const dir = dirHistory.length === 0 ? null : dirHistory[dirHistory.length - 1].id
-        const { arr, next } = await getFilesWithDir(supabase, dir, currPage, currPageSize, files, searchStr, isGlobal);
+        const { arr, next } = await getFilesWithDir(supabase, dir, currPage, currPageSize, pageDirHistory, searchStr, isGlobal);
         setFiles(arr);
         setCanNext(next);
         setStillLoading(false);
@@ -49,7 +50,7 @@ export default function filesPage() {
             if (dirHistory.length === 1) {
                 const pdir = await GetPreviousDir(dirHistory[0].id, supabase);
                 if (pdir && pdir.dir) {
-                    setDirHistory(w => [pdir.dir, pdir]);
+                    setDirHistory([pdir.dir, pdir]);
                     return;
                 }
             }
@@ -99,7 +100,7 @@ export default function filesPage() {
         };
     }, [router])
 
-    function setDirFromUrl(rdir: any) {
+    async function setDirFromUrl(rdir: any) {
         if (rdir && !Array.isArray(rdir)) {
             try {
                 const dirnum = parseInt(rdir);
@@ -108,8 +109,13 @@ export default function filesPage() {
                     return;
                 }
                 const ind = dirHistory.findIndex(w => w.id === dirnum);
-                if (ind === -1)
-                    setDirHistory([{ id: dirnum, name: "", created_at: "", shared: false, dir: 0 }]);
+                if (ind === -1) {
+                    const pdir = await GetPreviousDir(dirnum, supabase);
+                    if (pdir) {
+                        setDirHistory([pdir]);
+                    } else
+                        setDirHistory([{ id: dirnum, name: "", created_at: "", shared: false, dir: 0 }]);
+                }
                 else
                     setDirHistory(w => w.slice(0, ind + 1))
             } catch (err) {
@@ -233,15 +239,16 @@ export default function filesPage() {
     return (
         <div>
             <Head>
-                <title>Files</title>
+                <title>Files - { }</title>
             </Head>
             <BubbleBackground />
             <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[72px]">
-                <div className="grid gap-4">
+                <div className="grid gap-4 pb-4">
                     {stillLoading ? <>
                         <CoolLoader />
                         <p className="pt-32 text-2xl text-white text-center">{msg}</p>
                     </> : <>
+                        <Pathline dirHistory={dirHistory} setDirHistory={setDirHistory} />
                         <div className="flex justify-between px-3 h-6">
                             <div className="flex gap-2 items-center">
                                 {dirHistory.length > 0 ? <abbr title="Back" onClick={() => setDirHistory(w => w.slice(0, w.length - 1))}><i className="gg-arrow-left cursor-pointer transition-colors duration-200 text-white hover:text-blue-700"></i></abbr> : ""}
@@ -264,14 +271,22 @@ export default function filesPage() {
                             setSelected={setSelected}
                             MoveSelected={MoveSelected}
                             selectable={true} />
-                        <div className="flex justify-between items-center px-3">
+                        {currPage > 1 || canNext ? <div className={`flex justify-between items-center px-3`}>
                             <div>
-                                {currPage > 1 ? <i onClick={() => setCurrPage(w => w - 1)} className="gg-arrow-left cursor-pointer transition-colors duration-200 hover:text-blue-700"></i> : ""}
+                                {currPage > 1 ? <div className=" cursor-pointer transition-colors duration-200 hover:text-blue-700">
+                                    <abbr title="Previous page">
+                                        <i onClick={() => setCurrPage(w => w - 1)} className="gg-arrow-left"></i>
+                                    </abbr>
+                                </div> : ""}
                             </div>
                             <div>
-                                {canNext ? <i onClick={() => setCurrPage(w => w + 1)} className="gg-arrow-right cursor-pointer transition-colors duration-200 hover:text-blue-700"></i> : ""}
+                                {canNext ? <div className=" cursor-pointer transition-colors duration-200 hover:text-blue-700">
+                                    <abbr title="Next page">
+                                        <i onClick={() => setCurrPage(w => w + 1)} className="gg-arrow-right"></i>
+                                    </abbr>
+                                </div> : ""}
                             </div>
-                        </div>
+                        </div> : ""}
                     </>}
                 </div>
             </div>
