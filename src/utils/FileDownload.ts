@@ -98,7 +98,6 @@ async function downloadChunk(chunkId: string, chanId: string, arrayIndex: number
     while (!data) {
         const endpoint = await getEndpoint(workingEnds, maxConns);
         endpoint.occupied += 1;
-        console.log(endpoint)
         try {
             let prev = 0;
             const res = await axios.get(`${endpoint.link}/down/${chanId}/${chunkId}`, {
@@ -134,6 +133,7 @@ export function downloadBlob(file: Blob, name: string) {
 }
 
 export async function getImageHref(file: DownloadStatus, chanId: string) {
+    checkEndpoints();
     const { chunkIndex, data, arrayIndex } = await downloadChunk(file.chunks[0], chanId, 0, 0, file);
     let dwnFile = new Blob([data]);
     const href = URL.createObjectURL(dwnFile);

@@ -300,18 +300,6 @@ export async function GetPreviousDir(currDirId: number, supabase: SupabaseClient
     }
 }
 
-export function IsAudioFile(name: string) {
-    return FileEndsWith(name, ['mp3', 'ogg', 'wav', 'm4a', 'wma', 'aac']);
-}
-
-export function IsImageFile(name: string) {
-    return FileEndsWith(name, ['png', 'jpg', 'jpeg', 'gif', 'bmp']);
-}
-
-export function IsVideoFile(name: string) {
-    return FileEndsWith(name, ['mp4', 'mkv', 'mov', 'avi', 'webm', 'flv']);
-}
-
 export type FileType = 'audio' | 'video' | 'text' | 'image' | 'file';
 export function getFileType(name: string): FileType {
     if (!name.includes('.')) return "file";
@@ -321,7 +309,7 @@ export function getFileType(name: string): FileType {
         return 'image';
     } else if (FileEndsWith(name, ['mp4', 'mkv', 'mov', 'avi', 'webm', 'flv'])) {
         return 'video';
-    } else if (FileEndsWith(name, ['txt', 'doc', 'docx'])) {
+    } else if (FileEndsWith(name, ['txt', 'doc', 'docx', 'pdf'])) {
         return 'text';
     } else {
         return 'file';

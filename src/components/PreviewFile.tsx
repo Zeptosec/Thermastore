@@ -1,5 +1,5 @@
 import { DownloadStatus, getEarliestEnd, getImageHref } from "@/utils/FileDownload"
-import { IsAudioFile, IsImageFile, IsVideoFile } from "@/utils/FileFunctions";
+import { getFileType } from "@/utils/FileFunctions";
 import { Endpoint } from "@/utils/FileUploader";
 import { useEffect, useState } from "react";
 import { endPoints } from "@/utils/FileFunctions";
@@ -15,14 +15,7 @@ const streams: Endpoint[] = endPoints;
 export default function PreviewFile({ file, fid, cid }: Props) {
     const [sid, setSid] = useState(0);
     const [href, setHref] = useState("");
-    // function hasExtension(ext: string[]) {
-    //     if (!file.name.includes('.')) return false;
-    //     const parts = file.name.split('.');
-    //     if (ext.includes(parts[parts.length - 1].toLowerCase()))
-    //         return true;
-    //     else
-    //         return false;
-    // }
+    const fileType = getFileType(file.name);
 
     useEffect(() => {
 
@@ -31,16 +24,15 @@ export default function PreviewFile({ file, fid, cid }: Props) {
             const hr = await getImageHref(file, cid);
             setHref(hr);
         }
-        if (IsImageFile(file.name))
+        if (fileType === 'image')
             showImage();
 
     }, [])
 
 
-
     return (
         <div>
-            {IsVideoFile(file.name) ?
+            {['video', 'audio'].includes(fileType) ?
                 <>
                     <div className="mb-2 text-black grid items-center justify-center">
                         <select defaultValue={sid} onChange={w => setSid(parseInt(w.target.value))}>
@@ -49,14 +41,14 @@ export default function PreviewFile({ file, fid, cid }: Props) {
                             ))}
                         </select>
                     </div>
-                    {IsVideoFile(file.name) ? <div>
+                    {fileType === 'video' ? <div>
                         <video crossOrigin="" className="w-full outline-none max-h-[800px]" controls controlsList="nodownload" src={`${streams[sid].link}/stream/${cid}/${fid}`}></video>
                     </div> : ""}
-                    {IsAudioFile(file.name) ? <div>
+                    {fileType === 'audio' ? <div>
                         <audio crossOrigin="" className="w-full outline-none" controls controlsList="nodownload" src={`${streams[sid].link}/stream/${cid}/${fid}`}></audio>
                     </div> : ""}
                 </> : ""}
-            {(IsImageFile(file.name) && href !== "") ? <div className="grid justify-center">
+            {(fileType === 'image' && href !== "") ? <div className="grid justify-center">
                 <p className="text-center text-2xl pb-4">Preview</p>
                 <img src={href} />
             </div> : ""}

@@ -235,11 +235,10 @@ export default function filesPage() {
             setCurrPage(1);
         }, 1500))
     }
-
     return (
         <div>
             <Head>
-                <title>Files - { }</title>
+                <title>{dirHistory.length > 0 ? `Files - ${dirHistory[dirHistory.length-1].name}` : 'Files'}</title>
             </Head>
             <BubbleBackground />
             <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[72px]">

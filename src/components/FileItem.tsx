@@ -1,4 +1,4 @@
-import { BytesToReadable, Directory, DirFile, equalDir, getFileIconName, indexOfSelected, IsAudioFile } from "@/utils/FileFunctions"
+import { BytesToReadable, Directory, DirFile, equalDir, getFileIconName, getFileType, indexOfSelected } from "@/utils/FileFunctions"
 import { supabase } from "@/utils/Supabase";
 import Link from "next/link"
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
@@ -73,7 +73,7 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
             <SelectionBubble file={file} selected={selected}>
                 <div className="flex gap-2 items-center overflow-hidden">
                     <div className="w-5 h-5 m-auto sm:block hidden">
-                        {IsAudioFile(file.name) ? equalDir(playing?.playFile, file) ?
+                        {getFileType(file.name) === 'audio' ? equalDir(playing?.playFile, file) ?
                             <div onClick={() => togglePlay(file)} ref={audioBtn}>
                                 <PlayCircle className="cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200" radius={11} percent={playing?.percent} stroke={1} paused={playing?.paused} />
                             </div> :
