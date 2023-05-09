@@ -74,6 +74,7 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
+    console.log("ddddd")
     const { dirid, time, searchStr, page, pageSize, prevFiles } = JSON.parse(req.body);
     if (isNaN(dirid))
         return res.status(400).json({ error: `dirid must be a whole number` });
@@ -84,6 +85,7 @@ export default async function handler(
     if (isNaN(time))
         return res.status(400).json({ error: `time must be a whole number` });
     const supabase = createServerSupabaseClient({ req, res }, { supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL, supabaseKey: process.env.SUPABASE_SERVICE_KEY });
+    console.log(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY)
     try {
         const { data } = await supabase
             .from("directories")
@@ -92,6 +94,7 @@ export default async function handler(
             .gt('created_at', new Date(time).toISOString())
             .eq('id', dirid)
             .eq('shared', true).single();
+        console.log(data);
         if (data) {
             const rs = await getSharedFilesWithDir(supabase, { dir: dirid, time }, page, pageSize, prevFiles, searchStr, false);
             return res.status(200).json({ ...rs, name: data.name })
