@@ -108,7 +108,7 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
     let chanid = "";
     while (json === null) {
         try {
-            console.log(`chunksize: ${chunk.size} | chunkLimit: ${chunkSize}`);
+            // console.log(`chunksize: ${chunk.size} | chunkLimit: ${chunkSize}`);
             const res = await axios.post(endpoint.link, data, {
                 signal: file.controller.signal,
                 onUploadProgress: function (event) {

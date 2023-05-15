@@ -2,7 +2,7 @@ import { PostgrestResponse, SupabaseClient } from "@supabase/supabase-js";
 import axios from "axios";
 import { Endpoint } from "./FileUploader";
 
-export const chunkSize = 25 * 1024 ** 2 - 1024;
+export const chunkSize = 25 * 1024 ** 2 - 512;
 
 const marks = ["B", "KB", "MB", "GB", "TB", "PB"];
 
