@@ -108,6 +108,7 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
     let chanid = "";
     while (json === null) {
         try {
+            console.log(`chunksize: ${chunk.size} | chunkLimit: ${chunkSize}`);
             const res = await axios.post(endpoint.link, data, {
                 signal: file.controller.signal,
                 onUploadProgress: function (event) {
@@ -264,6 +265,7 @@ async function uploadFile(file: FileStatus, user: boolean) {
     //function for updating file upload speed and time.
     let interval = setInterval(() => {
         let currSpeed = (file.uploadedBytes - prevLoaded) / (Date.now() - prevTime) * 1000;
+        if(currSpeed < 0) currSpeed = 0;
         speeds[i] = currSpeed;
         file.speed = speeds.reduce((a, b) => a + b, 0) / speeds.length;
 
