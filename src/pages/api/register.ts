@@ -11,7 +11,7 @@ export default async function handler(
     res: NextApiResponse<Data>
 ) {
     const { email, password } = req.body;
-    const supabase = createServerSupabaseClient({ req, res }, { supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL, supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY });
+    const supabase = createServerSupabaseClient({ req, res }, { supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL, supabaseKey: process.env.SUPABASE_SERVICE_KEY });
     const rs2 = await supabase
         .from('allowedEmails')
         .select('*')
