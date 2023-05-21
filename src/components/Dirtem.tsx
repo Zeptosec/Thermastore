@@ -72,7 +72,7 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
                 return;
             }
         } else {
-            if (!confirm("Sharing this directory will share all the files inside it but not the within other directories unless they are shared too. Other users will be able to get file links and ACCESS FILES even after sharing is stopped! Do you want to share this directory?")) {
+            if (!confirm("Sharing this directory will share all the files inside it but not the within other directories unless they are shared too. Do you want to share this directory?")) {
                 return;
             }
         }
