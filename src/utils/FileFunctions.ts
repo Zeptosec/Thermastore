@@ -71,7 +71,7 @@ export async function VerifyHook(hook: string) {
  * @returns A readable string with days, hours, minutes and seconds.
  */
 export function TimeToReadable(seconds: number) {
-    let secs = Math.round(seconds % 60);
+    let secs = Math.floor(seconds % 60);
     let minutes = Math.floor(seconds / 60) % 60;
     let hours = Math.floor(seconds / 3600) % 24;
     let days = Math.floor(seconds / 86400);
