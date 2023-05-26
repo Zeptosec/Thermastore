@@ -14,8 +14,7 @@ export default function downloadPage() {
     const { fid, cid } = router.query;
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
-    const [fData, setFdata] = useState<DownloadStatus>({ name: "", size: -1, chunks: [], downloadedBytes: 0, speed: 0, timeleft: 0, precentage: 0, channel_id: "1025526944776867952" });
-
+    const [fData, setFdata] = useState<DownloadStatus>({ started_at: 0, name: "", size: -1, chunks: [], downloadedBytes: 0, speed: 0, timeleft: 0, precentage: 0, channel_id: "1025526944776867952" });
     const [downloading, setDownloading] = useState(false);
 
     useEffect(() => {
@@ -55,6 +54,7 @@ export default function downloadPage() {
 
     async function download() {
         setDownloading(true);
+        setFdata(w => ({ ...w, started_at: new Date().getTime() }))
         await downloadFile(fData, setFdata, onStart, onFinished);
     }
 
@@ -93,9 +93,17 @@ export default function downloadPage() {
                                                 <StrechableText text={fData.name} />
                                             </div>
                                             <div className="flex items-end gap-4 justify-center">
-                                                <p className="whitespace-nowrap">{TimeToReadable(fData.timeleft)}</p>
-                                                <p className="whitespace-nowrap">{BytesToReadable(fData.speed)}/s</p>
-                                                <p className="whitespace-nowrap">{BytesToReadable(fData.downloadedBytes)}/{BytesToReadable(fData.size)}</p>
+                                                {fData.failed_text ? <p className=" text-red-700 whitespace-nowrap">
+                                                    {fData.failed_text}
+                                                </p> : fData.timeleft < 0 ? <p className="whitespace-nowrap">
+                                                    Waiting for servers. <span className="font-bold">{TimeToReadable((new Date().getTime() - fData.started_at) / 1000)}</span> passed since started.
+                                                </p> : fData.precentage === 1 ? <p>
+                                                    Downloaded!
+                                                </p> : <>
+                                                    <p className="whitespace-nowrap">{TimeToReadable(fData.timeleft)}</p>
+                                                    <p className="whitespace-nowrap">{BytesToReadable(fData.speed)}/s</p>
+                                                    <p className="whitespace-nowrap">{BytesToReadable(fData.downloadedBytes)}/{BytesToReadable(fData.size)}</p>
+                                                </>}
                                             </div>
                                         </div>
                                     </>}

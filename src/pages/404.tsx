@@ -1,4 +1,5 @@
 import BubbleBackground from "@/components/BubbleBackground";
+import OptionsDropdown from "@/components/OptionsDropdown";
 
 export default function NotFound() {
 

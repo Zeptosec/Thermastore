@@ -7,6 +7,7 @@ import PlayCircle from "./PlayCircle";
 import SelectionBubble from "./SelectionBubble";
 import { PlayStatus } from "./ShowFiles";
 import StrechableText from "./StrechableText";
+import OptionsDropdown from "./OptionsDropdown";
 
 interface Props {
     file: DirFile,
@@ -23,17 +24,28 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
     const audioBtn = useRef<any>(null);
     const [isNaming, setIsNaming] = useState(false);
     const [name, setName] = useState<string>(file.name);
+    const [informCopy, setInformCopy] = useState("Copy link");
 
     useEffect(() => {
         setName(file.name);
         setIsNaming(false);
     }, [file])
+
+    let tmout: NodeJS.Timeout | null = null;
     function copyClipboard() {
         navigator.clipboard.writeText(lref.current.href);
+        setInformCopy("Link Copied!");
+        if (tmout) {
+            clearTimeout(tmout);
+        }
+        tmout = setTimeout(() => setInformCopy("Copy link"), 2000)
     }
 
+    // logic for selecting and deselecting file. 
     function clicked(w: any) {
+        // if theres no selectable selected or setSelected functions won't be able to select this file
         if (!selectable || !selected || !setSelected) return;
+        // if cliced on link, copy, audio - don't select
         if (!(lref.current && lref.current.contains(w.target) ||
             refCopy.current && refCopy.current.contains(w.target) ||
             audioBtn.current && audioBtn.current.contains(w.target))) {
@@ -69,7 +81,7 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
     }
 
     return (
-        <div onClick={w => clicked(w)} className="flex justify-between card group gap-1 overflow-hidden">
+        <div onClick={w => clicked(w)} className="flex justify-between card group gap-1">
             <SelectionBubble file={file} selected={selected}>
                 <div className="flex gap-2 items-center overflow-hidden">
                     <div className="w-5 h-5 m-auto sm:block hidden">
@@ -100,14 +112,21 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
             </SelectionBubble>
             <div className="flex gap-2 items-center">
                 <p className="whitespace-nowrap">{BytesToReadable(file.size)}</p>
-                <div ref={refCopy} className="flex gap-2 items-center">
-                    <abbr
-                        title="Copy link"
-                        onClick={() => copyClipboard()}
-                        className="w-6 h-6 cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200">
-                        <i className="gg-link mt-3 ml-2 "></i>
-                    </abbr>
-                    {!isNaming && selectable ? <abbr className="sm:block hidden" onClick={() => setIsNaming(w => !w)} title="Rename"><i className="gg-rename cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200"></i></abbr> : ""}
+                <div ref={refCopy} className="relative w-[22px] h-[22px]">
+                    <OptionsDropdown >
+                        <div onClick={() => copyClipboard()} className="flex gap-2 items-center cursor-pointer text-blue-900 hover:text-blue-600 transition-colors duration-200">
+                            <abbr
+                                title="Copy link"
+                                className="w-6 h-6 flex justify-center items-center">
+                                <i className="gg-link "></i>
+                            </abbr>
+                            <p className="whitespace-nowrap">{informCopy}</p>
+                        </div>
+                        {!isNaming && selectable ? <div onClick={() => setIsNaming(w => !w)} className="flex gap-2 items-center cursor-pointer text-blue-900 hover:text-blue-600 transition-colors duration-200">
+                            <abbr className="sm:block hidden" title="Rename"><i className="gg-rename"></i></abbr>
+                            <p>Rename</p>
+                        </div> : ""}
+                    </OptionsDropdown>
                 </div>
             </div>
         </div>

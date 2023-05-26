@@ -2,6 +2,7 @@ import { Directory, DirFile, indexOfSelected } from "@/utils/FileFunctions"
 import { supabase } from "@/utils/Supabase";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
 import SelectionBubble from "./SelectionBubble";
+import OptionsDropdown from "./OptionsDropdown";
 
 interface Props {
     dir: Directory,
@@ -18,6 +19,7 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
     const [isNaming, setIsNaming] = useState(false);
     const [name, setName] = useState<string>(dir.name);
     const [shared, setShared] = useState(dir.shared);
+    const [informCopy, setInformCopy] = useState("Copy link");
     function clicked(w: any) {
         if (!selectable || !selected || !setSelected) return;
         if (refName.current && !refName.current.contains(w.target) && refOptions.current && !refOptions.current.contains(w.target)) {
@@ -88,16 +90,16 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
         }
     }
 
+    let tmout: NodeJS.Timeout | null = null;
     function copyClipboard() {
         navigator.clipboard.writeText(`${window.location.protocol}//${window.location.host}/shared/${new Date(dir.created_at).getTime()}/${dir.id}`);
+        setInformCopy("Link Copied!");
+        if (tmout) {
+            clearTimeout(tmout);
+        }
+        tmout = setTimeout(() => setInformCopy("Copy link"), 2000)
     }
 
-    <abbr
-        title="Copy link"
-        onClick={() => copyClipboard()}
-        className="w-6 h-6 cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200">
-        <i className="gg-link mt-3 ml-2 "></i>
-    </abbr>
     return (
         <div onClick={w => clicked(w)} className="flex justify-between card group">
             <SelectionBubble file={dir} selected={selected}>
@@ -114,16 +116,32 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
             </SelectionBubble>
             <div ref={refOptions} className={`flex items-center gap-2`}>
                 {selected && MoveSelected && selected.length > 0 ? <abbr title="Move to this directory"><i onClick={() => MoveSelected(dir.id, false)} className={`gg-add-r cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200`}></i></abbr> : ""}
-                {selectable ? <div onClick={() => shareManager()} className="w-5 h-6">{shared ?
-                    <abbr className="cursor-pointer" title="Stop sharing"><i className="gg-lock-unlock m-auto text-blue-900 hover:text-blue-700 transition-colors duration-200"></i></abbr>
-                    : <abbr className="cursor-pointer" title="Start sharing"><i className="gg-lock m-auto text-blue-900 hover:text-blue-700 transition-colors duration-200"></i></abbr>}</div> : ""}
-                {shared ? <abbr
-                    title="Copy link"
-                    onClick={() => copyClipboard()}
-                    className="w-6 h-6 cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200">
-                    <i className="gg-link mt-3 ml-2 "></i>
-                </abbr> : ""}
-                {!isNaming && selectable ? <abbr onClick={() => setIsNaming(w => !w)} title="Rename"><i className="gg-rename cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200"></i></abbr> : ""}
+                <div className="relative w-[22px] h-[22px]">
+                    <OptionsDropdown>
+
+                        {selectable ? <div onClick={() => shareManager()} className="w-5 h-6 cursor-pointer text-blue-900 hover:text-blue-600 transition-colors duration-200">
+                            {shared ? <div className="whitespace-nowrap flex gap-3 items-center">
+                                <abbr title="Stop sharing" className="w-6 h-6"><i className="gg-lock-unlock m-auto ml-2"></i></abbr>
+                                <p>Stop sharing</p>
+                            </div> : <div className="whitespace-nowrap flex gap-3 items-center">
+                                <abbr className="w-6 h-6" title="Start sharing"><i className="gg-lock m-auto ml-2"></i></abbr>
+                                <p>Start sharing</p>
+                            </div>}
+                        </div> : ""}
+                        {shared ? <div onClick={() => copyClipboard()} className="whitespace-nowrap flex gap-2 cursor-pointer text-blue-900 hover:text-blue-600 transition-colors duration-200">
+                            <abbr
+                                title="Copy link"
+                                className="w-6 h-6 ">
+                                <i className="gg-link mt-3 ml-2 "></i>
+                            </abbr>
+                            <p>{informCopy}</p>
+                        </div> : ''}
+                        {!isNaming && selectable ? <div onClick={() => setIsNaming(w => !w)} className="whitespace-nowrap flex gap-2 items-center cursor-pointer text-blue-900 hover:text-blue-600 transition-colors duration-200">
+                            <abbr className="w-6 h-6" title="Rename"><i className="gg-rename m-auto mt-1"></i></abbr>
+                            <p>Rename</p>
+                        </div> : ''}
+                    </OptionsDropdown>
+                </div>
             </div>
         </div>
     )

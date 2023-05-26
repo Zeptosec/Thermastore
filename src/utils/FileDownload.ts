@@ -12,6 +12,8 @@ export interface DownloadStatus {
     chunks: Array<string>,
     precentage: number,
     channel_id: string,
+    started_at: number,
+    failed_text?: string
 }
 
 const maxConns = 10;
@@ -149,7 +151,7 @@ export async function downloadFileChunks(file: DownloadStatus, setFile: Dispatch
     const interval = setInterval(() => {
         speeds[i] = (file.downloadedBytes - prevLoaded) / (Date.now() - prevTime) * 1000;
         const speed = speeds.reduce((a, b) => a + b, 0) / speeds.length;
-        const timeleft = (file.size - file.downloadedBytes) / speed;
+        const timeleft = speed === 0 ? -1 : (file.size - file.downloadedBytes) / speed;
         const precentage = file.downloadedBytes / file.size
         setFile(w => ({
             ...w,
@@ -182,7 +184,7 @@ export async function downloadFileChunks(file: DownloadStatus, setFile: Dispatch
     return chunks;
 }
 
-async function checkEndpoints() {
+async function checkEndpoints(setFile?: Dispatch<SetStateAction<DownloadStatus>>) {
     //check if current endpoints are working
     for (let i = 0; i < workingEnds.length; i++) {
         try {
@@ -192,23 +194,33 @@ async function checkEndpoints() {
             console.log(err);
         }
     }
-
+    let cnt = endPoints.length;
     for (let i = 0; i < endPoints.length; i++) {
-        try {
-            const rs = await fetch(endPoints[i].link)
-            if (rs.ok) {
-                if (!workingEnds.includes(endPoints[i]))
-                    workingEnds.push(endPoints[i]);
+        (async () => {
+            try {
+                const rs = await fetch(endPoints[i].link)
+                if (rs.ok) {
+                    if (!workingEnds.includes(endPoints[i]))
+                        workingEnds.push(endPoints[i]);
+                }
+            } catch (err: any) {
+                console.log(err);
+                cnt -= 1;
+                if(cnt === 0 && setFile){
+                    setFile(w => ({...w, failed_text: "No services left! Check console!"}))
+                    console.log("Download proxy streamer https://github.com/Zeptosec/Streamer to use for downloading. Just start it on your computer and try downloading again.")
+                }
             }
-        } catch (err) {
-            console.log(err);
-        }
+        })();
     }
 }
 
 export async function downloadFile(file: DownloadStatus, setFile: Dispatch<SetStateAction<DownloadStatus>>, onStart: Function | null = null, onFinished: Function | null = null) {
-    checkEndpoints();
+    // check every 100s maybe localhost appeared or other services came up, or shutdown just cleanup.
+    const int = setInterval(() => checkEndpoints(setFile), 100 * 1000);
+    checkEndpoints(setFile);
     const chunks = await downloadFileChunks(file, setFile, onStart, onFinished);
+    clearInterval(int);
     let dwnFile = new Blob(chunks);
     setFile(w => ({
         ...w,

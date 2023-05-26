@@ -18,7 +18,13 @@ export default function PreviewFile({ file, fid, cid }: Props) {
     const fileType = getFileType(file.name);
 
     useEffect(() => {
-
+        async function getFastestRespond() {
+            const fastestEnd = await getEarliestEnd(endPoints, async (rs) => rs.status === 200)
+            const ind = endPoints.indexOf(fastestEnd);
+            if(ind !== -1){
+                setSid(ind);
+            }
+        }
         async function showImage() {
             if (file.size > 1024 ** 2) return;
             const hr = await getImageHref(file, cid);
@@ -26,7 +32,9 @@ export default function PreviewFile({ file, fid, cid }: Props) {
         }
         if (fileType === 'image')
             showImage();
-
+        if (['video', 'audio'].includes(fileType)) {
+            getFastestRespond();
+        }
     }, [])
 
 
@@ -35,7 +43,7 @@ export default function PreviewFile({ file, fid, cid }: Props) {
             {['video', 'audio'].includes(fileType) ?
                 <>
                     <div className="mb-2 text-black grid items-center justify-center">
-                        <select defaultValue={sid} onChange={w => setSid(parseInt(w.target.value))}>
+                        <select value={sid} onChange={w => setSid(parseInt(w.target.value))} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2">
                             {streams.map((w, ind) => (
                                 <option key={ind} value={ind}>Stream server: {w.name}</option>
                             ))}
