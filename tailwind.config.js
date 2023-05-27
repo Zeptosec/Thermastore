@@ -11,7 +11,9 @@ module.exports = {
         'sb': "0 0 10px rgb(0 0 0 / 30%)"
       },
       colors: {
-        'navhover': '#005aff4a'
+        'navhover': '#005aff4a',
+        'file': '#0014ff',
+        'filehover': '#2e65ff'
       }
     },
   },

@@ -250,13 +250,13 @@ export default function filesPage() {
                         <Pathline dirHistory={dirHistory} setDirHistory={setDirHistory} />
                         <div className="flex justify-between px-3 h-6">
                             <div className="flex gap-2 items-center">
-                                {dirHistory.length > 0 ? <abbr title="Back" onClick={() => setDirHistory(w => w.slice(0, w.length - 1))}><i className="gg-arrow-left cursor-pointer transition-colors duration-200 text-white hover:text-blue-700"></i></abbr> : ""}
-                                <abbr title="New directory"><i className="gg-folder-add cursor-pointer transition-colors duration-200 text-white hover:text-blue-700" onClick={() => AddFolder()}></i></abbr>
+                                {dirHistory.length > 0 ? <abbr title="Back" onClick={() => setDirHistory(w => w.slice(0, w.length - 1))}><i className="gg-arrow-left cursor-pointer transition-colors duration-200 text-white hover:text-filehover"></i></abbr> : ""}
+                                <abbr title="New directory"><i className="gg-folder-add cursor-pointer transition-colors duration-200 text-white hover:text-filehover" onClick={() => AddFolder()}></i></abbr>
                             </div>
                             {selected.length > 0 ? <div className="flex gap-2 items-center">
-                                <abbr className="cursor-pointer transition-colors duration-200 hover:text-blue-700 w-[22px] h-[22px] flex justify-center items-center" title="Move selected here"><i onClick={() => MoveSelected(dirHistory.length > 0 ? dirHistory[dirHistory.length - 1].id : null, true)} className="gg-add-r"></i></abbr>
-                                <abbr className="cursor-pointer transition-colors duration-200 hover:text-blue-700 w-[22px] h-[22px] flex justify-center items-center" onClick={() => setSelected([])} title="Deselect all"><i className="gg-close-r"></i></abbr>
-                                <abbr className="cursor-pointer transition-colors duration-200 hover:text-blue-700 w-[22px] h-[22px] flex justify-center items-center" onClick={() => deleteSelected()} title="Delete selected"><i className="gg-trash"></i></abbr>
+                                <abbr className="cursor-pointer transition-colors duration-200 hover:text-filehover w-[22px] h-[22px] flex justify-center items-center" title="Move selected here"><i onClick={() => MoveSelected(dirHistory.length > 0 ? dirHistory[dirHistory.length - 1].id : null, true)} className="gg-add-r"></i></abbr>
+                                <abbr className="cursor-pointer transition-colors duration-200 hover:text-filehover w-[22px] h-[22px] flex justify-center items-center" onClick={() => setSelected([])} title="Deselect all"><i className="gg-close-r"></i></abbr>
+                                <abbr className="cursor-pointer transition-colors duration-200 hover:text-filehover w-[22px] h-[22px] flex justify-center items-center" onClick={() => deleteSelected()} title="Delete selected"><i className="gg-trash"></i></abbr>
                             </div> : ""}
                             <div className="flex items-center gap-2">
                                 <abbr title="Search for files"><CoolSearch inputChanged={searchChanged} text={searchStr} /></abbr>
@@ -272,14 +272,14 @@ export default function filesPage() {
                             selectable={true} />
                         {currPage > 1 || canNext ? <div className={`flex justify-between items-center px-3`}>
                             <div>
-                                {currPage > 1 ? <div className=" cursor-pointer transition-colors duration-200 hover:text-blue-700">
+                                {currPage > 1 ? <div className=" cursor-pointer transition-colors duration-200 hover:text-filehover">
                                     <abbr title="Previous page">
                                         <i onClick={() => setCurrPage(w => w - 1)} className="gg-arrow-left"></i>
                                     </abbr>
                                 </div> : ""}
                             </div>
                             <div>
-                                {canNext ? <div className=" cursor-pointer transition-colors duration-200 hover:text-blue-700">
+                                {canNext ? <div className=" cursor-pointer transition-colors duration-200 hover:text-filehover">
                                     <abbr title="Next page">
                                         <i onClick={() => setCurrPage(w => w + 1)} className="gg-arrow-right"></i>
                                     </abbr>

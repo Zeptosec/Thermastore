@@ -124,7 +124,7 @@ export default function SharedFiles() {
                     </> : <>
                         <div className="flex justify-between px-3 h-6">
                             <div className="flex gap-2 items-center">
-                                {dirHistory.length > 0 ? <abbr title="Back" onClick={() => setDirHistory(w => [...w.slice(0, w.length - 1)])}><i className="gg-arrow-left cursor-pointer transition-colors duration-200 hover:text-blue-700"></i></abbr> : ""}
+                                {dirHistory.length > 0 ? <abbr title="Back" onClick={() => setDirHistory(w => [...w.slice(0, w.length - 1)])}><i className="gg-arrow-left cursor-pointer transition-colors duration-200 hover:text-filehover"></i></abbr> : ""}
                             </div>
                             <abbr title="Search for files"><CoolSearch inputChanged={searchChanged} text={searchStr} /></abbr>
                         </div>
@@ -134,10 +134,10 @@ export default function SharedFiles() {
                             selectable={false} />
                         <div className="flex justify-between items-center px-3">
                             <div>
-                                {currPage > 1 ? <i onClick={() => setCurrPage(w => w - 1)} className="gg-arrow-left cursor-pointer transition-colors duration-200 hover:text-blue-700"></i> : ""}
+                                {currPage > 1 ? <i onClick={() => setCurrPage(w => w - 1)} className="gg-arrow-left cursor-pointer transition-colors duration-200 hover:text-filehover"></i> : ""}
                             </div>
                             <div>
-                                {canNext ? <i onClick={() => setCurrPage(w => w + 1)} className="gg-arrow-right cursor-pointer transition-colors duration-200 hover:text-blue-700"></i> : ""}
+                                {canNext ? <i onClick={() => setCurrPage(w => w + 1)} className="gg-arrow-right cursor-pointer transition-colors duration-200 hover:text-filehover"></i> : ""}
                             </div>
                         </div>
                     </>}

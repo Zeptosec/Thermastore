@@ -110,6 +110,12 @@ export interface DirFile {
     dir: number
 }
 
+export function getReadableDate(time: string){
+    const date = new Date(time).toISOString();
+    const parts = date.split('T');
+    return parts[0];
+}
+
 export function indexOfSelected(selected: (DirFile | Directory)[], file: (DirFile | Directory)) {
     return selected.findIndex(w => equalDir(w, file));
 }

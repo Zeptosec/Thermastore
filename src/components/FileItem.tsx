@@ -1,4 +1,4 @@
-import { BytesToReadable, Directory, DirFile, equalDir, getFileIconName, getFileType, indexOfSelected } from "@/utils/FileFunctions"
+import { BytesToReadable, Directory, DirFile, equalDir, getFileIconName, getFileType, getReadableDate, indexOfSelected } from "@/utils/FileFunctions"
 import { supabase } from "@/utils/Supabase";
 import Link from "next/link"
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
@@ -7,7 +7,6 @@ import PlayCircle from "./PlayCircle";
 import SelectionBubble from "./SelectionBubble";
 import { PlayStatus } from "./ShowFiles";
 import StrechableText from "./StrechableText";
-import OptionsDropdown from "./OptionsDropdown";
 
 interface Props {
     file: DirFile,
@@ -24,6 +23,7 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
     const audioBtn = useRef<any>(null);
     const [isNaming, setIsNaming] = useState(false);
     const [name, setName] = useState<string>(file.name);
+    const [open, setOpen] = useState(false);
     const [informCopy, setInformCopy] = useState("Copy link");
 
     useEffect(() => {
@@ -81,52 +81,60 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
     }
 
     return (
-        <div onClick={w => clicked(w)} className="flex justify-between card group gap-1">
-            <SelectionBubble file={file} selected={selected}>
-                <div className="flex gap-2 items-center overflow-hidden">
-                    <div className="w-5 h-5 m-auto sm:block hidden">
-                        {getFileType(file.name) === 'audio' ? equalDir(playing?.playFile, file) ?
-                            <div onClick={() => togglePlay(file)} ref={audioBtn}>
-                                <PlayCircle className="cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200" radius={11} percent={playing?.percent} stroke={1} paused={playing?.paused} />
-                            </div> :
-                            <FlipCard>
-                                <i className={`gg-${getFileIconName(file.name)} m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200`}></i>
+        <div onClick={w => clicked(w)} className="grid card group">
+            <div className="flex justify-between gap-1 overflow-hidden">
+                <SelectionBubble file={file} selected={selected}>
+                    <div className="flex gap-2 items-center overflow-hidden">
+                        <div className="w-5 h-5 m-auto block">
+                            {getFileType(file.name) === 'audio' ? equalDir(playing?.playFile, file) ?
                                 <div onClick={() => togglePlay(file)} ref={audioBtn}>
-                                    <PlayCircle className="cursor-pointer text-blue-900 hover:text-blue-700 transition-colors duration-200" radius={11} stroke={1} />
-                                    {/* <button className={playing?.playFile.created_at === file.created_at ? "hidden" : ""} onClick={() => togglePlay(file)}><i className="gg-play-button-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
+                                    <PlayCircle className="cursor-pointer text-file hover:text-filehover transition-colors duration-200" radius={11} percent={playing?.percent} stroke={1} paused={playing?.paused} />
+                                </div> :
+                                <FlipCard>
+                                    <i className={`gg-${getFileIconName(file.name)} m-auto text-file group-hover:text-filehover transition-colors duration-200`}></i>
+                                    <div onClick={() => togglePlay(file)} ref={audioBtn}>
+                                        <PlayCircle className="cursor-pointer text-file hover:text-filehover transition-colors duration-200" radius={11} stroke={1} />
+                                        {/* <button className={playing?.playFile.created_at === file.created_at ? "hidden" : ""} onClick={() => togglePlay(file)}><i className="gg-play-button-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
                                     <button className={playing?.playFile.created_at !== file.created_at ? "hidden" : ""} onClick={() => togglePlay(file)}><i className="gg-play-pause-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button> */}
-                                </div>
-                            </FlipCard> :
-                            <i className={`gg-${getFileIconName(file.name)} m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200`}></i>
-                        }
+                                    </div>
+                                </FlipCard> :
+                                <i className={`gg-${getFileIconName(file.name)} m-auto text-file group-hover:text-filehover transition-colors duration-200`}></i>
+                            }
 
-                    </div>
-                    {isNaming ?
-                        <form ref={lref} onSubmit={w => { w.preventDefault(); saveName(); }}>
-                            <input type="text" autoFocus value={name} onChange={w => setName(w.target.value)} onBlur={saveName} />
-                        </form> :
-                        <Link className="flex overflow-hidden" target="_blank" ref={lref} href={`/download/${file.chanid}/${file.fileid}`}>
-                            <StrechableText text={name} />
-                        </Link>}
-                </div>
-            </SelectionBubble>
-            <div className="flex gap-2 items-center">
-                <p className="whitespace-nowrap">{BytesToReadable(file.size)}</p>
-                <div ref={refCopy} className="relative w-[22px] h-[22px]">
-                    <OptionsDropdown >
-                        <div onClick={() => copyClipboard()} className="flex gap-2 items-center cursor-pointer text-blue-900 hover:text-blue-600 transition-colors duration-200">
-                            <abbr
-                                title="Copy link"
-                                className="w-6 h-6 flex justify-center items-center">
-                                <i className="gg-link "></i>
-                            </abbr>
-                            <p className="whitespace-nowrap">{informCopy}</p>
                         </div>
-                        {!isNaming && selectable ? <div onClick={() => setIsNaming(w => !w)} className="flex gap-2 items-center cursor-pointer text-blue-900 hover:text-blue-600 transition-colors duration-200">
-                            <abbr className="sm:block hidden" title="Rename"><i className="gg-rename"></i></abbr>
-                            <p>Rename</p>
-                        </div> : ""}
-                    </OptionsDropdown>
+                        {isNaming ?
+                            <form ref={lref} onSubmit={w => { w.preventDefault(); saveName(); }}>
+                                <input type="text" autoFocus value={name} onChange={w => setName(w.target.value)} onBlur={saveName} />
+                            </form> :
+                            <Link className="flex transition-colors overflow-hidden text-black hover:text-file" target="_blank" ref={lref} href={`/download/${file.chanid}/${file.fileid}`}>
+                                <StrechableText text={name} />
+                            </Link>}
+                    </div>
+                </SelectionBubble>
+                <div className="flex gap-2 items-center">
+                    <p className="whitespace-nowrap">{BytesToReadable(file.size)}</p>
+                    <div onClick={() => setOpen(w => !w)} ref={refCopy} className="relative w-[22px] h-[22px]">
+                        <i className={`gg-chevron-down z-10 text-file w-[22px] h-[22px] cursor-pointer hover:text-filehover transition-all ${open ? `${Math.random() > 0.5 ? 'rotate-180' : '-rotate-180'}` : ''}`}></i>
+                    </div>
+                </div>
+            </div>
+            <div className={`transition-all ease-in-out duration-300 flex gap-1 justify-between select-none overflow-hidden ${open ? ' max-h-20  mt-1' : 'max-h-0'}`}>
+                <div className="grid justify-start">
+                    <p>Created {getReadableDate(file.created_at)}</p>
+                </div>
+                <div className="grid gap-1 justify-end">
+                    <div onClick={() => copyClipboard()} className="flex gap-2 items-center cursor-pointer text-file hover:text-filehover transition-colors duration-200">
+                        <p className="whitespace-nowrap">{informCopy}</p>
+                        <abbr
+                            title="Copy link"
+                            className="w-6 h-6 flex justify-center items-center">
+                            <i className="gg-link "></i>
+                        </abbr>
+                    </div>
+                    {!isNaming && selectable ? <div onClick={() => setIsNaming(w => !w)} className="flex gap-2 items-center justify-end cursor-pointer mr-0.5 text-file hover:text-filehover transition-colors duration-200">
+                        <p>Rename</p>
+                        <abbr title="Rename"><i className="gg-rename"></i></abbr>
+                    </div> : ""}
                 </div>
             </div>
         </div>

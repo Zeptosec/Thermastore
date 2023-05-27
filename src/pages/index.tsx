@@ -153,8 +153,8 @@ const uploadPage = ({ setIsUploading }: any) => {
                                                 <p className="whitespace-nowrap">{BytesToReadable(w.speed)}/s</p>
                                                 <p className="whitespace-nowrap">{BytesToReadable(w.uploadedBytes)}/{BytesToReadable(w.file.size)}</p>
                                                 {w.controller.signal.aborted ?
-                                                    <abbr title="Continue upload" className="flex justify-center sm:block cursor-pointer text-white transition-colors duration-200 hover:text-blue-700" onClick={() => ContinueDownload(w)}><i className="gg-play-button-r"></i></abbr> :
-                                                    <abbr title="Pause upload" className="flex justify-center sm:block cursor-pointer text-white transition-colors duration-200 hover:text-blue-700" onClick={() => Stop(w, "Upload stopped by user")}><i className="gg-play-stop-r"></i></abbr>}
+                                                    <abbr title="Continue upload" className="flex justify-center sm:block cursor-pointer text-white transition-colors duration-200 hover:text-filehover" onClick={() => ContinueDownload(w)}><i className="gg-play-button-r"></i></abbr> :
+                                                    <abbr title="Pause upload" className="flex justify-center sm:block cursor-pointer text-white transition-colors duration-200 hover:text-filehover" onClick={() => Stop(w, "Upload stopped by user")}><i className="gg-play-stop-r"></i></abbr>}
                                             </div>
                                         </>}
                                 </div>))}
