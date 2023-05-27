@@ -110,7 +110,7 @@ export interface DirFile {
     dir: number
 }
 
-export function getReadableDate(time: string){
+export function getReadableDate(time: string) {
     const date = new Date(time).toISOString();
     const parts = date.split('T');
     return parts[0];
@@ -126,12 +126,14 @@ export function equalDir(file1?: (DirFile | Directory), file2?: (DirFile | Direc
 }
 
 async function getDirectories(supabase: SupabaseClient<any, "public", any>, from: number, to: number, dir: number | null, searchStr: string, isGlobal: boolean) {
+    const sortBy = 'name'
     if (searchStr.length > 0) {
         return isGlobal ?
             await supabase
                 .from('directories')
                 .select('id, name, created_at, dir, shared', { count: 'estimated' })
                 .like('name', `%${searchStr}%`)
+                .order(sortBy, { ascending: true })
                 .range(from, to)
             : dir === null ?
                 await supabase
@@ -139,6 +141,7 @@ async function getDirectories(supabase: SupabaseClient<any, "public", any>, from
                     .select('id, name, created_at, dir, shared', { count: 'estimated' })
                     .is('dir', null)
                     .like('name', `%${searchStr}%`)
+                    .order(sortBy, { ascending: true })
                     .range(from, to)
                 :
                 await supabase
@@ -146,6 +149,7 @@ async function getDirectories(supabase: SupabaseClient<any, "public", any>, from
                     .select('id, name, created_at, dir, shared')
                     .eq('dir', dir)
                     .like('name', `%${searchStr}%`)
+                    .order(sortBy, { ascending: true })
                     .range(from, to);
     } else {
         return dir === null ?
@@ -153,23 +157,27 @@ async function getDirectories(supabase: SupabaseClient<any, "public", any>, from
                 .from('directories')
                 .select('id, name, created_at, dir, shared', { count: 'estimated' })
                 .is('dir', null)
+                .order(sortBy, { ascending: true })
                 .range(from, to)
             :
             await supabase
                 .from('directories')
                 .select('id, name, created_at, dir, shared', { count: 'estimated' })
                 .eq('dir', dir)
+                .order(sortBy, { ascending: true })
                 .range(from, to);
     }
 }
 
 async function getFiles(supabase: SupabaseClient<any, "public", any>, from: number, to: number, dir: number | null, searchStr: string, isGlobal: boolean) {
+    const sortBy = 'name';
     if (searchStr.length > 0) {
         return isGlobal ?
             await supabase
                 .from('files')
                 .select('id, name, created_at, size, chanid, fileid, dir')
                 .like('name', `%${searchStr}%`)
+                .order(sortBy, { ascending: true })
                 .range(from, to)
             :
             dir === null ?
@@ -178,11 +186,13 @@ async function getFiles(supabase: SupabaseClient<any, "public", any>, from: numb
                     .select('id, name, created_at, size, chanid, fileid, dir')
                     .is('dir', null)
                     .like('name', `%${searchStr}%`)
+                    .order(sortBy, { ascending: true })
                     .range(from, to) :
                 await supabase
                     .from('files')
                     .select('id, name, created_at, size, chanid, fileid, dir')
                     .eq('dir', dir)
+                    .order(sortBy, { ascending: true })
                     .like('name', `%${searchStr}%`)
                     .range(from, to)
 
@@ -192,11 +202,13 @@ async function getFiles(supabase: SupabaseClient<any, "public", any>, from: numb
                 .from('files')
                 .select('id, name, created_at, size, chanid, fileid, dir')
                 .is('dir', null)
+                .order(sortBy, { ascending: true })
                 .range(from, to) :
             await supabase
                 .from('files')
                 .select('id, name, created_at, size, chanid, fileid, dir')
                 .eq('dir', dir)
+                .order(sortBy, { ascending: true })
                 .range(from, to)
     }
 }
@@ -335,5 +347,5 @@ export function getFileIconName(name: string) {
         default:
             return "file mt-05";
     }
-    
+
 }
