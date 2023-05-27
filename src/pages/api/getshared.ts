@@ -74,6 +74,7 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
+    if (req.method !== 'POST') return res.status(405).json({ error: `Method not allowed` });
     const { dirid, time, searchStr, page, pageSize, prevFiles } = JSON.parse(req.body);
     if (isNaN(dirid))
         return res.status(400).json({ error: `dirid must be a whole number` });

@@ -21,7 +21,7 @@ export default function SharedFiles() {
     const [searchStr, setSearchStr] = useState("");
     const [dirname, setDirname] = useState("Loading");
 
-    async function fetchData() {
+    async function fetchData(dirChange = false) {
         if (!dirid) {
             setMsg("Missing directory id");
             return;
@@ -40,6 +40,7 @@ export default function SharedFiles() {
             setMsg("Can't parse query");
             return;
         }
+
         setStillLoading(true);
         setMsg("Fetching info about files...");
         let dir = intdir;
@@ -58,7 +59,7 @@ export default function SharedFiles() {
         try {
             const res = await fetch(`/api/getshared`, {
                 method: 'POST',
-                body: JSON.stringify({ dirid: dir ?? intdir, searchStr, page: currPage, pageSize: currPageSize, prevFiles: files, time: intime })
+                body: JSON.stringify({ dirid: dir ?? intdir, searchStr, page: currPage, pageSize: currPageSize, prevFiles: dirChange ? [] : files, time: intime })
             });
             const json = await res.json();
             if (res.ok) {
@@ -94,7 +95,7 @@ export default function SharedFiles() {
         if (searchStr.length > 0) {
             setSearchStr("");
         } else if (currPage === 1)
-            fetchData();
+            fetchData(true);
         else
             setCurrPage(1);
     }, [dirHistory]);

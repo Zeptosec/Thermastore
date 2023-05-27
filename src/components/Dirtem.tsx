@@ -15,6 +15,7 @@ interface Props {
 }
 export default function DirItem({ dir, setDirHistory, selected, setSelected, MoveSelected, selectable, SelectMultiple }: Props) {
     const refName = useRef<any>(null);
+    const refExpand = useRef<any>(null);
     const refOptions = useRef<any>(null);
     const [isNaming, setIsNaming] = useState(false);
     const [name, setName] = useState<string>(dir.name);
@@ -24,7 +25,9 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
 
     function clicked(w: any) {
         if (!selectable || !selected || !setSelected) return;
-        if (refName.current && !refName.current.contains(w.target) && refOptions.current && !refOptions.current.contains(w.target)) {
+        if (refName.current && !refName.current.contains(w.target)
+            && refExpand.current && !refExpand.current.contains(w.target)
+            && refOptions.current && !refOptions.current.contains(w.target)) {
             const rez = indexOfSelected(selected, dir);
             if (SelectMultiple && w.shiftKey) {
                 SelectMultiple(dir, rez !== -1);
@@ -92,14 +95,14 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
         }
     }
 
-    let tmout: NodeJS.Timeout | null = null;
+    const [tmout, setTmout] = useState<NodeJS.Timeout | null>(null);
     function copyClipboard() {
         navigator.clipboard.writeText(`${window.location.protocol}//${window.location.host}/shared/${new Date(dir.created_at).getTime()}/${dir.id}`);
         setInformCopy("Link Copied!");
         if (tmout) {
             clearTimeout(tmout);
         }
-        tmout = setTimeout(() => setInformCopy("Copy link"), 2000)
+        setTmout(setTimeout(() => setInformCopy("Copy link"), 2000))
     }
 
     return (
@@ -117,7 +120,7 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
                             <p ref={refName} onClick={w => openDir()} className="cursor-pointer hover:text-filehover transition-colors">{name}</p>}
                     </div>
                 </SelectionBubble>
-                <div ref={refOptions} className={`flex items-center gap-2`}>
+                <div ref={refExpand} className={`flex items-center gap-2`}>
                     {selected && MoveSelected && selected.length > 0 ? <abbr title="Move to this directory"><i onClick={() => MoveSelected(dir.id, false)} className={`gg-add-r cursor-pointer text-file hover:text-filehover transition-colors duration-200`}></i></abbr> : ""}
                     <div onClick={() => setOpen(w => !w)} className="relative w-[22px] h-[22px]">
                         <i className={`gg-chevron-down z-10 text-file w-[22px] h-[22px] cursor-pointer hover:text-filehover transition-all ${open ? `${Math.random() > 0.5 ? 'rotate-180' : '-rotate-180'}` : ''}`}></i>
@@ -128,7 +131,7 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
                 <div className="grid gap-1">
                     <p>Created {getReadableDate(dir.created_at)}</p>
                 </div>
-                <div className="grid gap-1">
+                <div ref={refOptions} className="grid gap-1">
                     {selectable ? <div onClick={() => shareManager()} className=" cursor-pointer text-file hover:text-filehover transition-colors duration-200">
                         {shared ? <div className="flex gap-3 items-center mr-0.5">
                             <p className="whitespace-nowrap">Stop sharing</p>

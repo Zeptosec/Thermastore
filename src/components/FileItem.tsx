@@ -31,14 +31,14 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
         setIsNaming(false);
     }, [file])
 
-    let tmout: NodeJS.Timeout | null = null;
+    const [tmout, setTmout] = useState<NodeJS.Timeout | null>(null);
     function copyClipboard() {
         navigator.clipboard.writeText(lref.current.href);
         setInformCopy("Link Copied!");
         if (tmout) {
             clearTimeout(tmout);
         }
-        tmout = setTimeout(() => setInformCopy("Copy link"), 2000)
+        setTmout(setTimeout(() => setInformCopy("Copy link"), 2000))
     }
 
     // logic for selecting and deselecting file. 
@@ -114,7 +114,7 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
                 <div className="flex gap-2 items-center">
                     <p className="whitespace-nowrap">{BytesToReadable(file.size)}</p>
                     <div onClick={() => setOpen(w => !w)} ref={refCopy} className="relative w-[22px] h-[22px]">
-                        <i className={`gg-chevron-down z-10 text-file w-[22px] h-[22px] cursor-pointer hover:text-filehover transition-all ${open ? `${Math.random() > 0.5 ? 'rotate-180' : '-rotate-180'}` : ''}`}></i>
+                        <i className={`gg-chevron-down z-10 text-file w-[22px] h-[22px] cursor-pointer hover:text-filehover transition-all ${open ? 'rotate-180' : ''}`}></i>
                     </div>
                 </div>
             </div>
