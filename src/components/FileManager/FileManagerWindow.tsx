@@ -1,15 +1,23 @@
-import { FileManager } from "@/context/FileManagerContext";
+import { FileActionType, FileManager } from "@/context/FileManagerContext";
 import FileManagerDownload from "./FileManagerDownload";
 import FileManagerUpload from "./FileManagerUpload";
+import IconClose from "@/icons/IconClose";
 
 interface Props {
-    fileManager?: FileManager
-    className?: string
-    user?: boolean
+    fileManager?: FileManager,
+    className?: string,
+    user?: boolean,
+    dispatch?: Function
 }
-export default function FileManagerWindow({ fileManager, user, className }: Props) {
+export default function FileManagerWindow({ fileManager, user, className, dispatch }: Props) {
     return (
         <div className={className}>
+            {dispatch ? <div
+                onClick={() => dispatch({ type: FileActionType.TOGGLE_MENU })}
+                className="absolute right-1 top-1 cursor-pointer text-white hover:text-lime-400 transition-all"
+            >
+                <IconClose />
+            </div> : ''}
             {(fileManager && (fileManager.uploading.length > 0 || fileManager.downloading.length > 0)) ? <div className="overflow-hidden flex flex-col">
                 {fileManager.uploading.length > 0 ? <>
                     <p className="text-center border-b border-white pb-2">Uploading {fileManager.uploading.filter(w => w.finished).length}/{fileManager.uploading.length}</p>
