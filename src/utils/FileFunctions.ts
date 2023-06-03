@@ -1,6 +1,8 @@
 import { PostgrestResponse, SupabaseClient } from "@supabase/supabase-js";
 import axios from "axios";
 import { Endpoint } from "./FileUploader";
+import { Dispatch, SetStateAction } from "react";
+import { FileActionType } from "@/context/FileManagerContext";
 
 export const chunkSize = 25 * 1024 ** 2 - 256;
 
@@ -348,4 +350,38 @@ export function getFileIconName(name: string) {
             return "file mt-05";
     }
 
+}
+
+export async function AddFolder(dirHistory: Directory[], supabase: SupabaseClient<any, "public", any>, setFiles: Dispatch<SetStateAction<(Directory | DirFile)[]>>) {
+    let name = prompt("Directory name", "Folder");
+    if (name) {
+        if (name.length < 3) {
+            alert("Directory name is too short");
+        } else if (name.length > 24) {
+            alert("Directory name is too long");
+        } else {
+            const dir = dirHistory.length > 0 ? dirHistory[dirHistory.length - 1].id : null;
+            const res = await supabase
+                .from("directories")
+                .insert({ name, dir })
+                .select('id, name, created_at, dir, shared');
+            if (res.error) {
+                switch (res.error.code) {
+                    case "42501":
+                        alert("You have reached your file and directory limit");
+                        break;
+                    default:
+                        alert(res.error.message);
+                }
+                console.log(res.error);
+            } else {
+                setFiles(w => [res.data[0], ...w]);
+            }
+        }
+    }
+}
+
+export function UpFiles(_files: FileList | null, directory: Directory, user?: boolean, fm?: any) {
+    if (!_files) return;
+    fm?.dispatch({ type: FileActionType.UPLOAD, files: Array.from(_files), user: user ? user : true, directory })
 }

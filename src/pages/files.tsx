@@ -1,9 +1,13 @@
+import AnimatedDropZone from "@/components/AnimatedDropZone";
 import BubbleBackground from "@/components/BubbleBackground";
 import CoolLoader from "@/components/CoolLoading2";
 import CoolSearch from "@/components/CoolSearch";
 import Pathline from "@/components/Pathline";
 import ShowFiles from "@/components/ShowFiles";
-import { Directory, DirFile, equalDir, getFilesWithDir, GetPreviousDir, PageDirCountHistory } from "@/utils/FileFunctions";
+import { useFileManager } from "@/context/FileManagerContext";
+import IconUpload from "@/icons/IconUpload";
+import { AddFolder, Directory, DirFile, equalDir, getFilesWithDir, GetPreviousDir, PageDirCountHistory, UpFiles } from "@/utils/FileFunctions";
+import { FileStatus } from "@/utils/FileUploader";
 import { useSessionContext, useSupabaseClient, useUser } from "@supabase/auth-helpers-react"
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -14,6 +18,7 @@ export default function filesPage() {
     const user = useUser();
     const router = useRouter();
     const supabase = useSupabaseClient();
+    const fm = useFileManager();
     const [msg, setMsg] = useState("Loading user...");
     const [stillLoading, setStillLoading] = useState(true);
     const [files, setFiles] = useState<(Directory | DirFile)[]>([]);
@@ -26,6 +31,8 @@ export default function filesPage() {
     const [isGlobal, setIsGlobal] = useState(false);
     const [gotRouteDir, setGotRouteDir] = useState(false);
     const [pageDirHistory, setPageDirHistory] = useState<PageDirCountHistory>({ counts: [], pageSize: currPageSize, totalCnt: 0 })
+    const [dragging, setDragging] = useState(false);
+    const [uploadingHere, setUploadingHere] = useState<FileStatus[]>([]);
 
     async function fetchData() {
         setStillLoading(true);
@@ -37,6 +44,8 @@ export default function filesPage() {
         setFiles(arr);
         setCanNext(next);
         setStillLoading(false);
+        // get uploading files to show here
+        UpdateUploadingFiles();
     }
 
     useEffect(() => {
@@ -128,35 +137,6 @@ export default function filesPage() {
         }
     }
 
-    async function AddFolder() {
-        let name = prompt("Directory name", "Folder");
-        if (name) {
-            if (name.length < 3) {
-                alert("Directory name is too short");
-            } else if (name.length > 24) {
-                alert("Directory name is too long");
-            } else {
-                const dir = dirHistory.length > 0 ? dirHistory[dirHistory.length - 1].id : null;
-                const res = await supabase
-                    .from("directories")
-                    .insert({ name, dir })
-                    .select('id, name, created_at, dir, shared');
-                if (res.error) {
-                    switch (res.error.code) {
-                        case "42501":
-                            alert("You have reached your file and directory limit");
-                            break;
-                        default:
-                            alert(res.error.message);
-                    }
-                    console.log(res.error);
-                } else {
-                    setFiles(w => [res.data[0], ...w]);
-                }
-            }
-        }
-    }
-
     async function MoveSelected(dirId: number | null, isHere: boolean) {
         const filetered = selected.filter(w => ('fileid' in w ? true : w.id !== dirId) && w.dir !== dirId);
         const changedPaths = filetered.map(w => ({ ...w, dir: dirId }));
@@ -170,9 +150,9 @@ export default function filesPage() {
                 console.log(res.error);
                 return;
             }
+            
             moved.push(...direcs);
         }
-
         const filesToMove: DirFile[] = changedPaths.filter(w => 'fileid' in w) as DirFile[];
 
         if (filesToMove.length > 0) {
@@ -185,6 +165,7 @@ export default function filesPage() {
             }
             moved.push(...filesToMove);
         }
+        UpdateUploadingFiles();
         if (!isHere)
             setFiles(w => [...w.filter(a => !moved.find(b => equalDir(b, a)))]);
         else
@@ -235,10 +216,25 @@ export default function filesPage() {
             setCurrPage(1);
         }, 1500))
     }
+
+    /**
+     * Function that gets files that are uploading in the current folder
+     */
+    function UpdateUploadingFiles() {
+        const currDir = dirHistory[dirHistory.length - 1];
+        const filesHere = fm?.state.uploading.filter(w => w.directory === currDir && !w.finished);
+        if (filesHere)
+            setUploadingHere(filesHere);
+        else
+            setUploadingHere([]);
+    }
+
+    useEffect(UpdateUploadingFiles, [fm?.state.uploading])
+
     return (
         <div>
             <Head>
-                <title>{dirHistory.length > 0 ? `Files - ${dirHistory[dirHistory.length-1].name}` : 'Files'}</title>
+                <title>{dirHistory.length > 0 ? `Files - ${dirHistory[dirHistory.length - 1].name}` : 'Files'}</title>
             </Head>
             <BubbleBackground />
             <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[72px]">
@@ -251,7 +247,12 @@ export default function filesPage() {
                         <div className="flex justify-between px-3 h-6">
                             <div className="flex gap-2 items-center">
                                 {dirHistory.length > 0 ? <abbr title="Back" onClick={() => setDirHistory(w => w.slice(0, w.length - 1))}><i className="gg-arrow-left cursor-pointer transition-colors duration-200 text-white hover:text-filehover"></i></abbr> : ""}
-                                <abbr title="New directory"><i className="gg-folder-add cursor-pointer transition-colors duration-200 text-white hover:text-filehover" onClick={() => AddFolder()}></i></abbr>
+                                <abbr title="New directory"><i className="gg-folder-add cursor-pointer transition-colors duration-200 text-white hover:text-filehover" onClick={() => AddFolder(dirHistory, supabase, setFiles)}></i></abbr>
+                                <abbr title="Upload here">
+                                    <label htmlFor="file-uploader" className="transition-colors duration-200 text-white hover:text-filehover cursor-pointer ">
+                                        <IconUpload />
+                                    </label>
+                                </abbr>
                             </div>
                             {selected.length > 0 ? <div className="flex gap-2 items-center">
                                 <abbr className="cursor-pointer transition-colors duration-200 hover:text-filehover w-[22px] h-[22px] flex justify-center items-center" title="Move selected here"><i onClick={() => MoveSelected(dirHistory.length > 0 ? dirHistory[dirHistory.length - 1].id : null, true)} className="gg-add-r"></i></abbr>
@@ -263,32 +264,45 @@ export default function filesPage() {
                                 <abbr onClick={() => setIsGlobal(w => !w)} className={`cursor-pointer transition-colors duration-200 ${isGlobal ? "text-green-700 hover:text-green-800" : "text-red-500 hover:text-red-600"}`} title={`Global search is ${isGlobal ? "enabled" : "disabled"}`}><i className="gg-globe-alt"></i></abbr>
                             </div>
                         </div>
-                        <ShowFiles
-                            files={files}
-                            setDirHistory={setDirHistory}
-                            selected={selected}
-                            setSelected={setSelected}
-                            MoveSelected={MoveSelected}
-                            selectable={true} />
-                        {currPage > 1 || canNext ? <div className={`flex justify-between items-center px-3`}>
-                            <div>
-                                {currPage > 1 ? <div className=" cursor-pointer transition-colors duration-200 hover:text-filehover">
-                                    <abbr title="Previous page">
-                                        <i onClick={() => setCurrPage(w => w - 1)} className="gg-arrow-left"></i>
-                                    </abbr>
+                        {/* <div className="grid gap-4 pb-4"> */}
+                        <AnimatedDropZone
+                            dragging={dragging}
+                            setDragging={setDragging}
+                            dropped={(_files: FileList | null) => UpFiles(_files, dirHistory[dirHistory.length - 1], user !== null, fm)}
+                        >
+                            <div className="grid gap-2">
+                                <ShowFiles
+                                    files={files}
+                                    setDirHistory={setDirHistory}
+                                    selected={selected}
+                                    setSelected={setSelected}
+                                    MoveSelected={MoveSelected}
+                                    selectable={true}
+                                    fs={uploadingHere}
+                                    dropped={(_files, dir) => UpFiles(_files, dir, user !== null, fm)}
+                                />
+                                {currPage > 1 || canNext ? <div className={`flex justify-between items-center px-3`}>
+                                    <div>
+                                        {currPage > 1 ? <div className=" cursor-pointer transition-colors duration-200 hover:text-filehover">
+                                            <abbr title="Previous page">
+                                                <i onClick={() => setCurrPage(w => w - 1)} className="gg-arrow-left"></i>
+                                            </abbr>
+                                        </div> : ""}
+                                    </div>
+                                    <div>
+                                        {canNext ? <div className=" cursor-pointer transition-colors duration-200 hover:text-filehover">
+                                            <abbr title="Next page">
+                                                <i onClick={() => setCurrPage(w => w + 1)} className="gg-arrow-right"></i>
+                                            </abbr>
+                                        </div> : ""}
+                                    </div>
                                 </div> : ""}
                             </div>
-                            <div>
-                                {canNext ? <div className=" cursor-pointer transition-colors duration-200 hover:text-filehover">
-                                    <abbr title="Next page">
-                                        <i onClick={() => setCurrPage(w => w + 1)} className="gg-arrow-right"></i>
-                                    </abbr>
-                                </div> : ""}
-                            </div>
-                        </div> : ""}
+                        </AnimatedDropZone>
+                        {/* </div> */}
                     </>}
                 </div>
             </div>
-        </div>
+        </div >
     )
 }

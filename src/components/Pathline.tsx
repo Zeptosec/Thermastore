@@ -2,11 +2,11 @@ import { Directory, equalDir } from "@/utils/FileFunctions";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { } from "react";
 
-export default function Pathline({ dirHistory, setDirHistory }: { dirHistory: Directory[], setDirHistory: Dispatch<SetStateAction<Directory[]>> }) {
+export default function Pathline({ dirHistory, setDirHistory }: { dirHistory: Directory[], setDirHistory?: Dispatch<SetStateAction<Directory[]>> }) {
     const elem = useRef<HTMLDivElement>(null);
     const [moved, setMoved] = useState(false);
     function pressedPath(dir: Directory) {
-        console.log(moved)
+        if (!setDirHistory) return;
         if (dirHistory.length === 0 || moved) return;
         if (!equalDir(dirHistory[dirHistory.length - 1], dir)) {
             setDirHistory(d => d.slice(0, d.findIndex(b => equalDir(b, dir)) + 1))
@@ -14,7 +14,7 @@ export default function Pathline({ dirHistory, setDirHistory }: { dirHistory: Di
     }
 
     function pressedRoot() {
-        if (!moved)
+        if (!moved && setDirHistory)
             setDirHistory(w => w.length > 0 ? [] : w)
     }
 
@@ -62,14 +62,14 @@ export default function Pathline({ dirHistory, setDirHistory }: { dirHistory: Di
 
     return (
         <div ref={elem} onMouseDown={w => mouseDownHandler(w)} className={`flex px-5 overflow-x-auto scrollbar select-none ${moved ? 'cursor-grabbing' : ''}`}>
-            <p onClick={() => pressedRoot()} className="cursor-pointer transition-colors duration-200 hover:text-file">/root</p>
+            <p onClick={() => pressedRoot()} className={`${setDirHistory ? `cursor-pointer  transition-colors duration-200 hover:text-file` : ''}`}>C:{dirHistory.length === 0 ? `\\` : ''}</p>
             {dirHistory.length > 0 ? <>
                 {dirHistory[0].dir !== null ? <p>/..</p> : ''}
             </> : ""}
             {dirHistory.map(w => (
                 <div key={`path${w.id}`}>
                     {/* For path access */}
-                    <p onClick={() => pressedPath(w)} className={`${moved ? '' : "cursor-pointer"} transition-colors duration-200 hover:text-file whitespace-nowrap`}>/{w.name}</p>
+                    <p onClick={() => pressedPath(w)} className={`${moved || !setDirHistory ? '' : "cursor-pointer  transition-colors duration-200 hover:text-file"} whitespace-nowrap`}>\{w.name}</p>
                 </div>
             ))}
         </div>

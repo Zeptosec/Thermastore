@@ -7,6 +7,8 @@ import PlayCircle from "./PlayCircle";
 import SelectionBubble from "./SelectionBubble";
 import { PlayStatus } from "./ShowFiles";
 import StrechableText from "./StrechableText";
+import IconDownload from "@/icons/IconDownload";
+import { FileActionType, useFileManager } from "@/context/FileManagerContext";
 
 interface Props {
     file: DirFile,
@@ -16,16 +18,18 @@ interface Props {
     togglePlay: Function,
     selectable?: boolean,
     SelectMultiple?: Function,
+
 }
 export default function FileItem({ file, selected, setSelected, playing, togglePlay, selectable, SelectMultiple }: Props) {
     const lref = useRef<any>(null);
     const refCopy = useRef<any>(null);
+    const refOptions = useRef<any>(null);
     const audioBtn = useRef<any>(null);
     const [isNaming, setIsNaming] = useState(false);
     const [name, setName] = useState<string>(file.name);
     const [open, setOpen] = useState(false);
     const [informCopy, setInformCopy] = useState("Copy link");
-
+    const fm = useFileManager();
     useEffect(() => {
         setName(file.name);
         setIsNaming(false);
@@ -48,7 +52,8 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
         // if cliced on link, copy, audio - don't select
         if (!(lref.current && lref.current.contains(w.target) ||
             refCopy.current && refCopy.current.contains(w.target) ||
-            audioBtn.current && audioBtn.current.contains(w.target))) {
+            audioBtn.current && audioBtn.current.contains(w.target) ||
+            refOptions.current && refOptions.current.contains(w.target))) {
             const rez = indexOfSelected(selected, file);
             if (SelectMultiple && w.shiftKey) {
                 SelectMultiple(file, rez !== -1);
@@ -106,7 +111,7 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
                             <form ref={lref} onSubmit={w => { w.preventDefault(); saveName(); }}>
                                 <input type="text" autoFocus value={name} onChange={w => setName(w.target.value)} onBlur={saveName} />
                             </form> :
-                            <Link className="flex transition-colors overflow-hidden text-black hover:text-file" target="_blank" ref={lref} href={`/download/${file.chanid}/${file.fileid}`}>
+                            <Link className="flex transition-colors overflow-hidden text-black hover:text-file" ref={lref} href={`/download/${file.chanid}/${file.fileid}`}>
                                 <StrechableText text={name} />
                             </Link>}
                     </div>
@@ -122,13 +127,19 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
                 <div className="grid justify-start">
                     <p>Created {getReadableDate(file.created_at)}</p>
                 </div>
-                <div className="grid gap-1 justify-end">
-                    <div onClick={() => copyClipboard()} className="flex gap-2 items-center cursor-pointer text-file hover:text-filehover transition-colors duration-200">
+                <div ref={refOptions} className="grid gap-1 justify-end">
+                    <div onClick={() => copyClipboard()} className="flex justify-end gap-2 items-center cursor-pointer text-file hover:text-filehover transition-colors duration-200">
                         <p className="whitespace-nowrap">{informCopy}</p>
                         <abbr
                             title="Copy link"
                             className="w-6 h-6 flex justify-center items-center">
                             <i className="gg-link "></i>
+                        </abbr>
+                    </div>
+                    <div onClick={() => fm?.dispatch({ type: FileActionType.DOWNLOAD, cid: file.chanid, fid: file.fileid })} className="flex justify-end gap-2 items-center cursor-pointer text-file hover:text-filehover transition-colors duration-200">
+                        <p className="whitespace-nowrap">Download</p>
+                        <abbr title="Download">
+                            <IconDownload />
                         </abbr>
                     </div>
                     {!isNaming && selectable ? <div onClick={() => setIsNaming(w => !w)} className="flex gap-2 items-center justify-end cursor-pointer mr-0.5 text-file hover:text-filehover transition-colors duration-200">

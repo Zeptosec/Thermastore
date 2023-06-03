@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react"
 
-export default function DropZone({ children, Dropped, setDragging }: any) {
+export default function DropZone({ children, Dropped, setDragging, className }: any) {
     const drop = useRef<any>(null);
     let val: number = 0;
 
@@ -57,7 +57,7 @@ export default function DropZone({ children, Dropped, setDragging }: any) {
         setDragging(false);
     };
     return (
-        <div className="overflow-hidden">
+        <div className={`overflow-hidden ${className}`}>
             <input onChange={w => Dropped(w.target.files)} className="hidden" type="file" id="file-uploader" multiple />
             <div className='select-none' ref={drop}>
                 {children}

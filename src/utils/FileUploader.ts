@@ -1,6 +1,6 @@
 import axios from "axios";
 import { downloadBlob } from "./FileDownload";
-import { chunkSize } from "./FileFunctions";
+import { BytesToReadable, DirFile, Directory, chunkSize } from "./FileFunctions";
 import { supabase } from "./Supabase";
 export interface FileStatus {
     file: File,
@@ -15,6 +15,8 @@ export interface FileStatus {
     speed: number, // bytes/sec
     timeleft: number, // seconds
     controller: AbortController,
+    directory?: Directory
+    fileItem?: DirFile
 }
 
 export interface Endpoint {
@@ -115,7 +117,6 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
                     // for small files on fast internet otherwise overshoots
                     let loaded = Math.min(event.loaded, chunk.size);
                     file.uploadedBytes += loaded - prevLoaded;
-
                     prevLoaded = loaded;
                     if (file.errorTime + 10000 < Date.now())
                         file.errorText = "";
@@ -191,16 +192,22 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
             const fdataid = await uploadChunkNoStatus(filedata);
             //console.log(`fdataid: ${fdataid}`);
             if (user) {
-                const { error } = await supabase
+                const { error, data } = await supabase
                     .from('files')
                     .insert({
                         name: file.file.name,
                         size: file.file.size,
                         fileid: fdataid,
-                        chanid
-                    });
+                        chanid,
+                        dir: file.directory?.id
+                    })
+                    .select()
+                    .single();
                 if (error) {
                     console.error(error);
+                } else {
+                    console.log(data);
+                    file.fileItem = data;
                 }
             }
             file.link = `/download/${chanid}/${fdataid}`;
