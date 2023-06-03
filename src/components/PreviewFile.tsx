@@ -1,34 +1,39 @@
-import { DownloadStatus, getEarliestEnd, getImageHref } from "@/utils/FileDownload"
-import { getFileType } from "@/utils/FileFunctions";
+import { DownloadStatus, getEarliestEnd, getImage, getImageHref } from "@/utils/FileDownload"
+import { getFileType, DirFile, FileType } from "@/utils/FileFunctions";
 import { Endpoint } from "@/utils/FileUploader";
 import { useEffect, useState } from "react";
 import { endPoints } from "@/utils/FileFunctions";
 
 interface Props {
-    file: DownloadStatus,
+    file?: DownloadStatus,
+    dirFile?: DirFile,
     fid: string,
     cid: string
 }
 
 const streams: Endpoint[] = endPoints;
 
-export default function PreviewFile({ file, fid, cid }: Props) {
+export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
     const [sid, setSid] = useState(0);
     const [href, setHref] = useState("");
-    const fileType = getFileType(file.name);
-
+    const fileType: FileType = file ? getFileType(file.name) : dirFile ? getFileType(dirFile.name) : 'file';
     useEffect(() => {
         async function getFastestRespond() {
             const fastestEnd = await getEarliestEnd(endPoints, async (rs) => rs.status === 200)
             const ind = endPoints.indexOf(fastestEnd);
-            if(ind !== -1){
+            if (ind !== -1) {
                 setSid(ind);
             }
         }
         async function showImage() {
-            if (file.size > 1024 ** 2) return;
-            const hr = await getImageHref(file, cid);
-            setHref(hr);
+            const limit = 1024 ** 2;
+            if (file && file.size <= limit) {
+                const hr = await getImageHref(file, cid);
+                setHref(hr);
+            } else if (dirFile && dirFile.size <= limit) {
+                const hr = await getImage(dirFile.chanid, dirFile.fileid);
+                setHref(hr);
+            }
         }
         if (fileType === 'image')
             showImage();

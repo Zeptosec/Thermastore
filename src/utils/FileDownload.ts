@@ -74,7 +74,7 @@ export async function getFileData(fid: string, channel_id: string, setError: Dis
     while (!data && failCnt < 5) {
         try {
             const res: AxiosResponse = await axios.get(`${endpoint.link}/down/${channel_id
-    }/${fid}`);
+                }/${fid}`);
             data = res.data;
             if (!data.size || !data.name || !data.chunks) {
                 failCnt = 1000;
@@ -139,10 +139,16 @@ export function downloadBlob(file: Blob, name: string) {
 
 export async function getImageHref(file: DownloadStatus, chanId: string) {
     checkEndpoints();
+
     const { chunkIndex, data, arrayIndex } = await downloadChunk(file.chunks[0], chanId, 0, 0, file);
     let dwnFile = new Blob([data]);
     const href = URL.createObjectURL(dwnFile);
     return href;
+}
+
+export async function getImage(cid: string, fid: string) {
+    const data = await getFileData(fid, cid);
+    return await getImageHref(data, cid);
 }
 
 export async function downloadFileChunks(file: DownloadStatus, setFile?: Dispatch<SetStateAction<DownloadStatus>>, onStart: Function | null = null, onFinished: Function | null = null) {
@@ -186,7 +192,7 @@ export async function downloadFileChunks(file: DownloadStatus, setFile?: Dispatc
             ind = arrayIndex;
         }
         promises[ind] = downloadChunk(file.chunks[i], file.channel_id
-    , ind, i, file);
+            , ind, i, file);
     }
     (await Promise.all(promises)).forEach(w => chunks[w.chunkIndex] = w.data);
     clearInterval(interval);

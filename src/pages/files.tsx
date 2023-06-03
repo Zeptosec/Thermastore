@@ -40,6 +40,7 @@ export default function filesPage() {
         if (!user) router.push("/");
         setMsg("Fetching info about files...");
         const dir = dirHistory.length === 0 ? null : dirHistory[dirHistory.length - 1].id
+        console.log("fetched");
         const { arr, next } = await getFilesWithDir(supabase, dir, currPage, currPageSize, pageDirHistory, searchStr, isGlobal);
         setFiles(arr);
         setCanNext(next);
