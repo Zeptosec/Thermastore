@@ -1,11 +1,11 @@
-import { Dispatch, SetStateAction } from "react";
+import { ChangeEvent } from "react";
 import DropZone from "./DropZone";
 
 interface Props {
     setDragging: (newVal: boolean) => void,
     dragging: boolean,
     children: any,
-    dropped?: (_files: FileList | null) => void,
+    dropped?: (_files: FileList | null, event?: ChangeEvent<HTMLInputElement>) => void,
     textClassName?: string,
 }
 
