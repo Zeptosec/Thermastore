@@ -105,7 +105,7 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
             <div className="flex justify-between gap-1 overflow-hidden">
                 <SelectionBubble file={file} selected={selected}>
                     <div className="flex gap-2 items-center overflow-hidden">
-                        <div className="w-5 h-5 m-auto block">
+                        <div className="min-w-[20px] min-h-[20px] w-5 h-5 m-auto block">
                             {getFileType(file.name) === 'audio' ? equalDir(playing?.playFile, file) ?
                                 <div onClick={() => togglePlay(file)} ref={audioBtn}>
                                     <PlayCircle className="cursor-pointer text-file hover:text-filehover transition-colors duration-200" radius={11} percent={playing?.percent} stroke={1} paused={playing?.paused} />

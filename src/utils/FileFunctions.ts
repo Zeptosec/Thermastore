@@ -339,7 +339,7 @@ export function getFileType(name: string): FileType {
 export function getFileIconName(name: string) {
     switch (getFileType(name)) {
         case 'audio':
-            return "music-note mt-1";
+            return "music-note mt-1 ml-2";
         case 'video':
             return "film mt-05";
         case 'image':
@@ -347,7 +347,7 @@ export function getFileIconName(name: string) {
         case 'text':
             return "file-document mt-05";
         default:
-            return "file mt-05";
+            return "file mt-05 ml-05";
     }
 
 }

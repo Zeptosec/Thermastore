@@ -87,6 +87,7 @@ const uploadPage = ({ setIsUploading }: any) => {
         <div>
             <Head>
                 <title>Upload</title>
+                <meta name="description" content="A free, simple and easy to use cloud storage for your files. Uplaod, backup and share your files with others now." />
             </Head>
             <BubbleBackground />
             <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[72px]">

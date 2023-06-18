@@ -3,6 +3,7 @@ import { supabase } from "@/utils/Supabase";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
 import SelectionBubble from "./SelectionBubble";
 import AnimatedDropZone from "./AnimatedDropZone";
+import StrechableText from "./StrechableText";
 
 interface Props {
     dir: Directory,
@@ -115,10 +116,10 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
             dropped={selectable && dropped ? (_files) => dropped(_files, dir) : undefined}
             textClassName="text-file text-2xl"
         >
-            <div onClick={w => clicked(w)} className="card group">
+            <div onClick={w => clicked(w)} className="card group overflow-hidden">
                 <div className="flex justify-between overflow-hidden">
                     <SelectionBubble file={dir} selected={selected}>
-                        <div className="flex gap-2 items-center justify-center">
+                        <div className="flex gap-2 items-center justify-center overflow-hidden">
                             <div className="w-5 h-4 m-auto block">
                                 <i className="gg-folder m-auto text-file group-hover:text-filehover transition-colors duration-200"></i>
                             </div>
@@ -126,7 +127,9 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
                                 <form onSubmit={w => { w.preventDefault(); saveName(); }}>
                                     <input type="text" autoFocus value={name} onChange={w => setName(w.target.value)} onBlur={saveName} />
                                 </form> :
-                                <p ref={refName} onClick={w => openDir()} className="cursor-pointer hover:text-filehover transition-colors">{name}</p>}
+                                <div onClick={w => openDir()} ref={refName} className="cursor-pointer hover:text-filehover transition-colors whitespace-nowrap overflow-hidden">
+                                    <StrechableText text={name} />
+                                </div>}
                         </div>
                     </SelectionBubble>
                     <div ref={refExpand} className={`flex items-center gap-2`}>
