@@ -23,9 +23,9 @@ export default function UploadCard({ file }: { file: FileStatus }) {
                     <p className="whitespace-nowrap">{BytesToReadable(file.file.size)}</p>
                 </> :
                 <>
-                    <div style={{ width: `${file.uploadedBytes / file.file.size * 100}%` }} className="h-full -z-10 duration-1000 bg-blue-400 opacity-60 top-0 left-0 absolute"></div>
+                    <div style={{ width: `${file.uploadedBytes / file.file.size * 100}%` }} className="h-full -z-10 duration-1000 bg-blue-700 opacity-90 top-0 left-0 absolute"></div>
                     <div className="sm:m-0 flex justify-center overflow-hidden mb-1"><StrechableText text={file.file.name} /></div>
-                    {file.errorText.length > 0 ? <p>{file.errorText}</p> : ""}
+                    {file.errorText.length > 0 ? <p className="text-red-500">{file.errorText}</p> : ""}
                     <div className="flex sm:flex-row text-center sm:text-left flex-col gap-1 sm:gap-4 items-center justify-between sm:justify-end">
                         <p className="whitespace-nowrap">{TimeToReadable(file.timeleft)}</p>
                         <p className="whitespace-nowrap">{BytesToReadable(file.speed)}/s</p>

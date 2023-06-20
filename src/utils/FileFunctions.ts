@@ -383,5 +383,7 @@ export async function AddFolder(dirHistory: Directory[], supabase: SupabaseClien
 
 export function UpFiles(_files: FileList | null, directory: Directory, user?: boolean, fm?: any) {
     if (!_files) return;
+    console.log('uploading to');
+    console.log(directory)
     fm?.dispatch({ type: FileActionType.UPLOAD, files: Array.from(_files), user: user ? user : true, directory })
 }

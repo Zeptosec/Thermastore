@@ -64,7 +64,7 @@ export default function Pathline({ dirHistory, setDirHistory }: { dirHistory: Di
         <div ref={elem} onMouseDown={w => mouseDownHandler(w)} className={`flex px-5 overflow-x-auto scrollbar select-none ${moved ? 'cursor-grabbing' : ''}`}>
             <p onClick={() => pressedRoot()} className={`${setDirHistory ? `cursor-pointer  transition-colors duration-200 hover:text-file` : ''}`}>C:{dirHistory.length === 0 ? `\\` : ''}</p>
             {dirHistory.length > 0 ? <>
-                {dirHistory[0].dir !== null ? <p>/..</p> : ''}
+                {dirHistory[0].dir !== null ? <p>\..</p> : ''}
             </> : ""}
             {dirHistory.map(w => (
                 <div key={`path${w.id}`}>

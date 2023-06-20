@@ -107,13 +107,19 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
         }
         setTmout(setTimeout(() => setInformCopy("Copy link"), 2000))
     }
-    
+
+    function onDrop(filesUpload: FileList | null) {
+        if (dropped)
+            dropped(filesUpload, dir);
+        console.log("dropped on");
+        console.log(dir);
+    }
 
     return (
         <AnimatedDropZone
             dragging={dragging}
             setDragging={setDragging}
-            dropped={selectable && dropped ? (_files) => dropped(_files, dir) : undefined}
+            dropped={selectable && dropped ? onDrop : undefined}
             textClassName="text-file text-2xl"
         >
             <div onClick={w => clicked(w)} className="card group overflow-hidden">

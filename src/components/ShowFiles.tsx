@@ -123,25 +123,25 @@ export default function ShowFilesPage({ files, setDirHistory, selected, setSelec
             {fs?.map((w, ind) => w.fileItem ? <FileItem key={`upfil${ind}`} file={w.fileItem} SelectMultiple={SelectMultiple} setSelected={setSelected} selected={selected} playing={currPlayingFile} togglePlay={playAudio} selectable={selectable} /> : <UploadCard key={`upc${ind}`} file={w} />)}
             {files.map((w, ind) => (
                 'fileid' in w ?
-                    <FileItem 
-                        key={`fil${ind}`} 
-                        file={w} 
-                        SelectMultiple={SelectMultiple} 
-                        setSelected={setSelected} 
-                        selected={selected} 
-                        playing={currPlayingFile} 
-                        togglePlay={playAudio} 
-                        selectable={selectable} 
+                    <FileItem
+                        key={`${ind}fil${w.id}`}
+                        file={w}
+                        SelectMultiple={SelectMultiple}
+                        setSelected={setSelected}
+                        selected={selected}
+                        playing={currPlayingFile}
+                        togglePlay={playAudio}
+                        selectable={selectable}
                     />
                     :
-                    <DirItem 
-                        key={`dir${ind}`} 
-                        dir={w} 
-                        SelectMultiple={SelectMultiple} 
-                        setDirHistory={setDirHistory} 
-                        selected={selected} 
-                        setSelected={setSelected} 
-                        MoveSelected={MoveSelected} 
+                    <DirItem
+                        key={`${ind}dir${w.id}`}
+                        dir={w}
+                        SelectMultiple={SelectMultiple}
+                        setDirHistory={setDirHistory}
+                        selected={selected}
+                        setSelected={setSelected}
+                        MoveSelected={MoveSelected}
                         selectable={selectable}
                         dropped={dropped}
                     />

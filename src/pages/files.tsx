@@ -40,7 +40,6 @@ export default function filesPage() {
         if (!user) router.push("/");
         setMsg("Fetching info about files...");
         const dir = dirHistory.length === 0 ? null : dirHistory[dirHistory.length - 1].id
-        console.log("fetched");
         const { arr, next } = await getFilesWithDir(supabase, dir, currPage, currPageSize, pageDirHistory, searchStr, isGlobal);
         setFiles(arr);
         setCanNext(next);
@@ -223,7 +222,11 @@ export default function filesPage() {
      */
     function UpdateUploadingFiles() {
         const currDir = dirHistory[dirHistory.length - 1];
-        const filesHere = fm?.state.uploading.filter(w => w.directory === currDir && !w.finished);
+        const filesHere = fm?.state.uploading.filter(w => {
+            const cid = currDir ? currDir.id : null;
+            const tid = w.directory ? w.directory.id : null;
+            return cid === tid && !w.finished;
+        });
         if (filesHere)
             setUploadingHere(filesHere);
         else
@@ -231,6 +234,10 @@ export default function filesPage() {
     }
 
     useEffect(UpdateUploadingFiles, [fm?.state.uploading])
+
+    function UploadToDir(filesUpload: FileList | null, direc: Directory){
+        UpFiles(filesUpload, direc, user !== null, fm)
+    }
 
     return (
         <div>
@@ -280,7 +287,7 @@ export default function filesPage() {
                                     MoveSelected={MoveSelected}
                                     selectable={true}
                                     fs={uploadingHere}
-                                    dropped={(_files, dir) => UpFiles(_files, dir, user !== null, fm)}
+                                    dropped={UploadToDir}
                                 />
                                 {currPage > 1 || canNext ? <div className={`flex justify-between items-center px-3`}>
                                     <div>
