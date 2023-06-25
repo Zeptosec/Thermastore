@@ -1,7 +1,7 @@
 import { downloadFile, getFileData, DownloadStatus } from "@/utils/FileDownload";
-import { BytesToReadable, Directory, chunkSize } from "@/utils/FileFunctions";
+import { Directory, chunkSize } from "@/utils/FileFunctions";
 import { Endpoint, uploadFiles, FileStatus } from "@/utils/FileUploader";
-import { Dispatch, SetStateAction, createContext, useContext, useEffect, useReducer, useState } from "react";
+import { Dispatch, createContext, useContext, useReducer } from "react";
 
 export interface FileManager {
     downloading: DownloadStatus[],
@@ -19,6 +19,11 @@ export enum FileActionType {
     'DOWNLOAD', 'UPLOAD', 'REFRESH', 'TOGGLE_MENU', 'RESUME_UPLOAD'
 }
 
+export interface FileToUpload {
+    file: File,
+    directory?: Directory
+}
+
 export type FileAction = {
     type: FileActionType.DOWNLOAD,
     cid: string,
@@ -26,10 +31,9 @@ export type FileAction = {
     fData?: DownloadStatus
 } | {
     type: FileActionType.UPLOAD,
-    files: File[],
+    files: FileToUpload[],
     user: boolean,
     hook?: Endpoint,
-    directory?: Directory
 } | {
     type: FileActionType.REFRESH
 } | {
@@ -117,25 +121,26 @@ export default function FileManagerProvider({ children }: any) {
 
             case FileActionType.UPLOAD:
                 let fileStats: FileStatus[] = []
+                console.log(action.files);
                 action.files.forEach(el => {
-                    if (state.uploading.findIndex(w => w.file.name === el.name && w.file.length === el.length))
+                    if (state.uploading.findIndex(w => w.file.name === el.file.name && w.file.length === el.file.length) === -1)
                         fileStats.push({
-                            file: el,
+                            file: el.file,
                             uploadedBytes: 0,
                             uploadedParts: [],
                             errorText: "",
                             finished: false,
                             link: "",
-                            totalPartsCount: Math.ceil(el.size / chunkSize),
+                            totalPartsCount: Math.ceil(el.file.size / chunkSize),
                             uploadedPartsCount: 0,
                             speed: 0,
                             timeleft: 0,
                             errorTime: 0,
                             controller: new AbortController(),
-                            directory: action.directory
+                            directory: el.directory
                         })
                     else {
-                        console.warn(`Did not add to upload again file: ${el.name}`)
+                        console.warn(`Did not add to upload file again: ${el.file.name}`)
                     }
                 });
                 if (fileStats.length === 0) {

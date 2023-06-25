@@ -13,7 +13,7 @@ interface Props {
     MoveSelected?: Function,
     selectable?: boolean,
     fs?: FileStatus[],
-    dropped?: (_files: FileList | null, directory: Directory) => void
+    dropped?: (_files: FileList | null, directory: Directory, event?: any) => void
 }
 
 export interface PlayStatus {
@@ -33,9 +33,17 @@ export default function ShowFilesPage({ files, setDirHistory, selected, setSelec
             hasSel.removeAllRanges();
         }
         if (selected && setSelected && selected.length > 0) {
+            const filteredCurrentlyUploading = fs?.map(w => w.fileItem).filter(w => w !== undefined);
+            let filesToSelectFrom: (Directory | DirFile)[];
+            if (filteredCurrentlyUploading && filteredCurrentlyUploading.length > 0) {
+                //@ts-ignore
+                filesToSelectFrom = [...filteredCurrentlyUploading, ...files];
+            } else {
+                filesToSelectFrom = files;
+            }
             const lastSelected = selected[selected.length - 1];
-            let startInd = files.indexOf(lastSelected);
-            let endInd = files.indexOf(endSelAt);
+            let startInd = filesToSelectFrom.indexOf(lastSelected);
+            let endInd = filesToSelectFrom.indexOf(endSelAt);
             if (startInd === -1 || endInd === -1) return;
             const mark = selected.indexOf(endSelAt) === -1;
             if (startInd > endInd) {
@@ -47,8 +55,8 @@ export default function ShowFilesPage({ files, setDirHistory, selected, setSelec
                 setSelected(w => {
                     let tobemarked: (DirFile | Directory)[] = [];
                     for (let i = startInd; i <= endInd; i++) {
-                        if (!w.includes(files[i]))
-                            tobemarked.push(files[i]);
+                        if (!w.includes(filesToSelectFrom[i]))
+                            tobemarked.push(filesToSelectFrom[i]);
                     }
                     return [...w, ...tobemarked];
                 })
@@ -56,7 +64,7 @@ export default function ShowFilesPage({ files, setDirHistory, selected, setSelec
                 setSelected(w => {
                     let leftMarked = [...w];
                     for (let i = startInd; i <= endInd; i++) {
-                        let ind = leftMarked.indexOf(files[i]);
+                        let ind = leftMarked.indexOf(filesToSelectFrom[i]);
                         if (ind !== -1) {
                             leftMarked.splice(ind, 1);
                         }
@@ -121,7 +129,7 @@ export default function ShowFilesPage({ files, setDirHistory, selected, setSelec
                     ref={audioRef}
                     src={`https://next-streamer-nigerete123.koyeb.app/stream/${currPlayingFile.playFile.chanid}/${currPlayingFile.playFile.fileid}`} /> : ""}
             {fs?.map((w, ind) => w.fileItem ? <FileItem key={`upfil${ind}`} file={w.fileItem} SelectMultiple={SelectMultiple} setSelected={setSelected} selected={selected} playing={currPlayingFile} togglePlay={playAudio} selectable={selectable} /> : <UploadCard key={`upc${ind}`} file={w} />)}
-            {files.map((w, ind) => (
+            {files.length > 0 || (fs && fs.length > 0) ? files.map((w, ind) => (
                 'fileid' in w ?
                     <FileItem
                         key={`${ind}fil${w.id}`}
@@ -145,7 +153,9 @@ export default function ShowFilesPage({ files, setDirHistory, selected, setSelec
                         selectable={selectable}
                         dropped={dropped}
                     />
-            ))}
+            )) : <div>
+                <p className="text-2xl text-center py-5">No files here...</p>
+            </div>}
         </div>
     )
 }

@@ -1,8 +1,9 @@
 import { PostgrestResponse, SupabaseClient } from "@supabase/supabase-js";
 import axios from "axios";
 import { Endpoint } from "./FileUploader";
-import { Dispatch, SetStateAction } from "react";
-import { FileActionType } from "@/context/FileManagerContext";
+import { ChangeEvent, Dispatch, SetStateAction } from "react";
+import { FileActionType, FileToUpload } from "@/context/FileManagerContext";
+import { supabase } from "./Supabase";
 
 export const chunkSize = 25 * 1024 ** 2 - 256;
 
@@ -353,13 +354,12 @@ export function getFileIconName(name: string) {
 }
 
 export async function AddFolder(dirHistory: Directory[], supabase: SupabaseClient<any, "public", any>, setFiles: Dispatch<SetStateAction<(Directory | DirFile)[]>>) {
-    let name = prompt("Directory name", "Folder");
+    let name = prompt("Directory name", "Directory");
     if (name) {
         if (name.length < 3) {
             alert("Directory name is too short");
-        } else if (name.length > 24) {
-            alert("Directory name is too long");
         } else {
+            name = MinimizeName(name);
             const dir = dirHistory.length > 0 ? dirHistory[dirHistory.length - 1].id : null;
             const res = await supabase
                 .from("directories")
@@ -381,9 +381,225 @@ export async function AddFolder(dirHistory: Directory[], supabase: SupabaseClien
     }
 }
 
-export function UpFiles(_files: FileList | null, directory: Directory, user?: boolean, fm?: any) {
-    if (!_files) return;
-    console.log('uploading to');
-    console.log(directory)
-    fm?.dispatch({ type: FileActionType.UPLOAD, files: Array.from(_files), user: user ? user : true, directory })
+const fileNameLimit = 71;
+const minLeftNameLength = 3;
+/**
+ * 
+ * @param name name of file or directory
+ * @returns formatted name
+ */
+export function MinimizeName(name: string) {
+    // checking if name length is not above limit
+    if (name.length > fileNameLimit) {
+        // finding last period where extention begins
+        const extStartInd = name.lastIndexOf('.');
+
+        if (extStartInd !== -1) {
+            // name has extension
+            // getting name part 
+            const namePart = name.slice(0, extStartInd - 1);
+            // getting extension part
+            const extPart = name.slice(extStartInd);
+            // amount of characters that must be cutted
+            const maxAmountToCut = name.length - fileNameLimit;
+
+            if (namePart.length > minLeftNameLength) {
+                // namePart can be reduced
+                const endInd = namePart.length - maxAmountToCut;
+                const reducedName = namePart.slice(0, Math.max(endInd, minLeftNameLength));
+                // name could not be reduced anymore
+                // reducing extensions
+                if (endInd < minLeftNameLength) {
+                    // position to reduce extension to
+                    const reducedAmount = extPart.length + minLeftNameLength - fileNameLimit;
+                    const reducedExt = extPart.slice(0, reducedAmount);
+                    return `${reducedName}${reducedExt}`;
+                }
+            } else {
+                // namePart does not exists or very small
+                const reducedExt = extPart.slice(0, extPart.length - maxAmountToCut)
+                return `${namePart}${reducedExt}`;
+            }
+        } else {
+            // name does not have extensions just cut it to size
+            return name.slice(0, fileNameLimit - 1);
+        }
+    }
+    // name is good size return as it is
+    return name;
+}
+
+interface DirTree {
+    name: string,
+    files: File[]
+    dir: DirTree | Directory | undefined, // to which directory this belongs
+    currDir?: Directory              // info about this directory
+}
+
+function handleFile(item: any, directory: Directory | undefined | DirTree, dirs: DirTree[][], depth: number, forFile: (file: File) => void) {
+    // directory id => array of files
+    if (item.isFile) {
+        // Get file
+        item.file(forFile);
+    } else if (item.isDirectory) {
+        if (depth > 9) {
+            alert("Max tree depth reached");
+            return undefined;
+        }
+        // Create directory
+        let dirObj: DirTree = {
+            name: MinimizeName(item.name),
+            files: [],
+            dir: directory
+        };
+
+        // building directory levels to minimize requests to database
+        if (!dirs[depth]) {
+            dirs[depth] = [dirObj];
+        } else
+            dirs[depth].push(dirObj);
+        // Get folder contents
+        var dirReader = item.createReader();
+        dirReader.readEntries(async function (entries: any) {
+            for (var i = 0; i < entries.length; i++) {
+                handleFile(entries[i], dirObj, dirs, depth + 1, file => {
+                    dirObj.files.push(file);
+                });
+            }
+        });
+    }
+}
+
+function webkitdirectorySupported() {
+    return 'webkitdirectory' in document.createElement('input')
+}
+
+/* 
+Dir levels
+2  dir4   dir5   dir6  dir7 dir8 dir9
+       \  /       |        \ | /
+1      dir1      dir2      dir3
+
+the first level all three directories will be created
+then we will be able to get those directories ids and then second level can be created using first level ids
+
+This saves 5 times amount of requests from 9 to 2 requests.
+The worst case if theres one directory that has one directory that has one directory and so on. But usually thats not the case.
+*/
+async function getPackaged(dirs: DirTree[][], filesHere: File[], dir: Directory | undefined, dirHistory: Directory[], setFiles: Dispatch<SetStateAction<(Directory | DirFile)[]>>) {
+    let filesToUpload: FileToUpload[] = [];
+    if (dirs.length > 0) {
+        for (let i = 0; i < dirs.length; i++) {
+            let dirsToSave = dirs[i].map(w => {
+                let tdir = null;
+                if (w.dir) {
+                    if ('id' in w.dir) {
+                        tdir = w.dir.id;
+                    } else if (w.dir.currDir) {
+                        tdir = w.dir.currDir.id;
+                    }
+                }
+                return { name: w.name, dir: tdir };
+            })
+
+            const { data, error } = await supabase
+                .from('directories')
+                .insert(dirsToSave)
+                .select('id, created_at, dir');
+
+            if (error) {
+                console.log(error);
+                alert("Failed to setup directories " + error);
+                return null;
+            }
+            // assuming that order is preserved
+            // prepare for next iteration
+            for (let j = 0; j < dirs[i].length; j++) {
+                if (data[j] === undefined) {
+                    console.log(`saved`, data, `dirs that were suppose to be saved`, dirsToSave, `derived from`, dirs[i]);
+                    alert("Some of directories was not saved to database! Check logs.");
+                    return null;
+                }
+                dirs[i][j].currDir = {
+                    id: data[j].id,
+                    name: dirs[i][j].name,
+                    created_at: data[j].created_at,
+                    dir: data[j].dir,
+                    shared: false
+                } as Directory;
+                // preparing files for upload
+                for (let k = 0; k < dirs[i][j].files.length; k++) {
+                    const fileToUpload: FileToUpload = {
+                        file: dirs[i][j].files[k],
+                        directory: dirs[i][j].currDir
+                    }
+                    filesToUpload.push(fileToUpload);
+                }
+            }
+
+            const userDir = dirHistory.length > 0 ? dirHistory[dirHistory.length - 1].id : null;
+            const dirsInUserDir = dirs[i].filter(w => w.currDir?.dir === userDir);
+            // if directories that were stored are in the place where user is then update the file list
+            if (dirsInUserDir.length > 0) {
+                let dirDisplay: Directory[] = [];
+                for (let j = 0; j < dirsInUserDir.length; j++) {
+                    const dir = dirsInUserDir[j].currDir;
+                    if (dir) {
+                        dirDisplay.push(dir);
+                    }
+                }
+                // display newly created directories at the top
+                setFiles(w => [...dirDisplay, ...w]);
+            }
+        }
+    }
+    // preparing files that should be uploaded in the **dir**
+    for (let i = 0; i < filesHere.length; i++) {
+        const fileToUpload: FileToUpload = {
+            file: filesHere[i],
+            directory: dir
+        }
+        filesToUpload.push(fileToUpload);
+    }
+    return filesToUpload;
+}
+
+/**
+ * 
+ * @param _files List of all files does not list whats inside directory.
+ * @param directory Directory to upload everything to
+ * @param dirHistory Path of current directories that user has taken
+ * @param setFiles A function to update files in the UI
+ * @param user Boolean to tell if there is a logged in user
+ * @param fm Refrence to FileManager
+ * @param event Event to get webkitdirectory and file tree.
+ */
+export async function UpFiles(_files: FileList | null, directory: Directory | undefined, dirHistory: Directory[], setFiles: Dispatch<SetStateAction<(Directory | DirFile)[]>>, user?: boolean, fm?: any, event?: any) {
+    if (event && webkitdirectorySupported()) {
+        let items = event.dataTransfer.items;
+        let dirs: DirTree[][] = [];
+        let filesHere: File[] = [];
+        for (let i = 0; i < items.length; i++) {
+            let item = items[i].webkitGetAsEntry();
+            if (item) {
+                handleFile(item, directory, dirs, 0, file => {
+                    filesHere.push(file);
+                });
+            }
+        }
+        // have to wait a bit because array wont be filled with files
+        // no idea how to do it without this timeout. I tried using async await, tried promises but i just get one file and thats it - does not work.
+        await new Promise(r => setTimeout(r, 500));
+        const filesToUpload = await getPackaged(dirs, filesHere, directory, dirHistory, setFiles);
+        if (filesToUpload !== null) {
+            fm?.dispatch({ type: FileActionType.UPLOAD, files: filesToUpload, user: user ? user : true })
+        }
+    } else if (_files) {
+        console.log('webkitdirectory not supported');
+        const files = Array.from(_files).map(w => ({
+            file: w,
+            directory
+        } as FileToUpload))
+        fm?.dispatch({ type: FileActionType.UPLOAD, files, user: user ? user : true })
+    }
 }

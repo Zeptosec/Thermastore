@@ -4,7 +4,6 @@ import { BytesToReadable, TimeToReadable } from "@/utils/FileFunctions"
 import { FileActionType, useFileManager } from "@/context/FileManagerContext"
 import { useState } from "react"
 import Link from "next/link"
-import Pathline from "../Pathline"
 
 interface Props {
     status: FileStatus

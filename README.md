@@ -1,38 +1,43 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Thermastore
+Thermastore is a cloud storage which utilizes Discord for storing files. Here you can upload and organize your files. This project is powered by NextJS 13 for handling frontend and some of the back end, Supabase for saving information about stored files and protecting the database with RLS.  
+  
+Discord has CORS setup. So to download files, watch videos and listen to audio you will need to use a proxy server [Streamer](https://github.com/Zeptosec/Streamer).
 
-## Getting Started
+## How it works?
+When uploading a file it is split up into pieces (around 25 MB) then each piece is uploaded to Discord server using webhook and attachment file id and channel id to which it was uploaded is stored into file and uploaded using the same webhook.
 
-First, run the development server:
+## Caveats
+Storing files like this is not as safe as storing links to pieces into other database but this way it takes much less space in the database. Sadly uploaded files are accessible to anyone if they know file and channel ids which is very unlikely unless they have access to channel where the files were uploaded or you have shared the file with them.  
+  
+Deleting files is not possible webhooks can only send messages it can not delete messages. Possible solution to this problem is to create a bot which would delete the data file and other file specified in data file
 
-```bash
+## Features
+A list of features that have been implemented. You can always suggest a feature in the [issues](https://github.com/Zeptosec/Thermastore/issues) tab.
+| Description | Status |
+| ------------ | :-----------: |
+| Creating directories   |  ✔ |
+| Moving files  | ✔ |
+| Moving directories  | ✔ |
+| Uploading multiple files  | ✔  |
+| Drag and Drop support  | ✔  |
+| Preview audio, video files (Streamer service)  | ✔  |
+| Play audio files from menu  | ✔  |
+| Pause/resume an uploading file  | ✔ |
+| File search | ✔ |
+| Uploading directories | ✔ |
+
+## Getting started
+To start clone this repository:
+```sh
+git clone https://github.com/Zeptosec/Thermastore.git
+```
+Then install required npm packages with:
+```sh
+npm install
+```
+Rename **env.local.example** to **env.local** and set the required values. You will need to setup a Supabase database with the required tables specified in [supabase.ddl](supabase.ddl)  
+After all of that is done you can finally start the project and hope for the best:
+```sh
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
-
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.

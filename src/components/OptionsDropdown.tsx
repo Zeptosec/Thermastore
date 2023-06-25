@@ -1,3 +1,5 @@
+// Not used anywhere for whatever reason...
+
 import { useEffect, useRef, useState } from "react"
 
 interface Props {
@@ -26,7 +28,7 @@ export default function OptionsDropdown({ children, markerClass = '', panelNames
     let tmout: NodeJS.Timeout | null = null;
     function drop() {
         setOpen(w => !w);
-        if(tmout) clearTimeout(tmout);
+        if (tmout) clearTimeout(tmout);
         tmout = setTimeout(() => {
             if (visible.current) {
                 const rect = visible.current.getBoundingClientRect();

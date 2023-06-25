@@ -11,7 +11,7 @@ import { FileStatus } from "@/utils/FileUploader";
 import { useSessionContext, useSupabaseClient, useUser } from "@supabase/auth-helpers-react"
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 
 export default function filesPage() {
     const { isLoading, session, error } = useSessionContext();
@@ -150,7 +150,7 @@ export default function filesPage() {
                 console.log(res.error);
                 return;
             }
-            
+
             moved.push(...direcs);
         }
         const filesToMove: DirFile[] = changedPaths.filter(w => 'fileid' in w) as DirFile[];
@@ -235,10 +235,9 @@ export default function filesPage() {
 
     useEffect(UpdateUploadingFiles, [fm?.state.uploading])
 
-    function UploadToDir(filesUpload: FileList | null, direc: Directory){
-        UpFiles(filesUpload, direc, user !== null, fm)
+    function UploadToDir(filesUpload: FileList | null, direc: Directory, event?: any) {
+        UpFiles(filesUpload, direc, dirHistory, setFiles, user !== null, fm, event);
     }
-
     return (
         <div>
             <Head>
@@ -276,7 +275,7 @@ export default function filesPage() {
                         <AnimatedDropZone
                             dragging={dragging}
                             setDragging={setDragging}
-                            dropped={(_files: FileList | null) => UpFiles(_files, dirHistory[dirHistory.length - 1], user !== null, fm)}
+                            dropped={(_files: FileList | null, event?: any) => UploadToDir(_files, dirHistory[dirHistory.length - 1], event)}
                         >
                             <div className="grid gap-2">
                                 <ShowFiles
