@@ -1,15 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import DropComp from "@/components/DropComp";
 import styles from "@/styles/Upload.module.css";
 import CoolButton from "@/components/CoolButton";
 import BubbleBackground from "@/components/BubbleBackground";
-import { Endpoint, FileStatus, Stop, uploadFiles } from "@/utils/FileUploader";
-import { BytesToReadable, chunkSize, TimeToReadable, VerifyHook } from "@/utils/FileFunctions";
-import Link from "next/link";
+import { Endpoint, FileStatus } from "@/utils/FileUploader";
 import { useRouter } from "next/router";
 import { useUser } from "@supabase/auth-helpers-react";
 import Head from "next/head";
-import { FileActionType, useFileManager } from "@/context/FileManagerContext";
+import { FileActionType, FileToUpload, useFileManager } from "@/context/FileManagerContext";
 import UploadCard from "@/components/UploadCard";
 
 const uploadPage = ({ setIsUploading }: any) => {
@@ -18,7 +16,6 @@ const uploadPage = ({ setIsUploading }: any) => {
     const [filesToUpload, setFilesToUpload] = useState<Array<FileStatus>>([]);
     const [hook, setHook] = useState<Endpoint>()
     const [error, setError] = useState("");
-    const router = useRouter();
     const user = useUser();
     const fm = useFileManager();
 
@@ -47,28 +44,14 @@ const uploadPage = ({ setIsUploading }: any) => {
             return w;
         })
     }
-    const confMsg = "You are still uploading files"
-    function beforeUnloadHandler(e: BeforeUnloadEvent) {
-        (e || window.event).returnValue = confMsg;
-        return confMsg;
-    }
-
-    function beforeRouteHandler(url: string) {
-        if (router.pathname !== url && !confirm(confMsg)) {
-            router.events.emit('routeChangeError');
-            throw `Route change to "${url}" was aborted (this error can be safely ignored).`
-        }
-    }
-
-    let interval: NodeJS.Timer | null = null;
 
     async function startUpload() {
-        setPreviewFiles([]);
         setError("");
         try {
             if (fm) {
-                fm.dispatch({ type: FileActionType.UPLOAD, files: previewFiles, user: user !== null, hook })
+                fm.dispatch({ type: FileActionType.UPLOAD, files: previewFiles.map(w => ({ file: w, directory: undefined } as FileToUpload)), user: user !== null, hook })
             }
+            setPreviewFiles([]);
             //await uploadFiles(filestatus, onStart, onFinished, user !== null, hook);
         } catch (err: any) {
             if (err.name === "missinghook") {
