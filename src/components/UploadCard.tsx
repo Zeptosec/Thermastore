@@ -27,9 +27,13 @@ export default function UploadCard({ file }: { file: FileStatus }) {
                     <div className="sm:m-0 flex justify-center overflow-hidden mb-1"><StrechableText text={formattedName} /></div>
                     {file.errorText.length > 0 ? <p className="text-red-500">{file.errorText}</p> : ""}
                     <div className="flex sm:flex-row text-center sm:text-left flex-col gap-1 sm:gap-4 items-center justify-between sm:justify-end">
-                        <p className="whitespace-nowrap">{TimeToReadable(file.timeleft)}</p>
-                        <p className="whitespace-nowrap">{BytesToReadable(file.speed)}/s</p>
-                        <p className="whitespace-nowrap">{BytesToReadable(file.uploadedBytes)}/{BytesToReadable(file.file.size)}</p>
+                        {file.uploadedBytes === 0 ? <>
+                            <p className="whitespace-nowrap font-bold text-lime-300">Pending...</p>
+                        </> : <>
+                            <p className="whitespace-nowrap">{TimeToReadable(file.timeleft)}</p>
+                            <p className="whitespace-nowrap">{BytesToReadable(file.speed)}/s</p>
+                            <p className="whitespace-nowrap">{BytesToReadable(file.uploadedBytes)}/{BytesToReadable(file.file.size)}</p>
+                        </>}
                         {file.controller.signal.aborted ?
                             <abbr title="Continue upload" className="flex justify-center sm:block cursor-pointer text-white transition-colors duration-200 hover:text-filehover" onClick={() => fm?.dispatch({ type: FileActionType.RESUME_UPLOAD, status: file, user: true })}><i className="gg-play-button-r"></i></abbr> :
                             <abbr title="Pause upload" className="flex justify-center sm:block cursor-pointer text-white transition-colors duration-200 hover:text-filehover" onClick={() => Stop(file, "Upload stopped by user")}><i className="gg-play-stop-r"></i></abbr>}
