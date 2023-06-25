@@ -1,4 +1,4 @@
-import { BytesToReadable, Directory, DirFile, equalDir, getFileIconName, getFileType, getReadableDate, indexOfSelected } from "@/utils/FileFunctions"
+import { BytesToReadable, Directory, DirFile, equalDir, getFileIconName, getFileType, getReadableDate, indexOfSelected, MinimizeName } from "@/utils/FileFunctions"
 import { supabase } from "@/utils/Supabase";
 import Link from "next/link"
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
@@ -84,13 +84,10 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
         if (name.length < 3) {
             setName(file.name);
             alert("File name is too short");
-        } else if (name.length > 64) {
-            setName(file.name);
-            alert("File name is too long");
         } else {
             const { error } = await supabase
                 .from("files")
-                .update({ name })
+                .update({ name: MinimizeName(name) })
                 .eq("id", file.id);
             if (error) {
                 console.log(error);
