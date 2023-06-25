@@ -1,4 +1,4 @@
-import { Directory, DirFile, getReadableDate, indexOfSelected } from "@/utils/FileFunctions"
+import { Directory, DirFile, getReadableDate, indexOfSelected, MinimizeName } from "@/utils/FileFunctions"
 import { supabase } from "@/utils/Supabase";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
 import SelectionBubble from "./SelectionBubble";
@@ -52,13 +52,10 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
         if (name.length < 3) {
             setName(dir.name);
             alert("Directory name is too short");
-        } else if (name.length > 24) {
-            setName(dir.name);
-            alert("Directory name is too long");
         } else {
             const { error } = await supabase
                 .from("directories")
-                .update({ name })
+                .update({ name: MinimizeName(name) })
                 .eq("id", dir.id);
             if (error) {
                 console.log(error);

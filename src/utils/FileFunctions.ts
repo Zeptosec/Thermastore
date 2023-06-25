@@ -353,7 +353,7 @@ export function getFileIconName(name: string) {
 
 }
 
-export async function AddFolder(dirHistory: Directory[], supabase: SupabaseClient<any, "public", any>, setFiles: Dispatch<SetStateAction<(Directory | DirFile)[]>>) {
+export async function AddFolder(dirHistory: Directory[], setFiles: Dispatch<SetStateAction<(Directory | DirFile)[]>>) {
     let name = prompt("Directory name", "Directory");
     if (name) {
         if (name.length < 3) {
