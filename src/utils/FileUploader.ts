@@ -1,9 +1,10 @@
 import axios from "axios";
 import { downloadBlob } from "./FileDownload";
-import { BytesToReadable, DirFile, Directory, chunkSize } from "./FileFunctions";
+import { BytesToReadable, DirFile, Directory, MinimizeName, chunkSize } from "./FileFunctions";
 import { supabase } from "./Supabase";
 export interface FileStatus {
     file: File,
+    formattedName?: string,
     uploadedBytes: number,
     uploadedParts: Array<number>,
     errorText: string,
@@ -23,7 +24,7 @@ export interface Endpoint {
     link: string,
     occupied: number,
     // isHook?: boolean,
-    sub?:string,
+    sub?: string,
     errCount?: number,
     name?: string
 }
@@ -175,7 +176,7 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
     // last part of file finished
     if (file.uploadedPartsCount === file.totalPartsCount) {
         const str = JSON.stringify({
-            name: file.file.name,
+            name: file.formattedName,
             size: file.file.size,
             chunks: file.uploadedParts,
             channel_id: chanid,
@@ -195,7 +196,7 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
                 const { error, data } = await supabase
                     .from('files')
                     .insert({
-                        name: file.file.name,
+                        name: file.formattedName,
                         size: file.file.size,
                         fileid: fdataid,
                         chanid,
@@ -251,16 +252,12 @@ async function getReservedSlot() {
 
 async function uploadFile(file: FileStatus, user: boolean) {
     let filesize = file.file.size;
-    if (!user && filesize > 1024 ** 3) {
-        file.errorText = "File size limit 1GB when not logged in";
-        file.finished = true;
-        return;
-    }
-    if (user && filesize > 2 * 1024 ** 4) {
+    if (filesize > 2 * 1024 ** 4) {
         file.errorText = "File is too big limit is 2TB";
         file.finished = true;
         return;
     }
+    file.formattedName = MinimizeName(file.file.name);
     let start = -1;
     let part = file.uploadedPartsCount;
     let end = part * chunkSize;
@@ -272,7 +269,7 @@ async function uploadFile(file: FileStatus, user: boolean) {
     //function for updating file upload speed and time.
     let interval = setInterval(() => {
         let currSpeed = (file.uploadedBytes - prevLoaded) / (Date.now() - prevTime) * 1000;
-        if(currSpeed < 0) currSpeed = 0;
+        if (currSpeed < 0) currSpeed = 0;
         speeds[i] = currSpeed;
         file.speed = speeds.reduce((a, b) => a + b, 0) / speeds.length;
 
@@ -337,10 +334,6 @@ export async function uploadFiles(files: Array<FileStatus>, onStart: Function | 
     }
     for (let i = 0; i < filesToUpload.length; i++) {
         //await uploadFile(files[i]);
-        if (filesToUpload[i].file.name.length > 50) {
-            filesToUpload[i].errorText = "File name is too long max 50 symbols";
-            continue;
-        }
         await uploadFile(filesToUpload[i], user);
 
         //last check before clearing
