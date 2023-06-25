@@ -1,6 +1,6 @@
 import { Endpoint, FileStatus, Stop } from "@/utils/FileUploader"
 import StrechableText from "../StrechableText"
-import { BytesToReadable, TimeToReadable } from "@/utils/FileFunctions"
+import { BytesToReadable, MinimizeName, TimeToReadable } from "@/utils/FileFunctions"
 import { FileActionType, useFileManager } from "@/context/FileManagerContext"
 import { useState } from "react"
 import Link from "next/link"
@@ -17,7 +17,7 @@ export default function FileManagerUpload({ status, user, hook }: Props) {
     function ContinueDownload() {
         dispatch({ type: FileActionType.RESUME_UPLOAD, status, user, hook })
     }
-
+    const formattedName = status.formattedName ? status.formattedName : MinimizeName(status.file.name);
 
     return (
         <div className={`relative grid py-2 border-b px-2 transition-all ${open ? `gap-1` : 'gap-0'} border-white`}>
@@ -25,10 +25,10 @@ export default function FileManagerUpload({ status, user, hook }: Props) {
             <div className="flex flex-row justify-between gap-2 overflow-hidden">
                 {status.finished ?
                     <Link href={`${status.link}`} className="z-20 overflow-hidden transition-colors font-bold hover:text-lime-400">
-                        <StrechableText text={status.file.name} />
+                        <StrechableText text={formattedName} />
                     </Link> :
                     <div className="z-20 overflow-hidden font-bold">
-                        <StrechableText text={status.file.name} />
+                        <StrechableText text={formattedName} />
                     </div>}
                 <div className="z-20 flex flex-row text-center sm:text-left gap-1 sm:gap-4 items-center justify-between sm:justify-end">
                     {open ? "" : status.errorText.length > 0 ?

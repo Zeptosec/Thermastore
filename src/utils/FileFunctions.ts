@@ -411,12 +411,14 @@ export function MinimizeName(name: string) {
                 // reducing extensions
                 if (endInd < minLeftNameLength) {
                     // position to reduce extension to
-                    const reducedAmount = extPart.length + minLeftNameLength - fileNameLimit;
+                    const reducedAmount = Math.min(extPart.length, fileNameLimit - minLeftNameLength);
                     const reducedExt = extPart.slice(0, reducedAmount);
                     return `${reducedName}${reducedExt}`;
+                } else {
+                    return `${reducedName}${extPart}`;
                 }
             } else {
-                // namePart does not exists or very small
+                // namePart does not exists or is very small
                 const reducedExt = extPart.slice(0, extPart.length - maxAmountToCut)
                 return `${namePart}${reducedExt}`;
             }

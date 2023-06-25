@@ -1,6 +1,6 @@
 import axios from "axios";
 import { downloadBlob } from "./FileDownload";
-import { BytesToReadable, DirFile, Directory, MinimizeName, chunkSize } from "./FileFunctions";
+import { DirFile, Directory, MinimizeName, chunkSize } from "./FileFunctions";
 import { supabase } from "./Supabase";
 export interface FileStatus {
     file: File,
@@ -258,6 +258,7 @@ async function uploadFile(file: FileStatus, user: boolean) {
         return;
     }
     file.formattedName = MinimizeName(file.file.name);
+    console.log(file.file.name, file.formattedName, file.formattedName.length);
     let start = -1;
     let part = file.uploadedPartsCount;
     let end = part * chunkSize;

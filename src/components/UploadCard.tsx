@@ -1,13 +1,13 @@
 import { FileStatus, Stop } from "@/utils/FileUploader";
 import StrechableText from "./StrechableText";
-import { BytesToReadable, TimeToReadable } from "@/utils/FileFunctions";
+import { BytesToReadable, MinimizeName, TimeToReadable } from "@/utils/FileFunctions";
 import Link from "next/link";
 import { useFileManager } from "@/context/FileManagerContext";
 import { FileActionType } from "@/context/FileManagerContext";
 
 export default function UploadCard({ file }: { file: FileStatus }) {
     const fm = useFileManager();
-
+    const formattedName = file.formattedName ? file.formattedName : MinimizeName(file.file.name);
     return (
         <div className={`card relative flex sm:gap-4 justify-between flex-col sm:flex-row overflow-hidden`}>
             {file.finished ? file.errorText.length > 0 ?
@@ -24,7 +24,7 @@ export default function UploadCard({ file }: { file: FileStatus }) {
                 </> :
                 <>
                     <div style={{ width: `${file.uploadedBytes / file.file.size * 100}%` }} className="h-full -z-10 duration-1000 bg-blue-700 opacity-90 top-0 left-0 absolute"></div>
-                    <div className="sm:m-0 flex justify-center overflow-hidden mb-1"><StrechableText text={file.file.name} /></div>
+                    <div className="sm:m-0 flex justify-center overflow-hidden mb-1"><StrechableText text={formattedName} /></div>
                     {file.errorText.length > 0 ? <p className="text-red-500">{file.errorText}</p> : ""}
                     <div className="flex sm:flex-row text-center sm:text-left flex-col gap-1 sm:gap-4 items-center justify-between sm:justify-end">
                         <p className="whitespace-nowrap">{TimeToReadable(file.timeleft)}</p>
