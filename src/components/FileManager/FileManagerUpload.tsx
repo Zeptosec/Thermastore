@@ -44,7 +44,7 @@ export default function FileManagerUpload({ status, user, hook }: Props) {
                 </div>
             </div>
             <div className={`z-20 grid gap-2 transition-all overflow-hidden select-none ease-in-out duration-300  ${open ? ' max-h-20  mt-1' : 'max-h-0'}`}>
-                {status.errorText.length ?
+                {status.errorText.length > 0 ?
                     <p className="text-red-500 whitespace-nowrap font-bold text-center">{status.errorText}</p> :
                     status.uploadedBytes === 0 ?
                         <p className="whitespace-nowrap font-bold text-lime-300 text-center">Pending...</p> :

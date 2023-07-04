@@ -16,8 +16,9 @@ export interface FileStatus {
     speed: number, // bytes/sec
     timeleft: number, // seconds
     controller: AbortController,
-    directory?: Directory
-    fileItem?: DirFile
+    directory?: Directory,
+    fileItem?: DirFile,
+    isPaused?: boolean
 }
 
 export interface Endpoint {
@@ -205,9 +206,12 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
                     .select()
                     .single();
                 if (error) {
-                    console.error(error);
+                    const errTxt = "File was uploaded but NOT saved to Database. You have probably reached file amount limit. Copy link to keep reference to the file if you do not want to lose it.";
+                    file.errorText = errTxt;
+                    console.error(error, errTxt);
+                    downloadBlob(filedata, `${file.formattedName}.${chanid}.${fdataid}.txt`)
                 } else {
-                    console.log(data);
+                    // console.log(data);
                     file.fileItem = data;
                 }
             }
@@ -258,7 +262,6 @@ async function uploadFile(file: FileStatus, user: boolean) {
         return;
     }
     file.formattedName = MinimizeName(file.file.name);
-    console.log(file.file.name, file.formattedName, file.formattedName.length);
     let start = -1;
     let part = file.uploadedPartsCount;
     let end = part * chunkSize;
@@ -357,4 +360,5 @@ export function Stop(fs: FileStatus, errtxt: string) {
 
     fs.uploadedBytes = ptCount * chunkSize;
     fs.errorText = errtxt;
+    fs.isPaused = true;
 }

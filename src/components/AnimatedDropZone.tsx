@@ -5,7 +5,7 @@ interface Props {
     setDragging: (newVal: boolean) => void,
     dragging: boolean,
     children: any,
-    dropped?: (_files: FileList | null, event?: ChangeEvent<HTMLInputElement>) => void,
+    dropped?: (event: ChangeEvent<HTMLInputElement>) => void,
     textClassName?: string,
 }
 

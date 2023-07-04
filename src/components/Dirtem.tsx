@@ -13,7 +13,7 @@ interface Props {
     MoveSelected?: Function,
     SelectMultiple?: Function,
     selectable?: boolean,
-    dropped?: (_files: FileList | null, directory: Directory, event?: any) => void
+    dropped?: (directory: Directory, event: any) => void
 }
 export default function DirItem({ dir, setDirHistory, selected, setSelected, MoveSelected, selectable, SelectMultiple, dropped }: Props) {
     const refName = useRef<any>(null);
@@ -105,11 +105,9 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
         setTmout(setTimeout(() => setInformCopy("Copy link"), 2000))
     }
 
-    function onDrop(filesUpload: FileList | null, event?: any) {
+    function onDrop(event: any) {
         if (dropped)
-            dropped(filesUpload, dir, event);
-        console.log("dropped on");
-        console.log(dir);
+            dropped(dir, event);
     }
 
     return (

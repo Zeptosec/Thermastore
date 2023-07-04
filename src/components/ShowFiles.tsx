@@ -13,7 +13,7 @@ interface Props {
     MoveSelected?: Function,
     selectable?: boolean,
     fs?: FileStatus[],
-    dropped?: (_files: FileList | null, directory: Directory, event?: any) => void
+    dropped?: (directory: Directory, event: any) => void
 }
 
 export interface PlayStatus {

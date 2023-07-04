@@ -48,17 +48,13 @@ export default function DropZone({ children, Dropped, setDragging, className }: 
     const handleDrop = (e: any) => {
         e.preventDefault();
         e.stopPropagation();
-
-        const { files } = e.dataTransfer;
-        if (files && files.length) {
-            Dropped(files, e);
-        }
+        Dropped(e);
         val = 0;
         setDragging(false);
     };
     return (
         <div className={`overflow-hidden ${className}`}>
-            <input onChange={w => Dropped(w.target.files, w)} className="hidden" type="file" id="file-uploader" multiple />
+            <input onChange={w => Dropped(w)} className="hidden" type="file" id="file-uploader" multiple />
             <div className='select-none' ref={drop}>
                 {children}
             </div>

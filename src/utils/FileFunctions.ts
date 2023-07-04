@@ -384,7 +384,7 @@ export async function AddFolder(dirHistory: Directory[], setFiles: Dispatch<SetS
 const fileNameLimit = 71;
 const minLeftNameLength = 3;
 /**
- * 
+ * Cuts name to size so that it will comply with Database policies. (P.S. to future me: i made a mistake somewhere which sometimes reduces to maxlength - 1 size string was too lazy to debug...)
  * @param name name of file or directory
  * @returns formatted name
  */
@@ -568,16 +568,15 @@ async function getPackaged(dirs: DirTree[][], filesHere: File[], dir: Directory 
 
 /**
  * 
- * @param _files List of all files does not list whats inside directory.
+ * @param event Event to get webkitdirectory and file tree, or just files.
  * @param directory Directory to upload everything to
  * @param dirHistory Path of current directories that user has taken
  * @param setFiles A function to update files in the UI
  * @param user Boolean to tell if there is a logged in user
  * @param fm Refrence to FileManager
- * @param event Event to get webkitdirectory and file tree.
  */
-export async function UpFiles(_files: FileList | null, directory: Directory | undefined, dirHistory: Directory[], setFiles: Dispatch<SetStateAction<(Directory | DirFile)[]>>, user?: boolean, fm?: any, event?: any) {
-    if (event && webkitdirectorySupported()) {
+export async function UpFiles(event: any, directory: Directory | undefined, dirHistory: Directory[], setFiles: Dispatch<SetStateAction<(Directory | DirFile)[]>>, user?: boolean, fm?: any) {
+    if (event && webkitdirectorySupported() && event.dataTransfer) {
         let items = event.dataTransfer.items;
         let dirs: DirTree[][] = [];
         let filesHere: File[] = [];
@@ -596,12 +595,49 @@ export async function UpFiles(_files: FileList | null, directory: Directory | un
         if (filesToUpload !== null) {
             fm?.dispatch({ type: FileActionType.UPLOAD, files: filesToUpload, user: user ? user : true })
         }
-    } else if (_files) {
-        console.log('webkitdirectory not supported');
-        const files = Array.from(_files).map(w => ({
-            file: w,
-            directory
-        } as FileToUpload))
-        fm?.dispatch({ type: FileActionType.UPLOAD, files, user: user ? user : true })
+    } else if (event.target) {
+        // if no dataTransfer object found get files the usual way...
+        const fToUpload = Array.from<File>(event.target.files);
+        const onlyFiles = await Promise.all(
+            fToUpload.filter(async (w: File) => await isFile(w))
+        );
+        if (onlyFiles.length > 0) {
+            const files = onlyFiles.map(w => ({
+                file: w,
+                directory
+            } as FileToUpload))
+            fm?.dispatch({ type: FileActionType.UPLOAD, files, user: user ? user : true })
+        } else {
+            alert("Directory upload are unsupported! Select only files!");
+        }
+
+
+    } else {
+        console.log("Cant get files!");
+        console.log(event);
     }
+}
+
+/**
+ * Checks if file is a file.
+ * @param maybeFile File to check if it is a dir. Only use when checking input field files with target.files
+ * @returns true if it is a file otherwise - false
+ */
+export function isFile(maybeFile: File) {
+    return new Promise<boolean>(function (resolve, reject) {
+        if (maybeFile.type !== '') {
+            return resolve(true);
+        }
+        const reader = new FileReader()
+        reader.onloadend = () => {
+            if (reader.error && (
+                reader.error.name === 'NotFoundError' ||
+                reader.error.name === 'NotReadableError'
+            )) {
+                return resolve(false);
+            }
+            resolve(true);
+        }
+        reader.readAsBinaryString(maybeFile)
+    })
 }

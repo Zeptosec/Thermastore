@@ -121,7 +121,6 @@ export default function FileManagerProvider({ children }: any) {
 
             case FileActionType.UPLOAD:
                 let fileStats: FileStatus[] = []
-                console.log(action.files);
                 action.files.forEach(el => {
                     if (state.uploading.findIndex(w => w.file.name === el.file.name && w.file.length === el.file.length) === -1)
                         fileStats.push({
@@ -154,6 +153,7 @@ export default function FileManagerProvider({ children }: any) {
                 return { ...state, showMenu: !state.showMenu }
             case FileActionType.RESUME_UPLOAD:
                 action.status.controller = new AbortController();
+                action.status.isPaused = false;
                 uploadFiles([action.status], onStart, onFinished, action.user, action.hook);
                 return { ...state };
             default:

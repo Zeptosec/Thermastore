@@ -11,7 +11,7 @@ export default function CoolSearch({ inputChanged, text }: Props) {
             <div className={styles.search}>
                 <input onChange={w => { inputChanged(w.target.value); setCurr(w.target.value); }} value={curr} type="text" placeholder=" " />
                 <div>
-                    <svg>
+                    <svg className='pointer-events-none'>
                         <use xlinkHref="#path" />
                     </svg>
                 </div>

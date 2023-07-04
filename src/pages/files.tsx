@@ -235,8 +235,8 @@ export default function filesPage() {
 
     useEffect(UpdateUploadingFiles, [fm?.state.uploading])
 
-    function UploadToDir(filesUpload: FileList | null, direc: Directory, event?: any) {
-        UpFiles(filesUpload, direc, dirHistory, setFiles, user !== null, fm, event);
+    function UploadToDir(direc: Directory, event: any) {
+        UpFiles(event, direc, dirHistory, setFiles, user !== null, fm);
     }
     return (
         <div>
@@ -254,7 +254,9 @@ export default function filesPage() {
                         <div className="flex justify-between px-3 h-6">
                             <div className="flex gap-2 items-center">
                                 {dirHistory.length > 0 ? <abbr title="Back" onClick={() => setDirHistory(w => w.slice(0, w.length - 1))}><i className="gg-arrow-left cursor-pointer transition-colors duration-200 text-white hover:text-filehover"></i></abbr> : ""}
-                                <abbr title="New directory"><i className="gg-folder-add cursor-pointer transition-colors duration-200 text-white hover:text-filehover" onClick={() => AddFolder(dirHistory, supabase, setFiles)}></i></abbr>
+                                <abbr title="New directory">
+                                    <i className="gg-folder-add cursor-pointer transition-colors duration-200 text-white hover:text-filehover" onClick={() => AddFolder(dirHistory, setFiles)}></i>
+                                </abbr>
                                 <abbr title="Upload here">
                                     <label htmlFor="file-uploader" className="transition-colors duration-200 text-white hover:text-filehover cursor-pointer ">
                                         <IconUpload />
@@ -275,7 +277,7 @@ export default function filesPage() {
                         <AnimatedDropZone
                             dragging={dragging}
                             setDragging={setDragging}
-                            dropped={(_files: FileList | null, event?: any) => UploadToDir(_files, dirHistory[dirHistory.length - 1], event)}
+                            dropped={(event: any) => UploadToDir(dirHistory[dirHistory.length - 1], event)}
                         >
                             <div className="grid gap-2">
                                 <ShowFiles
