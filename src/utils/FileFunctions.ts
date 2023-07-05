@@ -641,3 +641,41 @@ export function isFile(maybeFile: File) {
         reader.readAsBinaryString(maybeFile)
     })
 }
+
+/**
+ * 
+ * @param videoFile A video file to get thumbnail from
+ * @returns An image file that was taken from supplied video
+ */
+async function getThumbnailForVideo(videoFile: File) {
+    const video = document.createElement("video");
+    const canvas = document.createElement("canvas");
+    video.style.display = "none";
+    canvas.style.display = "none";
+    // Trigger video load
+    await new Promise((resolve, reject) => {
+        video.addEventListener("loadedmetadata", () => {
+            video.width = video.videoWidth;
+            video.height = video.videoHeight;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            // Seek the video to 20%-30%
+            video.currentTime = video.duration * (0.2 + Math.random() / 10);
+        });
+        video.addEventListener("seeked", () => resolve(0));
+        const videoUrl = URL.createObjectURL(videoFile);
+        video.src = videoUrl;
+    });
+
+    // for some reason it says object is possibly null which is not true.
+    //@ts-ignore
+    canvas
+        .getContext("2d")
+        .drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+    const imageBlob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.3));
+    if (imageBlob) {
+        return new File([imageBlob], 'thumbnail');
+    } else {
+        return null;
+    }
+}

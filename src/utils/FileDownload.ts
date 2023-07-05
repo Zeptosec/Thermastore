@@ -14,7 +14,8 @@ export interface DownloadStatus {
     channel_id: string,
     fid?: string,
     started_at: number,
-    failed_text?: string
+    failed_text?: string,
+    finished?: boolean
 }
 
 const maxConns = 10;
@@ -235,6 +236,7 @@ export async function downloadFile(file: DownloadStatus, setFile?: Dispatch<SetS
     // check every 100s maybe localhost appeared or other services came up, or shutdown just cleanup.
     const int = setInterval(() => checkEndpoints(setFile), 100 * 1000);
     checkEndpoints(setFile);
+    if (setFile) setFile(w => ({ ...w, finished: false }));
     const chunks = await downloadFileChunks(file, setFile, onStart, onFinished);
     clearInterval(int);
     let dwnFile = new Blob(chunks);
@@ -243,7 +245,8 @@ export async function downloadFile(file: DownloadStatus, setFile?: Dispatch<SetS
             ...w,
             precentage: 1,
             downloadedBytes: file.size,
-            timeleft: 0
+            timeleft: 0,
+            finished: true
         }))
     } else {
         file.precentage = 1;

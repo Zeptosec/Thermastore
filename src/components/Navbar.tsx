@@ -6,7 +6,7 @@ import FileManagerWindow from "./FileManager/FileManagerWindow";
 import { FileActionType, useFileManager } from "@/context/FileManagerContext";
 import FileManager from "./FileManager/FileManager";
 
-export default function navbar({ isUploading }: any) {
+export default function navbar() {
   const [active, setActive] = useState(false);
   const ham = useRef<any>(null);
   const supabase = useSupabaseClient();
@@ -25,7 +25,8 @@ export default function navbar({ isUploading }: any) {
     }
   }, []);
   const handleLogout = async () => {
-    if (isUploading) return;
+    const upCnt = fm?.state.uploading.filter(w => !w.finished).length;
+    if (upCnt && upCnt > 0) return;
     await supabase.auth.signOut();
     router.push("/");
   }
@@ -41,7 +42,7 @@ export default function navbar({ isUploading }: any) {
   return (
     <nav className='flex select-none items-center z-50 flex-wrap justify-between absolute p-3 w-full'>
       <div className="py-0.5">
-        <Link href='/' className={isUploading ? "pointer-events-none" : ""}>
+        <Link href='/'>
           <div className='inline-flex items-center p-2 '>
             <span className='text-xl text-white font-bold uppercase tracking-wide'>
               Thermastore
@@ -81,12 +82,12 @@ export default function navbar({ isUploading }: any) {
             }   w-full lg:inline-flex lg:flex-grow lg:w-auto`}
         >
           <div className='lg:inline-flex lg:flex-row lg:ml-auto lg:w-auto w-full lg:items-center flex flex-col lg:h-auto items-end'>
-            {!user ? <><Link href='/register' className={isUploading ? "pointer-events-none" : ""}>
+            {!user ? <><Link href='/register'>
               <div className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center hover:bg-navhover hover:text-cyan-300 transition-colors duration-200 '>
                 Register
               </div>
             </Link>
-              <Link href='/login' className={isUploading ? "pointer-events-none" : ""}>
+              <Link href='/login'>
                 <div className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center hover:bg-navhover hover:text-cyan-300 transition-colors duration-200'>
                   Login
                 </div>
@@ -94,23 +95,23 @@ export default function navbar({ isUploading }: any) {
               <div className="lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center">
                 {user.email}
               </div>
-              <button onClick={handleLogout} disabled={isUploading} className={isUploading ? "pointer-events-none" : ""}>
+              <button onClick={handleLogout}>
                 <div className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center hover:bg-navhover hover:text-cyan-300 transition-colors duration-200'>
                   Logout
                 </div>
               </button>
-              <Link href='/files' className={isUploading ? "pointer-events-none" : ""}>
+              <Link href='/files'>
                 <div className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center hover:bg-navhover hover:text-cyan-300 transition-colors duration-200'>
                   Files
                 </div>
               </Link>
-              <Link href='/settings' className={isUploading ? "pointer-events-none" : ""}>
+              <Link href='/settings'>
                 <div className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center hover:bg-navhover hover:text-cyan-300 transition-colors duration-200'>
                   Settings
                 </div>
               </Link>
             </>}
-            <Link href='/' className={isUploading ? "pointer-events-none" : ""}>
+            <Link href='/'>
               <div className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded text-white font-bold items-center justify-center hover:bg-navhover hover:text-cyan-300 transition-colors duration-200'>
                 Upload
               </div>

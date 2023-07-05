@@ -19,7 +19,7 @@ export default function LoginPage() {
             setErrors(error.message);
         } else {
             router.push("/");
-            
+
         }
     }
 
@@ -27,6 +27,7 @@ export default function LoginPage() {
         <div className={styles.background + " pt-9"}>
             <Head>
                 <title>Login</title>
+                <meta key="desc" property="og:description" content="Login to view all your uploaded files!" />
             </Head>
             <div className={styles.formplace}>
                 <div className={styles.header}>

@@ -34,6 +34,7 @@ export default function registerPage() {
         <div className={styles.background + " pt-9"}>
             <Head>
                 <title>Register</title>
+                <meta property="og:description" content="Register for saving and searching through your uploaded files!" key="desc" />
             </Head>
             <div className={styles.formplace}>
                 <div className={styles.header}>

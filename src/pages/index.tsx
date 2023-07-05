@@ -4,13 +4,12 @@ import styles from "@/styles/Upload.module.css";
 import CoolButton from "@/components/CoolButton";
 import BubbleBackground from "@/components/BubbleBackground";
 import { Endpoint, FileStatus } from "@/utils/FileUploader";
-import { useRouter } from "next/router";
 import { useUser } from "@supabase/auth-helpers-react";
 import Head from "next/head";
 import { FileActionType, FileToUpload, useFileManager } from "@/context/FileManagerContext";
 import UploadCard from "@/components/UploadCard";
 
-const uploadPage = ({ setIsUploading }: any) => {
+const uploadPage = () => {
 
     const [previewFiles, setPreviewFiles] = useState<Array<File>>([]);
     const [filesToUpload, setFilesToUpload] = useState<Array<FileStatus>>([]);
@@ -69,8 +68,7 @@ const uploadPage = ({ setIsUploading }: any) => {
     return (
         <div>
             <Head>
-                <title>Upload</title>
-                <meta name="description" content="A free, simple and easy to use cloud storage for your files. Uplaod, backup and share your files with others now." />
+                <title>Thermastore</title>
             </Head>
             <BubbleBackground />
             <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[72px]">
