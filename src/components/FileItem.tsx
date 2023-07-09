@@ -1,5 +1,4 @@
 import { BytesToReadable, Directory, DirFile, equalDir, getFileIconName, getFileType, getReadableDate, indexOfSelected, MinimizeName } from "@/utils/FileFunctions"
-import { supabase } from "@/utils/Supabase";
 import Link from "next/link"
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
 import FlipCard from "./FlipCard";
@@ -10,6 +9,7 @@ import StrechableText from "./StrechableText";
 import IconDownload from "@/icons/IconDownload";
 import { FileActionType, useFileManager } from "@/context/FileManagerContext";
 import PreviewFile from "./PreviewFile";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 interface Props {
     file: DirFile,
@@ -22,6 +22,7 @@ interface Props {
 
 }
 export default function FileItem({ file, selected, setSelected, playing, togglePlay, selectable, SelectMultiple }: Props) {
+    const supabase = useSupabaseClient();
     const lref = useRef<any>(null);
     const refCopy = useRef<any>(null);
     const refOptions = useRef<any>(null);
@@ -105,17 +106,17 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
                         <div className="min-w-[20px] min-h-[20px] w-5 h-5 m-auto block">
                             {getFileType(file.name) === 'audio' ? equalDir(playing?.playFile, file) ?
                                 <div onClick={() => togglePlay(file)} ref={audioBtn}>
-                                    <PlayCircle className="cursor-pointer text-file hover:text-filehover transition-colors duration-200" radius={11} percent={playing?.percent} stroke={1} paused={playing?.paused} />
+                                    <PlayCircle className="cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200" radius={11} percent={playing?.percent} stroke={1} paused={playing?.paused} />
                                 </div> :
                                 <FlipCard>
-                                    <i className={`gg-${getFileIconName(file.name)} m-auto text-file group-hover:text-filehover transition-colors duration-200`}></i>
+                                    <i className={`gg-${getFileIconName(file.name)} m-auto text-quaternary group-hover:text-tertiary transition-colors duration-200`}></i>
                                     <div onClick={() => togglePlay(file)} ref={audioBtn}>
-                                        <PlayCircle className="cursor-pointer text-file hover:text-filehover transition-colors duration-200" radius={11} stroke={1} />
+                                        <PlayCircle className="cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200" radius={11} stroke={1} />
                                         {/* <button className={playing?.playFile.created_at === file.created_at ? "hidden" : ""} onClick={() => togglePlay(file)}><i className="gg-play-button-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
                                     <button className={playing?.playFile.created_at !== file.created_at ? "hidden" : ""} onClick={() => togglePlay(file)}><i className="gg-play-pause-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button> */}
                                     </div>
                                 </FlipCard> :
-                                <i className={`gg-${getFileIconName(file.name)} m-auto text-file group-hover:text-filehover transition-colors duration-200`}></i>
+                                <i className={`gg-${getFileIconName(file.name)} m-auto text-quaternary group-hover:text-tertiary transition-colors duration-200`}></i>
                             }
 
                         </div>
@@ -123,26 +124,26 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
                             <form ref={lref} onSubmit={w => { w.preventDefault(); saveName(); }}>
                                 <input type="text" autoFocus value={name} onChange={w => setName(w.target.value)} onBlur={saveName} />
                             </form> :
-                            <Link className="flex transition-colors overflow-hidden text-black hover:text-file" ref={lref} href={`/download/${file.chanid}/${file.fileid}`}>
+                            <Link className="flex transition-colors overflow-hidden text-quaternary hover:text-tertiary" ref={lref} href={`/download/${file.chanid}/${file.fileid}`}>
                                 <StrechableText text={name} />
                             </Link>}
                     </div>
                 </SelectionBubble>
                 <div className="flex gap-2 items-center">
-                    <p className="whitespace-nowrap">{BytesToReadable(file.size)}</p>
+                    <p className="whitespace-nowrap text-tertiary">{BytesToReadable(file.size)}</p>
                     <div onClick={() => setOpen(w => !w)} ref={refCopy} className="relative w-[22px] h-[22px]">
-                        <i className={`gg-chevron-down z-10 text-file w-[22px] h-[22px] cursor-pointer hover:text-filehover transition-all ${open ? 'rotate-180' : ''}`}></i>
+                        <i className={`gg-chevron-down z-10 text-quaternary w-[22px] h-[22px] cursor-pointer hover:text-tertiary transition-all ${open ? 'rotate-180' : ''}`}></i>
                     </div>
                 </div>
             </div>
             <div className={`transition-all w-full ease-in-out duration-300 flex flex-col gap-1 justify-between select-none overflow-hidden ${open ? ' max-h-[1000px]  mt-1' : 'max-h-0'}`}>
                 {elemDisplay ? <>
                     <div className="flex justify-between">
-                        <div className="grid justify-start">
+                        <div className="grid justify-start text-tertiary">
                             <p>Created {getReadableDate(file.created_at)}</p>
                         </div>
                         <div ref={refOptions} className="grid gap-1 justify-start">
-                            <div onClick={() => copyClipboard()} className="flex justify-end gap-2 items-center cursor-pointer text-file hover:text-filehover transition-colors duration-200">
+                            <div onClick={() => copyClipboard()} className="flex justify-end gap-2 items-center cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200">
                                 <p className="whitespace-nowrap">{informCopy}</p>
                                 <abbr
                                     title="Copy link"
@@ -150,13 +151,13 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
                                     <i className="gg-link "></i>
                                 </abbr>
                             </div>
-                            <div onClick={() => fm?.dispatch({ type: FileActionType.DOWNLOAD, cid: file.chanid, fid: file.fileid })} className="flex justify-end gap-2 items-center cursor-pointer text-file hover:text-filehover transition-colors duration-200">
+                            <div onClick={() => fm?.dispatch({ type: FileActionType.DOWNLOAD, cid: file.chanid, fid: file.fileid })} className="flex justify-end gap-2 items-center cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200">
                                 <p className="whitespace-nowrap">Download</p>
                                 <abbr title="Download">
                                     <IconDownload />
                                 </abbr>
                             </div>
-                            {!isNaming && selectable ? <div onClick={() => setIsNaming(w => !w)} className="flex gap-2 items-center justify-end cursor-pointer mr-0.5 text-file hover:text-filehover transition-colors duration-200">
+                            {!isNaming && selectable ? <div onClick={() => setIsNaming(w => !w)} className="flex gap-2 items-center justify-end cursor-pointer mr-0.5 text-quaternary hover:text-tertiary transition-colors duration-200">
                                 <p>Rename</p>
                                 <abbr title="Rename"><i className="gg-rename"></i></abbr>
                             </div> : ""}

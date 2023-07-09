@@ -116,16 +116,16 @@ export default function SharedFiles() {
             <Head>
                 <title>{dirname}</title>
             </Head>
-            <BubbleBackground />
-            <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[72px]">
+            {/* <BubbleBackground /> */}
+            <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[90px]">
                 <div className="grid gap-4">
                     {stillLoading ? <>
                         <CoolLoader />
-                        <p className="pt-32 text-2xl text-white text-center">{msg}</p>
+                        <p className="pt-32 text-2xl text-quaternary text-center">{msg}</p>
                     </> : <>
                         <div className="flex justify-between px-3 h-6">
                             <div className="flex gap-2 items-center">
-                                {dirHistory.length > 0 ? <abbr title="Back" onClick={() => setDirHistory(w => [...w.slice(0, w.length - 1)])}><i className="gg-arrow-left cursor-pointer transition-colors duration-200 hover:text-filehover"></i></abbr> : ""}
+                                {dirHistory.length > 0 ? <abbr title="Back" onClick={() => setDirHistory(w => [...w.slice(0, w.length - 1)])}><i className="gg-arrow-left cursor-pointer transition-colors duration-200 hover:text-tertiary"></i></abbr> : ""}
                             </div>
                             <abbr title="Search for files"><CoolSearch inputChanged={searchChanged} text={searchStr} /></abbr>
                         </div>
@@ -135,10 +135,10 @@ export default function SharedFiles() {
                             selectable={false} />
                         <div className="flex justify-between items-center px-3">
                             <div>
-                                {currPage > 1 ? <i onClick={() => setCurrPage(w => w - 1)} className="gg-arrow-left cursor-pointer transition-colors duration-200 hover:text-filehover"></i> : ""}
+                                {currPage > 1 ? <i onClick={() => setCurrPage(w => w - 1)} className="gg-arrow-left cursor-pointer transition-colors duration-200 hover:text-tertiary"></i> : ""}
                             </div>
                             <div>
-                                {canNext ? <i onClick={() => setCurrPage(w => w + 1)} className="gg-arrow-right cursor-pointer transition-colors duration-200 hover:text-filehover"></i> : ""}
+                                {canNext ? <i onClick={() => setCurrPage(w => w + 1)} className="gg-arrow-right cursor-pointer transition-colors duration-200 hover:text-tertiary"></i> : ""}
                             </div>
                         </div>
                     </>}

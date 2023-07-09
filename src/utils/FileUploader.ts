@@ -1,7 +1,6 @@
 import axios from "axios";
 import { downloadBlob } from "./FileDownload";
 import { DirFile, Directory, MinimizeName, chunkSize } from "./FileFunctions";
-import { supabase } from "./Supabase";
 export interface FileStatus {
     file: File,
     formattedName?: string,
@@ -104,7 +103,7 @@ async function uploadChunkNoStatus(chunk: Blob) {
     return json.fileid as number;
 }
 
-async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoint: Endpoint, partIndex: number, interval: NodeJS.Timer, user: boolean) {
+async function uploadChunk(supabase: any, chunk: Blob, file: FileStatus, qindex: number, endpoint: Endpoint, partIndex: number, interval: NodeJS.Timer, user: boolean) {
     var data = new FormData();
     data.append('file', chunk);
     let prevLoaded = 0;
@@ -190,7 +189,6 @@ async function uploadChunk(chunk: Blob, file: FileStatus, qindex: number, endpoi
             file.errorText = "File data file was too big";
             downloadBlob(filedata, "fileids.txt");
         } else {
-
             const fdataid = await uploadChunkNoStatus(filedata);
             //console.log(`fdataid: ${fdataid}`);
             if (user) {
@@ -254,7 +252,7 @@ async function getReservedSlot() {
     //}
 }
 
-async function uploadFile(file: FileStatus, user: boolean) {
+async function uploadFile(supabase: any, file: FileStatus, user: boolean) {
     let filesize = file.file.size;
     if (filesize > 2 * 1024 ** 4) {
         file.errorText = "File is too big limit is 2TB";
@@ -296,14 +294,14 @@ async function uploadFile(file: FileStatus, user: boolean) {
         const chunk = file.file.slice(start, end);
         endpoint.occupied++;
         //if (endpoint.isHook)
-        chunkQueue[index] = uploadChunk(chunk, file, index, endpoint, part, interval, user);
+        chunkQueue[index] = uploadChunk(supabase, chunk, file, index, endpoint, part, interval, user);
         //else
         //    await uploadChunk(chunk, file, index, endpoint, part, interval, user)
         part++;
     }
 }
 
-export async function uploadFiles(files: Array<FileStatus>, onStart: Function | null = null, onFinished: Function | null = null, user: boolean, dhook?: Endpoint) {
+export async function uploadFiles(supabase: any, files: Array<FileStatus>, onStart: Function | null = null, onFinished: Function | null = null, user: boolean, dhook: Endpoint) {
     if (filesToUpload.length === 0) {
         filesToUpload = [...files];
     } else {
@@ -338,7 +336,7 @@ export async function uploadFiles(files: Array<FileStatus>, onStart: Function | 
     }
     for (let i = 0; i < filesToUpload.length; i++) {
         //await uploadFile(files[i]);
-        await uploadFile(filesToUpload[i], user);
+        await uploadFile(supabase, filesToUpload[i], user);
 
         //last check before clearing
         if (i === filesToUpload.length - 1) {

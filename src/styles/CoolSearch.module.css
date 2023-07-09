@@ -34,7 +34,7 @@
     right: 0;
     top: 0;
     fill: none;
-    stroke: #fff;
+    stroke: rgb(var(--color-quaternary));
     stroke-width: 1.5px;
     stroke-dashoffset: 271.908;
     stroke-dasharray: 59 212.908;
@@ -42,7 +42,7 @@
 }
 
 .search input:hover+div svg {
-    stroke: rgb(29 78 216);
+    stroke: rgb(var(--color-tertiary));
 }
 
 .search input:not(:-moz-placeholder-shown) {
@@ -78,7 +78,7 @@
 .search input:focus+div svg {
     stroke-dasharray: 150 212.908;
     stroke-dashoffset: 300;
-    stroke: rgb(29 78 216);
+    stroke: rgb(var(--color-tertiary));
 }
 
 .dribbble {

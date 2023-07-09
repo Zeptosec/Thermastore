@@ -12,10 +12,10 @@ export default function FileManagerDownload({ status }: Props) {
     const [open, setOpen] = useState(false);
 
     return (
-        <div className={`relative grid py-2 border-b px-2 transition-all ${open ? `gap-1` : 'gap-0'} border-white`}>
-            <div style={{ width: `${status.downloadedBytes / status.size * 100}%` }} className="h-full z-10 duration-1000 bg-lime-300/40 opacity-60 top-0 left-0 absolute"></div>
+        <div className={`relative grid py-2 border-b px-2 transition-all ${open ? `gap-1` : 'gap-0'} border-quaternary`}>
+            <div style={{ width: `${status.downloadedBytes / status.size * 100}%` }} className="h-full z-10 duration-1000 bg-tertiary/40 opacity-60 top-0 left-0 absolute"></div>
             <div className="flex flex-row justify-between gap-2 overflow-hidden">
-                <Link href={`/download/${status.channel_id}/${status.fid}`} className="z-20 overflow-hidden cursor-pointer hover:text-lime-300 transition-colors">
+                <Link href={`/download/${status.channel_id}/${status.fid}`} className="z-20 overflow-hidden cursor-pointer hover:text-secondary transition-colors">
                     <div className="flex overflow-hidden font-bold">
                         <StrechableText text={status.name} />
                     </div>
@@ -24,7 +24,7 @@ export default function FileManagerDownload({ status }: Props) {
                     {status.precentage === 1 ? <p>Downloaded!</p> : <>
                         <p className="whitespace-nowrap">{TimeToReadable(status.timeleft)}</p>
                         <div onClick={() => setOpen(w => !w)} className="relative w-[22px] h-[22px]">
-                            <i className={`gg-chevron-down z-10 text-white w-[22px] h-[22px] cursor-pointer hover:text-lime-400 transition-all ${open ? 'rotate-180' : ''}`}></i>
+                            <i className={`gg-chevron-down z-10 w-[22px] h-[22px] cursor-pointer hover:text-tertiary transition-all ${open ? 'rotate-180' : ''}`}></i>
                         </div>
                     </>}
                 </div>

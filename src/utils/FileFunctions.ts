@@ -1,9 +1,8 @@
-import { PostgrestResponse, SupabaseClient } from "@supabase/supabase-js";
 import axios from "axios";
 import { Endpoint } from "./FileUploader";
-import { ChangeEvent, Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction } from "react";
 import { FileActionType, FileToUpload } from "@/context/FileManagerContext";
-import { supabase } from "./Supabase";
+import { SupabaseClient } from "@supabase/auth-helpers-nextjs";
 
 export const chunkSize = 25 * 1024 ** 2 - 256;
 
@@ -353,7 +352,7 @@ export function getFileIconName(name: string) {
 
 }
 
-export async function AddFolder(dirHistory: Directory[], setFiles: Dispatch<SetStateAction<(Directory | DirFile)[]>>) {
+export async function AddFolder(supabase: SupabaseClient<any, "public", any>, dirHistory: Directory[], setFiles: Dispatch<SetStateAction<(Directory | DirFile)[]>>) {
     let name = prompt("Directory name", "Directory");
     if (name) {
         if (name.length < 3) {
@@ -488,7 +487,7 @@ then we will be able to get those directories ids and then second level can be c
 This saves 5 times amount of requests from 9 to 2 requests.
 The worst case if theres one directory that has one directory that has one directory and so on. But usually thats not the case.
 */
-async function getPackaged(dirs: DirTree[][], filesHere: File[], dir: Directory | undefined, dirHistory: Directory[], setFiles: Dispatch<SetStateAction<(Directory | DirFile)[]>>) {
+async function getPackaged(supabase: SupabaseClient<any, "public", any>, dirs: DirTree[][], filesHere: File[], dir: Directory | undefined, dirHistory: Directory[], setFiles: Dispatch<SetStateAction<(Directory | DirFile)[]>>) {
     let filesToUpload: FileToUpload[] = [];
     if (dirs.length > 0) {
         for (let i = 0; i < dirs.length; i++) {
@@ -575,7 +574,7 @@ async function getPackaged(dirs: DirTree[][], filesHere: File[], dir: Directory 
  * @param user Boolean to tell if there is a logged in user
  * @param fm Refrence to FileManager
  */
-export async function UpFiles(event: any, directory: Directory | undefined, dirHistory: Directory[], setFiles: Dispatch<SetStateAction<(Directory | DirFile)[]>>, user?: boolean, fm?: any) {
+export async function UpFiles(supabase: SupabaseClient<any, "public", any>, event: any, directory: Directory | undefined, dirHistory: Directory[], setFiles: Dispatch<SetStateAction<(Directory | DirFile)[]>>, fm?: any) {
     if (event && webkitdirectorySupported() && event.dataTransfer) {
         let items = event.dataTransfer.items;
         let dirs: DirTree[][] = [];
@@ -591,9 +590,9 @@ export async function UpFiles(event: any, directory: Directory | undefined, dirH
         // have to wait a bit because array wont be filled with files
         // no idea how to do it without this timeout. I tried using async await, tried promises but i just get one file and thats it - does not work.
         await new Promise(r => setTimeout(r, 500));
-        const filesToUpload = await getPackaged(dirs, filesHere, directory, dirHistory, setFiles);
+        const filesToUpload = await getPackaged(supabase, dirs, filesHere, directory, dirHistory, setFiles);
         if (filesToUpload !== null) {
-            fm?.dispatch({ type: FileActionType.UPLOAD, files: filesToUpload, user: user ? user : true })
+            fm?.dispatch({ type: FileActionType.UPLOAD, files: filesToUpload })
         }
     } else if (event.target) {
         // if no dataTransfer object found get files the usual way...
@@ -606,7 +605,7 @@ export async function UpFiles(event: any, directory: Directory | undefined, dirH
                 file: w,
                 directory
             } as FileToUpload))
-            fm?.dispatch({ type: FileActionType.UPLOAD, files, user: user ? user : true })
+            fm?.dispatch({ type: FileActionType.UPLOAD, files })
         } else {
             alert("Directory upload are unsupported! Select only files!");
         }
@@ -678,4 +677,8 @@ async function getThumbnailForVideo(videoFile: File) {
     } else {
         return null;
     }
+}
+
+export function getHookLink(id: string, token: string) {
+    return `https://discordapp.com/api/webhooks/${id}/${token}`;
 }

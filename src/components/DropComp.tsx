@@ -9,9 +9,9 @@ export default function DropComp({ filesChanged, files, remove }: any) {
         <DropZone className={"grid items-end"} Dropped={filesChanged} setDragging={setDragging}>
             <div className="drop-area text-4xl text-center" data-active={dragging}>
                 {!dragging ?
-                    <label htmlFor="file-uploader" className="cursor-pointer">
+                    <label htmlFor="file-uploader" className="group cursor-pointer">
                         <div>
-                            Drag your files here or <i className="click-here"><u>click here</u></i>
+                            Drag your files here or <i className="underline group-hover:text-tertiary transition-colors duration-300"><u>click here</u></i>
                         </div>
                     </label> :
                     <div>

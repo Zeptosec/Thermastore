@@ -61,15 +61,15 @@ export default function Pathline({ dirHistory, setDirHistory }: { dirHistory: Di
     }, [])
 
     return (
-        <div ref={elem} onMouseDown={w => mouseDownHandler(w)} className={`flex px-5 overflow-x-auto scrollbar select-none ${moved ? 'cursor-grabbing' : ''}`}>
-            <p onClick={() => pressedRoot()} className={`${setDirHistory ? `cursor-pointer  transition-colors duration-200 hover:text-file` : ''}`}>C:{dirHistory.length === 0 ? `\\` : ''}</p>
+        <div ref={elem} onMouseDown={w => mouseDownHandler(w)} className={`flex px-5 text-quaternary overflow-x-auto scrollbar select-none ${moved ? 'cursor-grabbing' : ''}`}>
+            <p onClick={() => pressedRoot()} className={`${setDirHistory ? `cursor-pointer  transition-colors duration-200 hover:text-tertiary` : ''}`}>C:{dirHistory.length === 0 ? `\\` : ''}</p>
             {dirHistory.length > 0 ? <>
                 {dirHistory[0].dir !== null ? <p>\..</p> : ''}
             </> : ""}
             {dirHistory.map(w => (
                 <div key={`path${w.id}`}>
                     {/* For path access */}
-                    <p onClick={() => pressedPath(w)} className={`${moved || !setDirHistory ? '' : "cursor-pointer  transition-colors duration-200 hover:text-file"} whitespace-nowrap`}>\{w.name}</p>
+                    <p onClick={() => pressedPath(w)} className={`${moved || !setDirHistory ? '' : "cursor-pointer  transition-colors duration-200 hover:text-tertiary"} whitespace-nowrap`}>\{w.name}</p>
                 </div>
             ))}
         </div>

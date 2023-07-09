@@ -1,22 +1,28 @@
 import { downloadFile, getFileData, DownloadStatus } from "@/utils/FileDownload";
-import { Directory, chunkSize } from "@/utils/FileFunctions";
+import { Directory, VerifyHook, chunkSize, getHookLink } from "@/utils/FileFunctions";
 import { Endpoint, uploadFiles, FileStatus } from "@/utils/FileUploader";
-import { Dispatch, createContext, useContext, useReducer } from "react";
+import { Dispatch, createContext, useContext, useEffect, useReducer, useState } from "react";
+import { useSupabaseClient, useUser, User, SupabaseClient } from "@supabase/auth-helpers-react";
 
 export interface FileManager {
     downloading: DownloadStatus[],
     uploading: FileStatus[],
     showMenu: boolean,
+    supabase: SupabaseClient<any, "public", any>,
+    user: User | null
 }
 
 export interface Exposed {
     state: FileManager,
     dispatch: Dispatch<FileAction>,
-    getDownloading: (fid: string) => DownloadStatus | null
+    getDownloading: (fid: string) => DownloadStatus | null,
+    setHook: (id: string, token: string) => Promise<boolean>,
+    user: User | null,
+    isLoading: boolean
 }
 
 export enum FileActionType {
-    'DOWNLOAD', 'UPLOAD', 'REFRESH', 'TOGGLE_MENU', 'RESUME_UPLOAD'
+    'DOWNLOAD', 'UPLOAD', 'REFRESH', 'TOGGLE_MENU', 'RESUME_UPLOAD', 'SET_SUPABASE'
 }
 
 export interface FileToUpload {
@@ -32,8 +38,6 @@ export type FileAction = {
 } | {
     type: FileActionType.UPLOAD,
     files: FileToUpload[],
-    user: boolean,
-    hook?: Endpoint,
 } | {
     type: FileActionType.REFRESH
 } | {
@@ -41,8 +45,10 @@ export type FileAction = {
 } | {
     type: FileActionType.RESUME_UPLOAD,
     status: FileStatus,
-    user: boolean,
-    hook?: Endpoint
+} | {
+    type: FileActionType.SET_SUPABASE,
+    user: User | null,
+    supabase: SupabaseClient<any, "public", any>
 }
 
 // no other way tried with states, putting inside context nothing but global works.
@@ -52,8 +58,16 @@ let interval: NodeJS.Timer | null = null;
 export const FileContext = createContext<Exposed | null>(null);
 
 export default function FileManagerProvider({ children }: any) {
+    const [hook, sHook] = useState<Endpoint>();
+    const supabase = useSupabaseClient();
+    const user = useUser();
+    // kind of weird reducer thinks that supabase is undefined i guess you cant use context in another context and use in reducer
+    const initialParams: FileManager = { downloading: [], uploading: [], showMenu: false, supabase, user }
+    const [state, dispatch] = useReducer(reducer, initialParams);
 
-    const confMsg = "You are still uploading/downloading files"
+
+    const [isLoading, setIsLoading] = useState(true);
+    const confMsg = "You are still uploading/downloading files";
     function beforeUnloadHandler(e: BeforeUnloadEvent) {
         (e || window.event).returnValue = confMsg;
         return confMsg;
@@ -102,7 +116,7 @@ export default function FileManagerProvider({ children }: any) {
         await downloadFile(fd, undefined, onStart, onFinished)
     }
 
-    function reducer(state: FileManager, action: FileAction) {
+    function reducer(state: FileManager, action: FileAction): FileManager {
         switch (action.type) {
             case FileActionType.DOWNLOAD:
                 const foundFile = state.downloading.find(w => w.fid === action.fid);
@@ -145,7 +159,15 @@ export default function FileManagerProvider({ children }: any) {
                 if (fileStats.length === 0) {
                     return { ...state };
                 }
-                uploadFiles(fileStats, onStart, onFinished, action.user, action.hook)
+                if (!state.supabase) {
+                    console.error("Supabase is undefined!!!!");
+                    alert("Supabase is not defined");
+                    return state;
+                }
+                if (hook)
+                    uploadFiles(state.supabase, fileStats, onStart, onFinished, state.user !== null, hook)
+                else
+                    console.log("No available hook!");
                 return { ...state, uploading: [...state.uploading, ...fileStats] }
             case FileActionType.REFRESH:
                 return { ...state };
@@ -154,8 +176,18 @@ export default function FileManagerProvider({ children }: any) {
             case FileActionType.RESUME_UPLOAD:
                 action.status.controller = new AbortController();
                 action.status.isPaused = false;
-                uploadFiles([action.status], onStart, onFinished, action.user, action.hook);
+                if (!state.supabase) {
+                    console.error("Supabase is undefined !!!!");
+                    alert("Supabase is not defined");
+                    return state;
+                }
+                if (hook)
+                    uploadFiles(state.supabase, [action.status], onStart, onFinished, state.user !== null, hook);
+                else
+                    console.log('No hook to resume with');
                 return { ...state };
+            case FileActionType.SET_SUPABASE:
+                return { ...state, user: action.user, supabase: action.supabase };
             default:
                 console.log(`Action does not exist`);
                 console.log(action);
@@ -163,8 +195,45 @@ export default function FileManagerProvider({ children }: any) {
         }
     }
 
-    const initialParams: FileManager = { downloading: [], uploading: [], showMenu: false }
-    const [state, dispatch] = useReducer(reducer, initialParams);
+    const hookChangeInterval = 1000 * 60 * 60 * 24 * 6.66; // every 6.66 days get a new hook just because...
+    // fetch hooks on app open
+    useEffect(() => {
+
+        async function fetchNewHook() {
+            if (user) {
+                const userHook = await supabase
+                    .from('webhooks')
+                    .select('hookNumber, hookId')
+                    .single();
+                if (userHook.error) {
+                    console.log("failed to get user hook");
+                    console.log(userHook.error);
+                }
+                if (!userHook.error && userHook.data) {
+                    await setHook(userHook.data.hookNumber, userHook.data.hookId);
+                    return;
+                }
+            }
+            const { data, error } = await supabase.rpc('getfreehook').single();
+            if (error) {
+                console.log(error);
+                return;
+            } else {
+                await setHook(data.hookurl, data.hookid);
+            }
+        }
+        const hookData = JSON.parse(localStorage.getItem('dhook') || '{}');
+        const currTime = new Date().getTime();
+        if (hookData.id && hookData.token && hookData.time && hookData.time + hookChangeInterval > currTime) {
+            sHook({
+                link: getHookLink(hookData.id, hookData.token),
+                occupied: 0
+            });
+        } else {
+            fetchNewHook();
+        }
+        dispatch({ type: FileActionType.SET_SUPABASE, user, supabase });
+    }, [supabase, user]);
 
     function getDownloading(fid: string) {
         const ind = state.downloading.findIndex(w => w.fid === fid);
@@ -173,11 +242,49 @@ export default function FileManagerProvider({ children }: any) {
         return state.downloading[ind];
     }
 
-    const exposed: Exposed = {
-        state, dispatch, getDownloading
+    async function setHook(id: string, token: string, save?: boolean) {
+        const hooklink = getHookLink(id, token);
+        const validation = await VerifyHook(hooklink);
+        if (validation.isValid) {
+            const buf = JSON.stringify({ id, token, time: new Date().getTime() });
+            localStorage.setItem('dhook', buf);
+            sHook({
+                link: hooklink,
+                occupied: 0
+            });
+            if (save) {
+                const thahook = { hookNumber: validation.hookNumber, hookId: validation.hookId }
+                const q1 = await supabase
+                    .from("webhooks")
+                    .select("id")
+                    .single();
+                if (q1.data) {
+                    const { error } = await supabase
+                        .from("webhooks")
+                        .update(thahook)
+                        .eq('id', q1.data.id);
+                    if (error) {
+                        console.log(error);
+                        return false;
+                    }
+                } else {
+                    const { error } = await supabase
+                        .from('webhooks')
+                        .insert(thahook)
+                    if (error) {
+                        console.log(error);
+                        return false;
+                    }
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
+
     return (
-        <FileContext.Provider value={exposed}>
+        <FileContext.Provider value={{ state, dispatch, getDownloading, setHook, user, isLoading }}>
             {children}
             {/* <div className="bottom-0 fixed grid w-screen text-white justify-center gap-1">
                 <p>Uploading</p>

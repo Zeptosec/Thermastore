@@ -63,7 +63,7 @@ export default function downloadPage() {
         if (fData.started_at !== 0)
             return;
         const dt = fm?.getDownloading(fid as string);
-        if(dt) {
+        if (dt) {
             setFdata(dt);
         }
     }, [fm?.state.downloading])
@@ -82,6 +82,7 @@ export default function downloadPage() {
                     <title>{fData.name}</title> :
                     <title>Download</title>
                 }
+                <meta property="og:description" key="desc" content="Download or preview this file" />
             </Head>
             <BubbleBackground />
             <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[72px]">

@@ -1,11 +1,11 @@
 import Navbar from "./Navbar";
 
-export default function layout({ children, isUploading }: any) {
-    
-    
+export default function layout({ children }: any) {
+
+
     return (
         <>
-            <Navbar isUploading={isUploading} />
+            <Navbar />
             <main className="text-white -z-20">{children}</main>
 
         </>

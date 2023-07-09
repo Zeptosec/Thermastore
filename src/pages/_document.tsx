@@ -1,8 +1,10 @@
 import { Html, Head, Main, NextScript } from 'next/document'
+import { useEffect, useState } from 'react'
 
 export default function Document() {
+
   return (
-    <Html lang="en">
+    <Html lang="en" data-theme="default">
       <Head >
         <link href='https://unpkg.com/css.gg@2.0.0/icons/css/link.css' rel='stylesheet' />
         <link href='https://unpkg.com/css.gg@2.0.0/icons/css/arrow-left.css' rel='stylesheet'></link>

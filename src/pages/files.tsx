@@ -8,17 +8,16 @@ import { useFileManager } from "@/context/FileManagerContext";
 import IconUpload from "@/icons/IconUpload";
 import { AddFolder, Directory, DirFile, equalDir, getFilesWithDir, GetPreviousDir, PageDirCountHistory, UpFiles } from "@/utils/FileFunctions";
 import { FileStatus } from "@/utils/FileUploader";
-import { useSessionContext, useSupabaseClient, useUser } from "@supabase/auth-helpers-react"
+import { useSessionContext, useSupabaseClient } from "@supabase/auth-helpers-react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { ChangeEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function filesPage() {
-    const { isLoading, session, error } = useSessionContext();
-    const user = useUser();
     const router = useRouter();
-    const supabase = useSupabaseClient();
     const fm = useFileManager();
+    const supabase = useSupabaseClient();
+    const { isLoading, session, error } = useSessionContext();
     const [msg, setMsg] = useState("Loading user...");
     const [stillLoading, setStillLoading] = useState(true);
     const [files, setFiles] = useState<(Directory | DirFile)[]>([]);
@@ -37,7 +36,7 @@ export default function filesPage() {
     async function fetchData() {
         setStillLoading(true);
         if (isLoading) return;
-        if (!user) router.push("/");
+        if (!fm?.user) router.push("/");
         setMsg("Fetching info about files...");
         const dir = dirHistory.length === 0 ? null : dirHistory[dirHistory.length - 1].id
         const { arr, next } = await getFilesWithDir(supabase, dir, currPage, currPageSize, pageDirHistory, searchStr, isGlobal);
@@ -52,7 +51,7 @@ export default function filesPage() {
         if (gotRouteDir)
             fetchData();
         //fetch files
-    }, [isLoading, currPage, searchStr]);
+    }, [fm?.isLoading, currPage, searchStr]);
 
     useEffect(() => {
         async function asyncEffect() {
@@ -236,41 +235,41 @@ export default function filesPage() {
     useEffect(UpdateUploadingFiles, [fm?.state.uploading])
 
     function UploadToDir(direc: Directory, event: any) {
-        UpFiles(event, direc, dirHistory, setFiles, user !== null, fm);
+        UpFiles(supabase, event, direc, dirHistory, setFiles, fm);
     }
     return (
-        <div>
+        <div className="h-full bg-secondary text-quaternary">
             <Head>
                 <title>{dirHistory.length > 0 ? `Files - ${dirHistory[dirHistory.length - 1].name}` : 'Files'}</title>
             </Head>
-            <BubbleBackground />
-            <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[72px]">
+            {/* <BubbleBackground /> */}
+            <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[90px] text-quaternary">
                 <div className="grid gap-4 pb-4">
                     {stillLoading ? <>
                         <CoolLoader />
-                        <p className="pt-32 text-2xl text-white text-center">{msg}</p>
+                        <p className="pt-32 text-2xl text-center">{msg}</p>
                     </> : <>
                         <Pathline dirHistory={dirHistory} setDirHistory={setDirHistory} />
                         <div className="flex justify-between px-3 h-6">
                             <div className="flex gap-2 items-center">
-                                {dirHistory.length > 0 ? <abbr title="Back" onClick={() => setDirHistory(w => w.slice(0, w.length - 1))}><i className="gg-arrow-left cursor-pointer transition-colors duration-200 text-white hover:text-filehover"></i></abbr> : ""}
+                                {dirHistory.length > 0 ? <abbr title="Back" onClick={() => setDirHistory(w => w.slice(0, w.length - 1))}><i className="gg-arrow-left cursor-pointer transition-colors duration-200 hover:text-tertiary"></i></abbr> : ""}
                                 <abbr title="New directory">
-                                    <i className="gg-folder-add cursor-pointer transition-colors duration-200 text-white hover:text-filehover" onClick={() => AddFolder(dirHistory, setFiles)}></i>
+                                    <i className="gg-folder-add cursor-pointer transition-colors duration-200 hover:text-tertiary" onClick={() => AddFolder(supabase, dirHistory, setFiles)}></i>
                                 </abbr>
                                 <abbr title="Upload here">
-                                    <label htmlFor="file-uploader" className="transition-colors duration-200 text-white hover:text-filehover cursor-pointer ">
+                                    <label htmlFor="file-uploader" className="transition-colors duration-200 hover:text-tertiary cursor-pointer ">
                                         <IconUpload />
                                     </label>
                                 </abbr>
                             </div>
                             {selected.length > 0 ? <div className="flex gap-2 items-center">
-                                <abbr className="cursor-pointer transition-colors duration-200 hover:text-filehover w-[22px] h-[22px] flex justify-center items-center" title="Move selected here"><i onClick={() => MoveSelected(dirHistory.length > 0 ? dirHistory[dirHistory.length - 1].id : null, true)} className="gg-add-r"></i></abbr>
-                                <abbr className="cursor-pointer transition-colors duration-200 hover:text-filehover w-[22px] h-[22px] flex justify-center items-center" onClick={() => setSelected([])} title="Deselect all"><i className="gg-close-r"></i></abbr>
-                                <abbr className="cursor-pointer transition-colors duration-200 hover:text-filehover w-[22px] h-[22px] flex justify-center items-center" onClick={() => deleteSelected()} title="Delete selected"><i className="gg-trash"></i></abbr>
+                                <abbr className="cursor-pointer transition-colors duration-200 hover:text-tertiary w-[22px] h-[22px] flex justify-center items-center" title="Move selected here"><i onClick={() => MoveSelected(dirHistory.length > 0 ? dirHistory[dirHistory.length - 1].id : null, true)} className="gg-add-r"></i></abbr>
+                                <abbr className="cursor-pointer transition-colors duration-200 hover:text-tertiary w-[22px] h-[22px] flex justify-center items-center" onClick={() => setSelected([])} title="Deselect all"><i className="gg-close-r"></i></abbr>
+                                <abbr className="cursor-pointer transition-colors duration-200 hover:text-tertiary w-[22px] h-[22px] flex justify-center items-center" onClick={() => deleteSelected()} title="Delete selected"><i className="gg-trash"></i></abbr>
                             </div> : ""}
                             <div className="flex items-center gap-2">
                                 <abbr title="Search for files"><CoolSearch inputChanged={searchChanged} text={searchStr} /></abbr>
-                                <abbr onClick={() => setIsGlobal(w => !w)} className={`cursor-pointer transition-colors duration-200 ${isGlobal ? "text-green-700 hover:text-green-800" : "text-red-500 hover:text-red-600"}`} title={`Global search is ${isGlobal ? "enabled" : "disabled"}`}><i className="gg-globe-alt"></i></abbr>
+                                <abbr onClick={() => setIsGlobal(w => !w)} className={`cursor-pointer transition-colors duration-200 ${isGlobal ? "text-tertiary hover:text-quaternary/60" : "text-quaternary hover:text-tertiary/60"}`} title={`Global search is ${isGlobal ? "enabled" : "disabled"}`}><i className="gg-globe-alt"></i></abbr>
                             </div>
                         </div>
                         {/* <div className="grid gap-4 pb-4"> */}
@@ -292,14 +291,14 @@ export default function filesPage() {
                                 />
                                 {currPage > 1 || canNext ? <div className={`flex justify-between items-center px-3`}>
                                     <div>
-                                        {currPage > 1 ? <div className=" cursor-pointer transition-colors duration-200 hover:text-filehover">
+                                        {currPage > 1 ? <div className=" cursor-pointer transition-colors duration-200 hover:text-tertiary">
                                             <abbr title="Previous page">
                                                 <i onClick={() => setCurrPage(w => w - 1)} className="gg-arrow-left"></i>
                                             </abbr>
                                         </div> : ""}
                                     </div>
                                     <div>
-                                        {canNext ? <div className=" cursor-pointer transition-colors duration-200 hover:text-filehover">
+                                        {canNext ? <div className=" cursor-pointer transition-colors duration-200 hover:text-tertiary">
                                             <abbr title="Next page">
                                                 <i onClick={() => setCurrPage(w => w + 1)} className="gg-arrow-right"></i>
                                             </abbr>

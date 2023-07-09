@@ -2,6 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    html[data-theme='default'] {
+        --color-primary: 74 85 162;
+        --color-secondary: 120 149 203;
+        --color-tertiary: 160 191 224;
+        --color-quaternary: 197 223 248;
+        --color-text: 255 255 255;
+    }
+    html[data-theme='space'] {
+        --color-primary: 17 5 44;
+        --color-secondary: 61 8 123;
+        --color-tertiary: 244 59 134;
+        --color-quaternary: 255 228 89;
+        --color-text: 255 255 255;
+    }
+    /* https://colorhunt.co/palette/071a5208697217b978a7ff83 */
+    html[data-theme='neon'] {
+        --color-primary: 7 26 82;
+        --color-secondary: 8 105 114;
+        --color-tertiary: 23 185 120;
+        --color-quaternary: 167 255 131;
+        --color-text: 255 255 255;
+    }
+    /* https://colorhunt.co/palette/f0a500334756082032000000 */
+    html[data-theme='space2'] {
+        --color-primary: 240 165 0;
+        --color-secondary: 51 71 86;
+        --color-tertiary: 8 32 50;
+        --color-quaternary: 0 0 0;
+        --color-text: 255 255 255;
+    }
+    /* https://colorhunt.co/palette/1624471f40681b1b2fe43f5a */
+    html[data-theme='dark_space_night'] {
+        --color-primary: 22 36 71;
+        --color-secondary: 31 64 104;
+        --color-tertiary: 27 27 47;
+        --color-quaternary: 228 63 90;
+        --color-text: 255 255 255;
+    }
+    /* https://colorhunt.co/palette/203541374955f62a66ffd933 */
+    html[data-theme='space3'] {
+        --color-primary: 32 53 65;
+        --color-secondary: 55 73 85;
+        --color-tertiary: 246 42 102;
+        --color-quaternary: 255 217 51;
+        --color-text: 255 255 255;
+    }
+}
+
 @layer utilities {
     .scrollbar::-webkit-scrollbar {
         width: 5px;
@@ -25,12 +74,11 @@
 }
 
 :root {
-    --border-anim-col: white;
     --border-anim-size: 12px;
 }
 
 body {
-    background-color: #232323;
+    background-color: rgb(var(--color-secondary));
 }
 
 .mt-1 {
@@ -62,40 +110,31 @@ body {
     max-width: 800px;
     margin: 0 auto;
     padding: 50px;
-    background: #ffffff55;
+    background-color: rgb(var(--color-secondary) / 0.6);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
     transition: .2s ease;
 }
 
 .card {
-    background-color: rgba(255, 255, 255, 0.6);
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    background-color: rgba(var(--color-primary));
+    box-shadow: 0 0 10px rgb(var(--color-primary) / 0.3);
     transition: .2s ease;
     padding: 12px;
-    color: black;
+    color: rgb(var(--color-quaternary));
 }
 
 .drop-area[data-active=true] {
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    background: #ffffffcc;
-}
-
-.drop-area label .click-here {
-    transition: 0.3s;
-    color: black;
-}
-
-.drop-area label:hover .click-here {
-    color: aqua;
+    box-shadow: 0 0 10px rgb(var(--color-primary) / 0.5);
+    background-color: rgb(var(--color-secondary) / 1);
 }
 
 .dashed-border {
     animation: linearGrad .3s infinite linear;
     background:
-        linear-gradient(90deg, var(--border-anim-col) 50%, transparent 0) repeat-x,
-        linear-gradient(90deg, var(--border-anim-col) 50%, transparent 0) repeat-x,
-        linear-gradient(0deg, var(--border-anim-col) 50%, transparent 0) repeat-y,
-        linear-gradient(0deg, var(--border-anim-col) 50%, transparent 0) repeat-y;
+        linear-gradient(90deg, rgb(var(--color-tertiary)) 50%, transparent 0) repeat-x,
+        linear-gradient(90deg, rgb(var(--color-tertiary)) 50%, transparent 0) repeat-x,
+        linear-gradient(0deg, rgb(var(--color-tertiary)) 50%, transparent 0) repeat-y,
+        linear-gradient(0deg, rgb(var(--color-tertiary)) 50%, transparent 0) repeat-y;
     background-size: var(--border-anim-size) calc(var(--border-anim-size)/4), var(--border-anim-size) calc(var(--border-anim-size)/4), calc(var(--border-anim-size)/4) var(--border-anim-size), calc(var(--border-anim-size)/4) var(--border-anim-size);
     background-position: 0 0, 0 100%, 0 0, 100% 0;
 }

@@ -13,13 +13,17 @@ module.exports = {
         'infopanel': '0 0 10px 5px rgb(0 0 200 / 30%)'
       },
       colors: {
-        'navhover': '#005aff4a',
-        'file': '#0014ff',
-        'filehover': '#2e65ff'
+        navhover: '#005aff4a',
+        file: '#0014ff',
+        filehover: '#2e65ff',
+        primary: 'rgb(var(--color-primary) / <alpha-value>)',
+        secondary: 'rgb(var(--color-secondary) / <alpha-value>)',
+        tertiary: 'rgb(var(--color-tertiary) / <alpha-value>)',
+        quaternary: 'rgb(var(--color-quaternary) / <alpha-value>)'
       }
     },
   },
-  plugins: [plugin(function({ addUtilities }) {
+  plugins: [plugin(function ({ addUtilities }) {
     addUtilities({
       '.flip-y': {
         'transform': 'rotateY(180deg)',

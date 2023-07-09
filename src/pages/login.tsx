@@ -1,18 +1,18 @@
 import { FormEvent, useState } from "react";
 import styles from "@/styles/Register.module.css";
 import { useRouter } from "next/router";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import Head from "next/head";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 export default function LoginPage() {
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [errors, setErrors] = useState<string>("");
     const router = useRouter();
-    const soup = useSupabaseClient();
+    const supabase = useSupabaseClient();
     async function login(e: FormEvent) {
         e.preventDefault();
-        const { error } = await soup.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
             email, password
         });
         if (error) {

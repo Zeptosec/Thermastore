@@ -1,9 +1,9 @@
 import { Directory, DirFile, getReadableDate, indexOfSelected, MinimizeName } from "@/utils/FileFunctions"
-import { supabase } from "@/utils/Supabase";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
 import SelectionBubble from "./SelectionBubble";
 import AnimatedDropZone from "./AnimatedDropZone";
 import StrechableText from "./StrechableText";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 interface Props {
     dir: Directory,
@@ -16,6 +16,7 @@ interface Props {
     dropped?: (directory: Directory, event: any) => void
 }
 export default function DirItem({ dir, setDirHistory, selected, setSelected, MoveSelected, selectable, SelectMultiple, dropped }: Props) {
+    const supabase = useSupabaseClient();
     const refName = useRef<any>(null);
     const refExpand = useRef<any>(null);
     const refOptions = useRef<any>(null);
@@ -115,37 +116,37 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
             dragging={dragging}
             setDragging={setDragging}
             dropped={selectable && dropped ? onDrop : undefined}
-            textClassName="text-file text-2xl"
+            textClassName="text-quaternary text-2xl"
         >
             <div onClick={w => clicked(w)} className="card group overflow-hidden">
                 <div className="flex justify-between overflow-hidden">
                     <SelectionBubble file={dir} selected={selected}>
                         <div className="flex gap-2 items-center justify-center overflow-hidden">
                             <div className="w-5 h-4 m-auto block">
-                                <i className="gg-folder m-auto text-file group-hover:text-filehover transition-colors duration-200"></i>
+                                <i className="gg-folder m-auto text-quaternary group-hover:text-tertiary transition-colors duration-200"></i>
                             </div>
                             {isNaming ?
                                 <form onSubmit={w => { w.preventDefault(); saveName(); }}>
                                     <input type="text" autoFocus value={name} onChange={w => setName(w.target.value)} onBlur={saveName} />
                                 </form> :
-                                <div onClick={w => openDir()} ref={refName} className="cursor-pointer hover:text-filehover transition-colors whitespace-nowrap overflow-hidden">
+                                <div onClick={w => openDir()} ref={refName} className="cursor-pointer hover:text-tertiary transition-colors whitespace-nowrap overflow-hidden">
                                     <StrechableText text={name} />
                                 </div>}
                         </div>
                     </SelectionBubble>
                     <div ref={refExpand} className={`flex items-center gap-2`}>
-                        {selected && MoveSelected && selected.length > 0 ? <abbr title="Move to this directory"><i onClick={() => MoveSelected(dir.id, false)} className={`gg-add-r cursor-pointer text-file hover:text-filehover transition-colors duration-200`}></i></abbr> : ""}
+                        {selected && MoveSelected && selected.length > 0 ? <abbr title="Move to this directory"><i onClick={() => MoveSelected(dir.id, false)} className={`gg-add-r cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200`}></i></abbr> : ""}
                         <div onClick={() => setOpen(w => !w)} className="relative w-[22px] h-[22px]">
-                            <i className={`gg-chevron-down z-10 text-file w-[22px] h-[22px] cursor-pointer hover:text-filehover transition-all ${open ? 'rotate-180' : ''}`}></i>
+                            <i className={`gg-chevron-down z-10 text-quaternary w-[22px] h-[22px] cursor-pointer hover:text-tertiary transition-all ${open ? 'rotate-180' : ''}`}></i>
                         </div>
                     </div>
                 </div>
                 <div className={`transition-all ease-in-out duration-300 flex justify-between gap-1 select-none overflow-hidden ${open ? ' max-h-20  mt-1' : 'max-h-0'}`}>
-                    <div className="grid gap-1">
+                    <div className="grid gap-1 text-tertiary">
                         <p>Created {getReadableDate(dir.created_at)}</p>
                     </div>
                     <div ref={refOptions} className="grid gap-1">
-                        {selectable ? <div onClick={() => shareManager()} className=" cursor-pointer text-file hover:text-filehover transition-colors duration-200">
+                        {selectable ? <div onClick={() => shareManager()} className=" cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200">
                             {shared ? <div className="flex gap-3 items-center mr-0.5">
                                 <p className="whitespace-nowrap">Stop sharing</p>
                                 <abbr title="Stop sharing" className="w-6 h-6"><i className="gg-lock-unlock m-auto ml-2"></i></abbr>
@@ -154,7 +155,7 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
                                 <abbr className="w-6 h-6" title="Start sharing"><i className="gg-lock m-auto ml-2"></i></abbr>
                             </div>}
                         </div> : ""}
-                        {shared ? <div onClick={() => copyClipboard()} className="whitespace-nowrap flex gap-2 justify-end cursor-pointer text-file hover:text-filehover transition-colors duration-200">
+                        {shared ? <div onClick={() => copyClipboard()} className="whitespace-nowrap flex gap-2 justify-end cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200">
                             <p>{informCopy}</p>
                             <abbr
                                 title="Copy link"
@@ -162,7 +163,7 @@ export default function DirItem({ dir, setDirHistory, selected, setSelected, Mov
                                 <i className="gg-link mt-3 ml-2 "></i>
                             </abbr>
                         </div> : ''}
-                        {!isNaming && selectable ? <div onClick={() => setIsNaming(w => !w)} className="whitespace-nowrap flex justify-end gap-2 items-center cursor-pointer text-file hover:text-filehover transition-colors duration-200">
+                        {!isNaming && selectable ? <div onClick={() => setIsNaming(w => !w)} className="whitespace-nowrap flex justify-end gap-2 items-center cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200">
                             <p>Rename</p>
                             <abbr className="w-6 h-6" title="Rename"><i className="gg-rename m-auto mt-1"></i></abbr>
                         </div> : ''}
