@@ -35,30 +35,6 @@ export default function downloadPage() {
         fetchData();
     }, [fid, cid]);
 
-    // const confMsg = "You are still downloading the file!"
-    // function beforeUnloadHandler(e: BeforeUnloadEvent) {
-    //     (e || window.event).returnValue = confMsg;
-    //     return confMsg;
-    // }
-
-    // function beforeRouteHandler(url: string) {
-    //     if (router.pathname !== url && !confirm(confMsg)) {
-    //         router.events.emit('routeChangeError');
-    //         throw `Route change to "${url}" was aborted (this error can be safely ignored).`
-    //     }
-    // }
-
-    // function onFinished() {
-    //     window.removeEventListener('beforeunload', beforeUnloadHandler);
-    //     router.events.off('routeChangeStart', beforeRouteHandler);
-    // }
-
-    // function onStart() {
-    //     window.addEventListener('beforeunload', beforeUnloadHandler);
-    //     router.events.on('routeChangeStart', beforeRouteHandler);
-
-    // }
-
     useEffect(() => {
         if (fData.started_at !== 0)
             return;
@@ -69,10 +45,7 @@ export default function downloadPage() {
     }, [fm?.state.downloading])
 
     function download() {
-        // setDownloading(true);
         fm?.dispatch({ type: FileActionType.DOWNLOAD, cid: cid as string, fid: fid as string, fData });
-        //setFdata(w => ({ ...w, started_at: new Date().getTime() }))
-        //await downloadFile(fData, setFdata, onStart, onFinished);
     }
 
     return (
@@ -84,7 +57,7 @@ export default function downloadPage() {
                 }
                 <meta property="og:description" key="desc" content="Download or preview this file" />
             </Head>
-            <BubbleBackground />
+            {/* <BubbleBackground /> */}
             <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[72px]">
                 <div className="grid gap-4">
                     {loading ? <>
