@@ -1,3 +1,4 @@
+[![Netlify Status](https://api.netlify.com/api/v1/badges/7f46aff5-243e-4de3-90a6-d3416f789f85/deploy-status)](https://app.netlify.com/sites/thermastore/deploys)
 # Thermastore
 Thermastore is a cloud storage which utilizes Discord for storing files. Here you can upload and organize your files. This project is powered by NextJS 13 for handling frontend and some of the back end, Supabase for saving information about stored files and protecting the database with RLS.  
   
