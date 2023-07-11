@@ -86,9 +86,9 @@ export default function navbar() {
         {/*Note that in this div we will use a ternary operator to decide whether or not to display the content of the div  */}
         <div
           className={`${active ? '' : 'hidden'
-            }   w-full lg:inline-flex lg:flex-grow lg:w-auto lg:bg-transparent bg-primary rounded-b-xl p-2`}
+            }   w-full lg:inline-flex lg:flex-grow lg:w-auto lg:bg-transparent bg-primary rounded-b-xl p-2 -mt-0.5`}
         >
-          <div className='lg:inline-flex lg:flex-row lg:ml-auto lg:w-auto w-full lg:items-center flex flex-col lg:h-auto items-end  text-quaternary'>
+          <div className='lg:inline-flex lg:flex-row lg:ml-auto lg:w-auto w-full lg:items-center flex flex-col lg:h-auto items-end text-quaternary'>
             {!fm?.user ? <><Link href='/register'>
               <div className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded font-bold items-center justify-center hover:bg-secondary/30 hover:text-tertiary transition-colors duration-200 '>
                 Register

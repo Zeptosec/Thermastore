@@ -1,7 +1,7 @@
 import axios, { AxiosProgressEvent, AxiosResponse } from "axios";
 import { Dispatch, SetStateAction } from "react";
 import { Endpoint, getEndpoint } from "./FileUploader";
-import { endPoints } from "./FileFunctions";
+import { DirFile, endPoints } from "./FileFunctions";
 
 export interface DownloadStatus {
     timeleft: number,
@@ -99,7 +99,7 @@ export async function getFileData(fid: string, channel_id: string, setError: Dis
     return data;
 }
 
-async function downloadChunk(chunkId: string, chanId: string, arrayIndex: number, chunkIndex: number, downStatus: DownloadStatus) {
+async function downloadChunk(chunkId: string, chanId: string, arrayIndex: number, chunkIndex: number, downStatus?: DownloadStatus) {
     let data = null;
     while (!data) {
         const endpoint = await getEndpoint(workingEnds, maxConns);
@@ -108,6 +108,7 @@ async function downloadChunk(chunkId: string, chanId: string, arrayIndex: number
             let prev = 0;
             const res = await axios.get(`${endpoint.link}/down/${chanId}/${chunkId}`, {
                 onDownloadProgress: (w: AxiosProgressEvent) => {
+                    if (!downStatus) return;
                     const diff = w.loaded - prev;
                     prev = w.loaded;
                     downStatus.downloadedBytes += diff;
@@ -150,6 +151,20 @@ export async function getImageHref(file: DownloadStatus, chanId: string) {
 export async function getImage(cid: string, fid: string) {
     const data = await getFileData(fid, cid);
     return await getImageHref(data, cid);
+}
+
+/**
+ * Gets the preview image data and returns it as url object. You must manage url object yourself with URL.revokeObjectUrl to free memory. Sad but no other way around it.
+ * @param file File with preview id
+ * @throws Will throw an error if file has no preview
+ * @returns Object url that can be used directly in element to display the image.
+ */
+export async function getImagePreviewHref(file: DirFile): Promise<string> {
+    if (!file.previews) throw Error("File has no previews");
+    checkEndpoints();
+    const { data } = await downloadChunk(file.previews.fileid, file.chanid, 0, 0);
+    let dwnFile = new Blob([data]);
+    return URL.createObjectURL(dwnFile);
 }
 
 export async function downloadFileChunks(file: DownloadStatus, setFile?: Dispatch<SetStateAction<DownloadStatus>>, onStart: Function | null = null, onFinished: Function | null = null) {

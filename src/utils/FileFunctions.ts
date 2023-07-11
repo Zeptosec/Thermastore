@@ -19,11 +19,11 @@ export const endPoints: Endpoint[] = [
         occupied: 0,
         name: "glitch"
     },
-    {
-        link: 'https://streamer.teisingas.repl.co',
-        occupied: 0,
-        name: 'replit'
-    },
+    // {
+    //     link: 'https://streamer.teisingas.repl.co',
+    //     occupied: 0,
+    //     name: 'replit'
+    // },
     {
         link: 'https://next-streamer-nigerete123.koyeb.app',
         occupied: 0,
@@ -109,7 +109,10 @@ export interface DirFile {
     size: number,
     chanid: string,
     fileid: string,
-    dir: number
+    dir: number,
+    previews: {
+        fileid: string
+    } | null
 }
 
 export function getReadableDate(time: string) {
@@ -202,13 +205,13 @@ async function getFiles(supabase: SupabaseClient<any, "public", any>, from: numb
         return dir === null ?
             await supabase
                 .from('files')
-                .select('id, name, created_at, size, chanid, fileid, dir')
+                .select('id, name, created_at, size, chanid, fileid, dir, previews(fileid)')
                 .is('dir', null)
                 .order(sortBy, { ascending: true })
                 .range(from, to) :
             await supabase
                 .from('files')
-                .select('id, name, created_at, size, chanid, fileid, dir')
+                .select('id, name, created_at, size, chanid, fileid, dir, previews(fileid)')
                 .eq('dir', dir)
                 .order(sortBy, { ascending: true })
                 .range(from, to)

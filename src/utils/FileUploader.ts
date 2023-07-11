@@ -1,6 +1,7 @@
 import axios from "axios";
 import { downloadBlob } from "./FileDownload";
-import { DirFile, Directory, MinimizeName, chunkSize } from "./FileFunctions";
+import { DirFile, Directory, MinimizeName, chunkSize, getFileType } from "./FileFunctions";
+import imageCompression from "browser-image-compression";
 export interface FileStatus {
     file: File,
     formattedName?: string,
@@ -74,7 +75,7 @@ async function uploadChunkNoStatus(chunk: Blob) {
     var data = new FormData();
     data.append('file', chunk);
     let json: any = null;
-    // do no comply with reservation system because you will get locked
+    // do no comply with the reservation system because you will get locked
     let endpoint = dook;
     if (!endpoint)
         throw Error("No webhook");
@@ -211,6 +212,32 @@ async function uploadChunk(supabase: any, chunk: Blob, file: FileStatus, qindex:
                 } else {
                     // console.log(data);
                     file.fileItem = data;
+                }
+                // if file was an image save a preview
+                if (getFileType(file.file.name) === 'image') {
+                    try {
+                        // would have used jimp and i did but the implementation was terrible it has poor support for browsers i guess
+                        const compressedImage = await imageCompression(file.file, {
+                            maxSizeMB: 0.05,
+                            maxWidthOrHeight: 320,
+                            useWebWorker: true
+                        });
+                        console.log(compressedImage);
+                        const uploadedPreviewId = await uploadChunkNoStatus(compressedImage);
+                        const savedInfo = await supabase
+                            .from('previews')
+                            .insert({
+                                fileid: uploadedPreviewId,
+                                original: data.id
+                            });
+                        if (savedInfo.error) {
+                            console.error('Failed to save image preview to DB');
+                            console.error(savedInfo.error);
+                        }
+                    } catch (err) {
+                        console.error("failed to process image preview.");
+                        console.error(err);
+                    }
                 }
             }
             file.link = `/download/${chanid}/${fdataid}`;

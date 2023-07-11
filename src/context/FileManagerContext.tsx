@@ -2,7 +2,7 @@ import { downloadFile, getFileData, DownloadStatus } from "@/utils/FileDownload"
 import { Directory, VerifyHook, chunkSize, getHookLink } from "@/utils/FileFunctions";
 import { Endpoint, uploadFiles, FileStatus } from "@/utils/FileUploader";
 import { Dispatch, createContext, useContext, useEffect, useReducer, useState } from "react";
-import { useSupabaseClient, useUser, User, SupabaseClient } from "@supabase/auth-helpers-react";
+import { useSupabaseClient, useUser, User, SupabaseClient, useSessionContext } from "@supabase/auth-helpers-react";
 
 export interface FileManager {
     downloading: DownloadStatus[],
@@ -61,12 +61,12 @@ export default function FileManagerProvider({ children }: any) {
     const [hook, sHook] = useState<Endpoint>();
     const supabase = useSupabaseClient();
     const user = useUser();
+    const { isLoading } = useSessionContext();
     // kind of weird reducer thinks that supabase is undefined i guess you cant use context in another context and use in reducer
     const initialParams: FileManager = { downloading: [], uploading: [], showMenu: false, supabase, user }
     const [state, dispatch] = useReducer(reducer, initialParams);
 
 
-    const [isLoading, setIsLoading] = useState(true);
     const confMsg = "You are still uploading/downloading files";
     function beforeUnloadHandler(e: BeforeUnloadEvent) {
         (e || window.event).returnValue = confMsg;
@@ -198,7 +198,7 @@ export default function FileManagerProvider({ children }: any) {
     const hookChangeInterval = 1000 * 60 * 60 * 24 * 6.66; // every 6.66 days get a new hook just because...
     // fetch hooks on app open
     useEffect(() => {
-
+        if (isLoading) return;
         async function fetchNewHook() {
             if (user) {
                 const userHook = await supabase
@@ -233,7 +233,7 @@ export default function FileManagerProvider({ children }: any) {
             fetchNewHook();
         }
         dispatch({ type: FileActionType.SET_SUPABASE, user, supabase });
-    }, [supabase, user]);
+    }, [supabase, user, isLoading]);
 
     function getDownloading(fid: string) {
         const ind = state.downloading.findIndex(w => w.fid === fid);

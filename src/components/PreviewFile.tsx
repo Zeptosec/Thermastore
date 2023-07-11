@@ -1,4 +1,4 @@
-import { DownloadStatus, getEarliestEnd, getImage, getImageHref } from "@/utils/FileDownload"
+import { DownloadStatus, getEarliestEnd, getImage, getImageHref, getImagePreviewHref } from "@/utils/FileDownload"
 import { getFileType, DirFile, FileType } from "@/utils/FileFunctions";
 import { Endpoint } from "@/utils/FileUploader";
 import { useEffect, useState } from "react";
@@ -28,17 +28,32 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
         async function showImage() {
             const limit = 1024 ** 2;
             if (file && file.size <= limit) {
-                const hr = await getImageHref(file, cid);
-                setHref(hr);
-            } else if (dirFile && dirFile.size <= limit) {
-                const hr = await getImage(dirFile.chanid, dirFile.fileid);
-                setHref(hr);
+                try {
+                    const hr = await getImageHref(file, cid);
+                    setHref(hr);
+                } catch (err) {
+                    console.error(err);
+                    alert("File not found!");
+                }
+            } else if (dirFile) {
+                if (dirFile.size <= limit) {
+                    const hr = await getImage(dirFile.chanid, dirFile.fileid);
+                    setHref(hr);
+                } else if (dirFile.previews) {
+                    const hr = await getImagePreviewHref(dirFile);
+                    setHref(hr);
+                }
             }
         }
         if (fileType === 'image')
             showImage();
         if (['video', 'audio'].includes(fileType)) {
             getFastestRespond();
+        }
+        return () => {
+            if (href.length > 0) {
+                URL.revokeObjectURL(href);
+            }
         }
     }, [])
 
