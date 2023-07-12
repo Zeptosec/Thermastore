@@ -15,20 +15,26 @@ const uploadPage = () => {
     const fm = useFileManager();
     function handleChange(event: any) {
         // cannot get user in this function from 'fm' it gives the initialState always
-        const files = event.dataTransfer.files;
-        const items = event.dataTransfer.items;
+        let files: any;
         let alerted = false;
-        event.preventDefault();
-        for (let i = 0; i < items.length; i++) {
-            let item = items[i].webkitGetAsEntry();
-            if (item) {
-                if (item.isDirectory && !alerted) {
-                    alerted = true;
-                    alert('Directory uploads not supported here. Go to files page to upload directories');
-                    break;
+        if (event.dataTransfer) {
+            files = event.dataTransfer.files;
+            const items = event.dataTransfer.items;
+            event.preventDefault();
+            for (let i = 0; i < items.length; i++) {
+                let item = items[i].webkitGetAsEntry();
+                if (item) {
+                    if (item.isDirectory && !alerted) {
+                        alerted = true;
+                        alert('Directory uploads not supported here. Go to files page to upload directories');
+                        break;
+                    }
                 }
             }
+        } else {
+            files = event.target.files;
         }
+
         if (alerted) return;
         setPreviewFiles(w => {
             const list = [...w];
@@ -41,6 +47,7 @@ const uploadPage = () => {
             list.sort((b, a) => a.size < b.size ? 1 : a.size > b.size ? -1 : 0);
             return list;
         });
+
     }
 
     function removeFile(file: File) {

@@ -155,9 +155,20 @@ export default function filesPage() {
         const filesToMove: DirFile[] = changedPaths.filter(w => 'fileid' in w) as DirFile[];
 
         if (filesToMove.length > 0) {
+            // Supabase does not have update many sooo this is quite terrible but working solution.
+            // i could just spin a loop with update for each element but that would make many requests.
+            const filesToMoveUpdated = filesToMove.map(w => ({
+                id: w.id,
+                name: w.name,
+                created_at: w.created_at,
+                size: w.size,
+                chanid: w.chanid,
+                fileid: w.fileid,
+                dir: w.dir,
+            }))
             const res = await supabase
                 .from('files')
-                .upsert(filesToMove)
+                .upsert(filesToMoveUpdated)
             if (res.error) {
                 console.log(res.error);
                 return;
