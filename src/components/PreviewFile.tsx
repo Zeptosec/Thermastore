@@ -3,6 +3,7 @@ import { getFileType, DirFile, FileType } from "@/utils/FileFunctions";
 import { Endpoint } from "@/utils/FileUploader";
 import { useEffect, useState } from "react";
 import { endPoints } from "@/utils/FileFunctions";
+import CoolLoader from "./CoolLoading2";
 
 interface Props {
     file?: DownloadStatus,
@@ -15,7 +16,7 @@ const streams: Endpoint[] = endPoints;
 
 export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
     const [sid, setSid] = useState(0);
-    const [href, setHref] = useState("");
+    const [href, setHref] = useState<{ url?: string, loadState: 'loading' | 'loaded' | 'failed' | 'nopreview' }>({ loadState: 'loading' });
     const fileType: FileType = file ? getFileType(file.name) : dirFile ? getFileType(dirFile.name) : 'file';
     useEffect(() => {
         async function getFastestRespond() {
@@ -26,23 +27,45 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
             }
         }
         async function showImage() {
-            const limit = 1024 ** 2;
-            if (file && file.size <= limit) {
+            const limit = 300 * 1024;
+            let prevLoaded = false;
+            if (dirFile) {
+                if (dirFile.size <= limit) {
+                    try {
+                        const hr = await getImage(dirFile.chanid, dirFile.fileid);
+                        setHref({ url: hr, loadState: 'loaded' });
+                        prevLoaded = true;
+                    } catch (err) {
+                        console.error(err);
+                        setHref(w => ({ ...w, loadState: 'failed' }));
+                    }
+                } else if (dirFile.previews) {
+                    try {
+                        const hr = await getImagePreviewHref(dirFile);
+                        setHref({ url: hr, loadState: 'loaded' });
+                        prevLoaded = true;
+                    } catch (err) {
+                        console.error(err);
+                        setHref(w => ({ ...w, loadState: 'failed' }));
+                    }
+                }
+            }
+            if (!prevLoaded && file && file.size <= limit) {
                 try {
                     const hr = await getImageHref(file, cid);
-                    setHref(hr);
+                    setHref({
+                        url: hr,
+                        loadState: 'loaded'
+                    });
+                    prevLoaded = true;
                 } catch (err) {
                     console.error(err);
+                    setHref(w => ({ ...w, loadState: 'failed' }));
                     alert("File not found!");
                 }
-            } else if (dirFile) {
-                if (dirFile.size <= limit) {
-                    const hr = await getImage(dirFile.chanid, dirFile.fileid);
-                    setHref(hr);
-                } else if (dirFile.previews) {
-                    const hr = await getImagePreviewHref(dirFile);
-                    setHref(hr);
-                }
+            }
+            if (!prevLoaded) {
+                setHref(w => ({ ...w, loadState: 'nopreview' }))
             }
         }
         if (fileType === 'image')
@@ -51,8 +74,8 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
             getFastestRespond();
         }
         return () => {
-            if (href.length > 0) {
-                URL.revokeObjectURL(href);
+            if (href.url) {
+                URL.revokeObjectURL(href.url);
             }
         }
     }, [])
@@ -76,9 +99,20 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
                         <audio crossOrigin="" className="w-full outline-none" controls controlsList="nodownload" src={`${streams[sid].link}/stream/${cid}/${fid}`}></audio>
                     </div> : ""}
                 </> : ""}
-            {(fileType === 'image' && href !== "") ? <div className="grid justify-center">
-                <p className="text-center text-2xl pb-4">Preview</p>
-                <img src={href} />
+            {(fileType === 'image') ? <div className="grid justify-center">
+                {href.loadState === 'loading' ? <div>
+                    <p className="text-center text-2xl pb-4">Loading image preview</p>
+                    <div className="relative min-h-[100px]">
+                        <CoolLoader />
+                    </div>
+                </div> : href.loadState === 'failed' ? <div>
+                    <p className="text-center text-2xl pb-4 text-tertiary">Failed to load preview</p>
+                </div> : href.loadState === 'nopreview' ? <div>
+                    <p className="text-center text-2xl pb-4 text-tertiary">File has no preview</p>
+                </div> : <div>
+                    <p className="text-center text-2xl pb-4">Preview</p>
+                    <img src={href.url} />
+                </div>}
             </div> : ""}
         </div>
     )
