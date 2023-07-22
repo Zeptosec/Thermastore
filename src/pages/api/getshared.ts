@@ -69,6 +69,7 @@ type Data = {
     next?: boolean,
     name?: string
     lastFew?: string,
+    timestr?: string,
 }
 
 export default async function handler(
@@ -101,7 +102,7 @@ export default async function handler(
             return res.status(200).json({ ...rs, name: data.name })
         } else {
             console.log(data);
-            return res.status(404).json({ error: "A hit and a miss", lastFew });
+            return res.status(404).json({ error: "A hit and a miss", lastFew, timestr: new Date(time).toISOString() });
         }
 
     } catch (err: any) {
