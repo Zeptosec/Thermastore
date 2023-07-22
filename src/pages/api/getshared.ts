@@ -68,6 +68,7 @@ type Data = {
     arr?: (DirFile | Directory)[],
     next?: boolean,
     name?: string
+    lastFew?: string,
 }
 
 export default async function handler(
@@ -86,6 +87,8 @@ export default async function handler(
         return res.status(400).json({ error: `time must be a whole number` });
     const supabase = createServerSupabaseClient({ req, res }, { supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL, supabaseKey: process.env.SUPABASE_SERVICE_KEY });
     try {
+        //@ts-ignore
+        const lastFew = `${supabase.supabaseKey.at(-4)}${supabase.supabaseKey.at(-3)}${supabase.supabaseKey.at(-2)}${supabase.supabaseKey.at(-1)}`
         const { data } = await supabase
             .from("directories")
             .select("id, name, shared, created_at")
@@ -98,7 +101,7 @@ export default async function handler(
             return res.status(200).json({ ...rs, name: data.name })
         } else {
             console.log(data);
-            return res.status(404).json({ error: "A hit and a miss" });
+            return res.status(404).json({ error: "A hit and a miss", lastFew });
         }
 
     } catch (err: any) {
