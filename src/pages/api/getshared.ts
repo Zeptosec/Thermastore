@@ -100,7 +100,7 @@ export default async function handler(
             return res.status(200).json({ ...rs, name: data.name })
         } else {
             console.log(data);
-            return res.status(404).json({ error: "A hit and a miss", lastFew, timestr: new Date(time).toISOString() });
+            return res.status(404).json({ error: "A hit and a miss" });
         }
 
     } catch (err: any) {
