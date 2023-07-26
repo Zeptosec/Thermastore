@@ -93,7 +93,7 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
                         </select>
                     </div>
                     {fileType === 'video' ? <div>
-                        <video title={`${file?.name}`} crossOrigin="" className="w-full outline-none max-h-[800px]" controls controlsList="nodownload" src={`${streams[sid].link}/stream/${cid}/${fid}`}></video>
+                        <video crossOrigin="" className="w-full outline-none max-h-[800px]" controls controlsList="nodownload" src={`${streams[sid].link}/stream/${cid}/${fid}`}></video>
                     </div> : ""}
                     {fileType === 'audio' ? <div>
                         <audio crossOrigin="" className="w-full outline-none" controls controlsList="nodownload" src={`${streams[sid].link}/stream/${cid}/${fid}`}></audio>

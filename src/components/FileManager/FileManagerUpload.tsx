@@ -1,7 +1,7 @@
 import { Endpoint, FileStatus, Stop } from "@/utils/FileUploader"
 import StrechableText from "../StrechableText"
 import { BytesToReadable, MinimizeName, TimeToReadable } from "@/utils/FileFunctions"
-import { FileActionType, useFileManager } from "@/context/FileManagerContext"
+import useFileManager, { FileActionType } from "@/context/FileManagerContext"
 import { useState } from "react"
 import Link from "next/link"
 

@@ -64,6 +64,16 @@
     background: rgb(var(--color-quaternary));
 }
 
+.blob-btn:disabled,.blob-btn[disabled] {
+    color: rgb(var(--color-quaternary));
+    cursor: default;
+}
+
+.blob-btn:disabled .blob-btn__inner, .blob-btn[disabled] .blob-btn__inner {
+    background-color: rgb(var(--color-primary));
+    border-radius: 30px;
+}
+
 .blob-btn__blobs {
     position: relative;
     display: block;

@@ -25,9 +25,10 @@ export default function PlayCircle({ percent, radius, stroke, paused, onClick, c
             <svg
                 height={`${radius * 2}`}
                 width={`${radius * 2}`}
+                className="text-tertiary"
             >
                 <circle
-                    stroke="blue"
+                    stroke="currentColor"
                     strokeDasharray={`${circumference} ${circumference}`}
                     style={{ strokeDashoffset: `${circumference - prc / 100 * circumference}` }}
                     strokeWidth={stroke}

@@ -3,7 +3,7 @@ import CoolButton from "@/components/CoolButton";
 import CoolLoader from "@/components/CoolLoading2";
 import PreviewFile from "@/components/PreviewFile";
 import StrechableText from "@/components/StrechableText";
-import { FileActionType, useFileManager } from "@/context/FileManagerContext";
+import useFileManager, { FileActionType } from "@/context/FileManagerContext";
 import { downloadFile, DownloadStatus, getFileData } from "@/utils/FileDownload";
 import { BytesToReadable, TimeToReadable } from "@/utils/FileFunctions";
 import Head from "next/head";

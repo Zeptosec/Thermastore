@@ -2,7 +2,7 @@ import { FileStatus, Stop } from "@/utils/FileUploader";
 import StrechableText from "./StrechableText";
 import { BytesToReadable, MinimizeName, TimeToReadable } from "@/utils/FileFunctions";
 import Link from "next/link";
-import { useFileManager } from "@/context/FileManagerContext";
+import useFileManager from "@/context/FileManagerContext";
 import { FileActionType } from "@/context/FileManagerContext";
 
 export default function UploadCard({ file, className }: { file: FileStatus, className?: string }) {

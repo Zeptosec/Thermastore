@@ -1,15 +1,16 @@
 import styles from '@/styles/CoolSearch.module.css'
 import { useState } from 'react'
 interface Props {
-    inputChanged: Function,
-    text: string
+    inputChanged: (val: string) => void,
+    text: string,
+    maxLength?: number
 }
-export default function CoolSearch({ inputChanged, text }: Props) {
+export default function CoolSearch({ inputChanged, text, maxLength }: Props) {
     const [curr, setCurr] = useState(text);
     return (
         <div>
             <div className={styles.search}>
-                <input onChange={w => { inputChanged(w.target.value); setCurr(w.target.value); }} value={curr} type="text" placeholder=" " />
+                <input onChange={w => { inputChanged(w.target.value); setCurr(w.target.value); }} value={curr} maxLength={maxLength} type="text" placeholder=" " />
                 <div>
                     <svg className='pointer-events-none'>
                         <use xlinkHref="#path" />

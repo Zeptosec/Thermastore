@@ -4,18 +4,10 @@
 
 @layer base {
     html[data-theme='default'] {
-        --color-primary: 74 85 162;
-        --color-secondary: 120 149 203;
-        --color-tertiary: 160 191 224;
-        --color-quaternary: 197 223 248;
-        --color-text: 255 255 255;
-    }
-    html[data-theme='space'] {
         --color-primary: 17 5 44;
         --color-secondary: 61 8 123;
         --color-tertiary: 244 59 134;
         --color-quaternary: 255 228 89;
-        --color-text: 255 255 255;
     }
     /* https://colorhunt.co/palette/071a5208697217b978a7ff83 */
     html[data-theme='neon'] {
@@ -23,23 +15,13 @@
         --color-secondary: 8 105 114;
         --color-tertiary: 23 185 120;
         --color-quaternary: 167 255 131;
-        --color-text: 255 255 255;
-    }
-    /* https://colorhunt.co/palette/f0a500334756082032000000 */
-    html[data-theme='space2'] {
-        --color-primary: 240 165 0;
-        --color-secondary: 51 71 86;
-        --color-tertiary: 8 32 50;
-        --color-quaternary: 0 0 0;
-        --color-text: 255 255 255;
     }
     /* https://colorhunt.co/palette/1624471f40681b1b2fe43f5a */
-    html[data-theme='dark_space_night'] {
-        --color-primary: 22 36 71;
-        --color-secondary: 31 64 104;
-        --color-tertiary: 27 27 47;
-        --color-quaternary: 228 63 90;
-        --color-text: 255 255 255;
+    html[data-theme='teal'] {
+        --color-primary: 29 91 121;
+        --color-secondary: 70 139 151;
+        --color-tertiary: 239 98 98;
+        --color-quaternary: 243 170 96;
     }
     /* https://colorhunt.co/palette/203541374955f62a66ffd933 */
     html[data-theme='space3'] {
@@ -47,7 +29,6 @@
         --color-secondary: 55 73 85;
         --color-tertiary: 246 42 102;
         --color-quaternary: 255 217 51;
-        --color-text: 255 255 255;
     }
 }
 

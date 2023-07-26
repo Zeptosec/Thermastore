@@ -1,8 +1,8 @@
 import styles from "@/styles/CoolButton.module.css";
-export default function CoolButton({ children, onClick }: any) {
+export default function CoolButton({ children, onClick, disabled }: any) {
     return (
         <div className={styles.buttons}>
-            <button onClick={onClick} className={styles['blob-btn']}>
+            <button onClick={onClick} className={styles['blob-btn']} disabled={disabled ? disabled : false}>
                 {children}
                 <span className={styles['blob-btn__inner']}>
                     <span className={styles['blob-btn__blobs']}>

@@ -3,7 +3,7 @@ import DropComp from "@/components/DropComp";
 import styles from "@/styles/Upload.module.css";
 import CoolButton from "@/components/CoolButton";
 import Head from "next/head";
-import { FileActionType, FileToUpload, useFileManager } from "@/context/FileManagerContext";
+import useFileManager, { FileActionType, FileToUpload } from "@/context/FileManagerContext";
 import UploadCard from "@/components/UploadCard";
 import Carousel from "@/components/Carousel";
 import Link from "next/link";

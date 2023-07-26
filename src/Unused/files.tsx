@@ -1,16 +1,16 @@
 import AnimatedDropZone from "@/components/AnimatedDropZone";
-import BubbleBackground from "@/components/BubbleBackground";
 import CoolLoader from "@/components/CoolLoading2";
 import CoolSearch from "@/components/CoolSearch";
 import Pathline from "@/components/Pathline";
 import ShowFiles from "@/components/ShowFiles";
-import { useFileManager } from "@/context/FileManagerContext";
+import useFileManager from "@/context/FileManagerContext";
 import IconUpload from "@/icons/IconUpload";
 import { AddFolder, Directory, DirFile, equalDir, getFilesWithDir, GetPreviousDir, PageDirCountHistory, UpFiles } from "@/utils/FileFunctions";
 import { FileStatus } from "@/utils/FileUploader";
 import { useSessionContext, useSupabaseClient } from "@supabase/auth-helpers-react";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import { ParsedUrlQueryInput } from "querystring";
 import { useEffect, useState } from "react";
 
 export default function filesPage() {
@@ -23,7 +23,7 @@ export default function filesPage() {
     const [files, setFiles] = useState<(Directory | DirFile)[]>([]);
     const [dirHistory, setDirHistory] = useState<Directory[]>([]);
     const [currPage, setCurrPage] = useState(1);
-    const [currPageSize, setCurrPageSize] = useState(50);
+    const [currPageSize, setCurrPageSize] = useState(5);
     const [selected, setSelected] = useState<(Directory | DirFile)[]>([]);
     const [canNext, setCanNext] = useState<boolean>();
     const [searchStr, setSearchStr] = useState("");
@@ -32,7 +32,6 @@ export default function filesPage() {
     const [pageDirHistory, setPageDirHistory] = useState<PageDirCountHistory>({ counts: [], pageSize: currPageSize, totalCnt: 0 })
     const [dragging, setDragging] = useState(false);
     const [uploadingHere, setUploadingHere] = useState<FileStatus[]>([]);
-
     async function fetchData() {
         setStillLoading(true);
         if (isLoading) return;
@@ -43,13 +42,16 @@ export default function filesPage() {
         setFiles(arr);
         setCanNext(next);
         setStillLoading(false);
+        // update url params
+        updateURLParams();
         // get uploading files to show here
         UpdateUploadingFiles();
     }
 
     useEffect(() => {
-        if (gotRouteDir)
+        if (gotRouteDir) {
             fetchData();
+        }
         //fetch files
     }, [fm?.isLoading, currPage, searchStr]);
 
@@ -67,11 +69,11 @@ export default function filesPage() {
             } else if (currPage === 1)
                 fetchData();
             else
-                setCurrPage(1);
-            let rt = '/files';
-            if (dirHistory.length > 0)
-                rt += `?d=${dirHistory[dirHistory.length - 1].id}`;
-            router.push(rt, undefined, { shallow: true });
+                setCurrPage(1); // problem here setting page to 1 i should how to go around it so that url parameters would work.
+            // let rt = '/files';
+            // if (dirHistory.length > 0)
+            //     rt += `?d=${dirHistory[dirHistory.length - 1].id}`;
+            // router.push(rt, undefined, { shallow: true });
         }
         if (gotRouteDir)
             asyncEffect();
@@ -85,7 +87,8 @@ export default function filesPage() {
 
     useEffect(() => {
         //console.log(router);
-        router.beforePopState(({ as }) => {
+        router.beforePopState(({ as }) => { // on clicking back arrow in browser
+            console.log(as, router.asPath, router.query);
             if (as !== router.asPath) {
                 const parts = as.split("?");
                 if (parts.length > 1) {
@@ -97,16 +100,43 @@ export default function filesPage() {
             }
             return true;
         });
-        if (router.isReady) {
+        if (router.isReady) { // this stuff gets called on router loaded.
             if (gotRouteDir) return;
             setGotRouteDir(true);
             const rdir = router.query.d;
             setDirFromUrl(rdir);
+            // setting current page
+            const cPage = router.query.p;
+            if (cPage && !Array.isArray(cPage) && cPage.length < 4) {
+                let pNum = parseInt(cPage);
+                if (pNum > 0)
+                    setCurrPage(pNum);
+                else setCurrPage(1);
+            }
+
         }
         return () => {
             router.beforePopState(() => true);
         };
     }, [router])
+
+    function updateURLParams() {
+        let query: ParsedUrlQueryInput = {};
+        if (dirHistory.length > 0) {
+            query.d = dirHistory[dirHistory.length - 1].id;
+        }
+        if (currPage > 1) {
+            query.p = currPage;
+        }
+        if (searchStr.length > 0) {
+            query.s = searchStr;
+            query.g = isGlobal;
+        }
+        router.push({
+            pathname: '/files',
+            query
+        }, undefined, { shallow: true });
+    }
 
     async function setDirFromUrl(rdir: any) {
         if (rdir && !Array.isArray(rdir)) {
@@ -244,9 +274,8 @@ export default function filesPage() {
     }
 
     useEffect(UpdateUploadingFiles, [fm?.state.uploading])
-
     function UploadToDir(direc: Directory, event: any) {
-        UpFiles(supabase, event, direc, dirHistory, setFiles, fm);
+        UpFiles(supabase, event, direc, dirHistory, dirs => setFiles(w => [...dirs, ...w]), fm);
     }
     return (
         <div className="h-full bg-secondary text-quaternary">
@@ -322,6 +351,6 @@ export default function filesPage() {
                     </>}
                 </div>
             </div>
-        </div >
+        </div>
     )
 }

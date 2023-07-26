@@ -4,6 +4,7 @@ import { VerifyHook } from "@/utils/FileFunctions";
 import { changeTheme } from "@/utils/utils";
 import { useSessionContext, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { ChangeEvent, useEffect, useState } from "react";
+import { themes } from "./_app";
 
 export default function settingsPage() {
     const [hasHook, setHasHook] = useState(false);
@@ -35,7 +36,10 @@ export default function settingsPage() {
         }
         fetchData();
         let t = localStorage.getItem('theme');
-        if (t) setTheme(t);
+
+        if (t) {
+            setTheme(t);
+        }
     }, [isLoading]);
 
     async function SetTheHook() {
@@ -90,6 +94,7 @@ export default function settingsPage() {
 
     function cTheme(event: ChangeEvent<HTMLSelectElement>) {
         const theme = event.target.value;
+        setTheme(theme);
         changeTheme(theme);
     }
 
@@ -98,7 +103,7 @@ export default function settingsPage() {
             {/* <BubbleBackground /> */}
             <div className="h-100vh py-[100px] px-4 text-quaternary">
                 {pageLoading ? <p className="text-4xl text-center">{msg}</p> :
-                    <div className="grid gap-2 text-center">
+                    <div className="grid gap-2 text-center pb-8">
                         <div>
                             <p className="m-0 text-tertiary">Disclaimer: Your hook won't be encrypted. Anyone with your account can access it.</p>
                             <p className="m-0">{hasHook ? "You have a hook and you can change or delete it here" : "You can set up a hook here"}</p>
@@ -107,16 +112,13 @@ export default function settingsPage() {
                         <CoolButton onClick={() => SetTheHook()}>Set hook</CoolButton>
                         {hasHook ? <CoolButton onClick={() => deleteHook()}>Delete hook</CoolButton> : ""}
                         <p className="text-red text-xl">{err}</p>
-                        <div className="flex gap-2 justify-center">
-                            <p>Theme: </p>
-                            <select defaultValue={theme} onChange={cTheme} className="text-black" name="sel_theme" id="sel_theme">
-                                <option value="default">default</option>
-                                <option value="space">space</option>
-                                <option value="neon">neon</option>
-                                <option value="space2">space2</option>
-                                <option value="space3">space3</option>
-                                <option value="dark_space_night">dark space night</option>
-                            </select>
+                        <p className="text-2xl underline">Themes</p>
+                        <div className="grid gap-2 justify-center">
+                            {themes.map((w, ind) => (
+                                <div key={w + ind}>
+                                    <CoolButton onClick={() => { changeTheme(w); setTheme(w) }} disabled={theme === w}>{w}</CoolButton>
+                                </div>
+                            ))}
                         </div>
                     </div>}
             </div>

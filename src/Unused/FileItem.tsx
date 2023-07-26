@@ -26,6 +26,7 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
     const lref = useRef<any>(null);
     const refCopy = useRef<any>(null);
     const refOptions = useRef<any>(null);
+    const refPrev = useRef<any>(null);
     const audioBtn = useRef<any>(null);
     const [isNaming, setIsNaming] = useState(false);
     const [name, setName] = useState<string>(file.name);
@@ -68,7 +69,8 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
         if (!(lref.current && lref.current.contains(w.target) ||
             refCopy.current && refCopy.current.contains(w.target) ||
             audioBtn.current && audioBtn.current.contains(w.target) ||
-            refOptions.current && refOptions.current.contains(w.target))) {
+            refOptions.current && refOptions.current.contains(w.target) ||
+            refPrev.current && refPrev.current.contains(w.target))) {
             const rez = indexOfSelected(selected, file);
             if (SelectMultiple && w.shiftKey) {
                 SelectMultiple(file, rez !== -1);
@@ -163,7 +165,9 @@ export default function FileItem({ file, selected, setSelected, playing, toggleP
                             </div> : ""}
                         </div>
                     </div>
-                    <PreviewFile dirFile={file} cid={file.chanid} fid={file.fileid} />
+                    <div ref={refPrev}>
+                        <PreviewFile dirFile={file} cid={file.chanid} fid={file.fileid} />
+                    </div>
                 </> : ''}
             </div>
         </div>

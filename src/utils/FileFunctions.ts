@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Endpoint } from "./FileUploader";
 import { Dispatch, SetStateAction } from "react";
-import { FileActionType, FileToUpload } from "@/context/FileManagerContext";
+import { FileAction, FileActionType, FileToUpload } from "@/context/FileManagerContext";
 import { SupabaseClient } from "@supabase/auth-helpers-nextjs";
 
 export const chunkSize = 25 * 1024 ** 2 - 256;
@@ -98,7 +98,7 @@ export interface Directory {
     id: number,
     name: string,
     created_at: string,
-    dir: number,
+    dir: number | null,
     shared: boolean
 }
 
@@ -109,10 +109,16 @@ export interface DirFile {
     size: number,
     chanid: string,
     fileid: string,
-    dir: number,
+    dir: number | null,
     previews: {
         fileid: string
     } | null
+}
+
+export interface FilesListSettings {
+    currPage: number,
+    pageSize: number,
+    dirHistory: Directory[],
 }
 
 export function getReadableDate(time: string) {
@@ -125,7 +131,7 @@ export function indexOfSelected(selected: (DirFile | Directory)[], file: (DirFil
     return selected.findIndex(w => equalDir(w, file));
 }
 
-export function equalDir(file1?: (DirFile | Directory), file2?: (DirFile | Directory)) {
+export function equalDir(file1?: (DirFile | Directory) | null, file2?: (DirFile | Directory) | null) {
     if (!file1 || !file2) return false;
     return file1.created_at === file2.created_at && file1.id === file2.id;
 }
@@ -217,7 +223,7 @@ async function getFiles(supabase: SupabaseClient<any, "public", any>, from: numb
                 .range(from, to)
     }
 }
-
+/// remember what this function does and fix if i think its wrong..
 export async function fetchFilesFromDB(supabase: SupabaseClient<any, "public", any>, from: number, to: number, dir: number | null | object, prevDirsCount: number, pageSize: number, getDirsFunc: Function, getFilesFunc: Function, searchStr: string, isGlobal: boolean)
     : Promise<{ arr: (Directory | DirFile)[], next: boolean, dirs: { count: number, data: Directory[], error: string | undefined, hasNext: boolean } }> {
     let arr: (Directory | DirFile)[] = [];
@@ -489,8 +495,9 @@ then we will be able to get those directories ids and then second level can be c
 
 This saves 5 times amount of requests from 9 to 2 requests.
 The worst case if theres one directory that has one directory that has one directory and so on. But usually thats not the case.
+returns files with set directory ids that should be uploaded
 */
-async function getPackaged(supabase: SupabaseClient<any, "public", any>, dirs: DirTree[][], filesHere: File[], dir: Directory | undefined, dirHistory: Directory[], setFiles: Dispatch<SetStateAction<(Directory | DirFile)[]>>) {
+async function getPackaged(supabase: SupabaseClient<any, "public", any>, dirs: DirTree[][], filesHere: File[], dir: Directory | undefined, getUserDirLocation: () => Directory | undefined, updateClientDirs: (dirs: Directory[]) => void) {
     let filesToUpload: FileToUpload[] = [];
     if (dirs.length > 0) {
         for (let i = 0; i < dirs.length; i++) {
@@ -521,7 +528,7 @@ async function getPackaged(supabase: SupabaseClient<any, "public", any>, dirs: D
             for (let j = 0; j < dirs[i].length; j++) {
                 if (data[j] === undefined) {
                     console.log(`saved`, data, `dirs that were suppose to be saved`, dirsToSave, `derived from`, dirs[i]);
-                    alert("Some of directories was not saved to database! Check logs.");
+                    alert("Some of directories were not saved to the database! Check the logs.");
                     return null;
                 }
                 dirs[i][j].currDir = {
@@ -540,8 +547,9 @@ async function getPackaged(supabase: SupabaseClient<any, "public", any>, dirs: D
                     filesToUpload.push(fileToUpload);
                 }
             }
-
-            const userDir = dirHistory.length > 0 ? dirHistory[dirHistory.length - 1].id : null;
+            // user can navigate while directories are uploading so if user navigates to the page where directories are uploading
+            // we want to check if user has moved to that directory by checking history and show these newly created directories to user.
+            const userDir = getUserDirLocation()?.id;
             const dirsInUserDir = dirs[i].filter(w => w.currDir?.dir === userDir);
             // if directories that were stored are in the place where user is then update the file list
             if (dirsInUserDir.length > 0) {
@@ -553,7 +561,7 @@ async function getPackaged(supabase: SupabaseClient<any, "public", any>, dirs: D
                     }
                 }
                 // display newly created directories at the top
-                setFiles(w => [...dirDisplay, ...w]);
+                updateClientDirs(dirDisplay);
             }
         }
     }
@@ -575,9 +583,9 @@ async function getPackaged(supabase: SupabaseClient<any, "public", any>, dirs: D
  * @param dirHistory Path of current directories that user has taken
  * @param setFiles A function to update files in the UI
  * @param user Boolean to tell if there is a logged in user
- * @param fm Refrence to FileManager
+ * @param dispatch FileManager dispatcher for dispatching upload events
  */
-export async function UpFiles(supabase: SupabaseClient<any, "public", any>, event: any, directory: Directory | undefined, dirHistory: Directory[], setFiles: Dispatch<SetStateAction<(Directory | DirFile)[]>>, fm?: any) {
+export async function UpFiles(supabase: SupabaseClient<any, "public", any>, event: any, directory: Directory | undefined, getUserDirLocation: () => Directory | undefined, updateDirectories: (dirs: Directory[]) => void, dispatch: Dispatch<FileAction>, onUploaded?: (fileItem: DirFile) => void) {
     if (event && webkitdirectorySupported() && event.dataTransfer) {
         let items = event.dataTransfer.items;
         let dirs: DirTree[][] = [];
@@ -593,9 +601,10 @@ export async function UpFiles(supabase: SupabaseClient<any, "public", any>, even
         // have to wait a bit because array wont be filled with files
         // no idea how to do it without this timeout. I tried using async await, tried promises but i just get one file and thats it - does not work.
         await new Promise(r => setTimeout(r, 500));
-        const filesToUpload = await getPackaged(supabase, dirs, filesHere, directory, dirHistory, setFiles);
+        const filesToUpload = await getPackaged(supabase, dirs, filesHere, directory, getUserDirLocation, updateDirectories);
+        filesToUpload?.forEach(w => w.onUploaded = onUploaded);
         if (filesToUpload !== null) {
-            fm?.dispatch({ type: FileActionType.UPLOAD, files: filesToUpload })
+            dispatch({ type: FileActionType.UPLOAD, files: filesToUpload })
         }
     } else if (event.target) {
         // if no dataTransfer object found get files the usual way...
@@ -606,9 +615,10 @@ export async function UpFiles(supabase: SupabaseClient<any, "public", any>, even
         if (onlyFiles.length > 0) {
             const files = onlyFiles.map(w => ({
                 file: w,
-                directory
+                directory,
+                onUploaded
             } as FileToUpload))
-            fm?.dispatch({ type: FileActionType.UPLOAD, files })
+            dispatch({ type: FileActionType.UPLOAD, files })
         } else {
             alert("Directory upload are unsupported! Select only files!");
         }
@@ -646,16 +656,17 @@ export function isFile(maybeFile: File) {
 
 /**
  * 
- * @param videoFile A video file to get thumbnail from
+ * @param videoFile A video file to get the thumbnail from
  * @returns An image file that was taken from supplied video
  */
-async function getThumbnailForVideo(videoFile: File) {
+export async function getThumbnailForVideo(videoFile: File) {
     const video = document.createElement("video");
     const canvas = document.createElement("canvas");
     video.style.display = "none";
     canvas.style.display = "none";
     // Trigger video load
     await new Promise((resolve, reject) => {
+        let tmout: NodeJS.Timeout | undefined = undefined;
         video.addEventListener("loadedmetadata", () => {
             video.width = video.videoWidth;
             video.height = video.videoHeight;
@@ -664,9 +675,17 @@ async function getThumbnailForVideo(videoFile: File) {
             // Seek the video to 20%-30%
             video.currentTime = video.duration * (0.2 + Math.random() / 10);
         });
-        video.addEventListener("seeked", () => resolve(0));
         const videoUrl = URL.createObjectURL(videoFile);
+        video.addEventListener("seeked", () => {
+            clearTimeout(tmout);
+            URL.revokeObjectURL(videoUrl);
+            resolve(0)
+        });
         video.src = videoUrl;
+        tmout = setTimeout(() => {
+            URL.revokeObjectURL(videoUrl);
+            reject("Failed to load the video");
+        }, 7000);
     });
 
     // for some reason it says object is possibly null which is not true.
@@ -674,9 +693,12 @@ async function getThumbnailForVideo(videoFile: File) {
     canvas
         .getContext("2d")
         .drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-    const imageBlob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.3));
+    // const imageBlob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+    const imgData = canvas.toDataURL('image/jpeg', 1);
+    const image = await fetch(imgData);
+    const imageBlob = await image.blob();
     if (imageBlob) {
-        return new File([imageBlob], 'thumbnail');
+        return new File([imageBlob], 'thumbnail.jpg', { type: imageBlob.type });
     } else {
         return null;
     }
@@ -684,4 +706,54 @@ async function getThumbnailForVideo(videoFile: File) {
 
 export function getHookLink(id: string, token: string) {
     return `https://discordapp.com/api/webhooks/${id}/${token}`;
+}
+
+export interface PageItems {
+    dirs: Directory[],
+    files: DirFile[],
+    hasNext: boolean,
+    error?: string
+}
+
+/**
+ * Fetches info about files and directories from database
+ * @param supabase supabase
+ * @param direc id of directory to fetch from
+ * @param search_str search string
+ * @param is_global if set to true direc will be ignored and all files will be searched and fetched
+ * @param from_num offset items from
+ * @param to_num offset items to
+ * @param order_column order by
+ * @param order_dir order direction
+ * @returns dirs and files and if has more to fetch
+ */
+export async function getItems(supabase: SupabaseClient<any, "public", any>, direc: number | null, search_str: string, is_global: boolean, from_num: number, to_num: number, order_column: 'name' | 'id' | 'size', order_dir: 'asc' | 'desc'): Promise<PageItems> {
+    const { data, error } = await supabase.rpc('get_items', { direc, search_str, is_global, from_num, to_num: to_num + 1, order_column, order_dir });
+    if (error) {
+        console.log(error);
+        return { dirs: [], files: [], hasNext: false, error: error.message };
+    }
+    const pageSize = to_num - from_num;
+    const hasNext: boolean = data.length > pageSize;
+    if (hasNext) data.pop();
+    // tried to do it with delete object['prop'] but forEach does not return results and typescript doesn't like that
+    const dirs: Directory[] = data.filter(w => w.fileid === null).map(w => ({
+        id: w.id,
+        created_at: w.created_at,
+        dir: w.dir,
+        name: w.name,
+        shared: w.shared
+    }))
+    const files: DirFile[] = data.filter(w => w.fileid !== null).map(w => ({
+        id: w.id,
+        name: w.name,
+        created_at: w.created_at,
+        size: w.size,
+        chanid: w.chanid,
+        fileid: w.fileid,
+        dir: w.dir,
+        previews: w.previews
+    }));
+    return { dirs, files, hasNext };
+
 }

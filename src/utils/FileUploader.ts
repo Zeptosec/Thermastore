@@ -1,6 +1,6 @@
 import axios from "axios";
 import { downloadBlob } from "./FileDownload";
-import { DirFile, Directory, MinimizeName, chunkSize, getFileType } from "./FileFunctions";
+import { DirFile, Directory, MinimizeName, chunkSize, getFileType, getThumbnailForVideo } from "./FileFunctions";
 import imageCompression from "browser-image-compression";
 export interface FileStatus {
     file: File,
@@ -18,7 +18,8 @@ export interface FileStatus {
     controller: AbortController,
     directory?: Directory,
     fileItem?: DirFile,
-    isPaused?: boolean
+    isPaused?: boolean,
+    onUploaded?: (fileItem: DirFile) => void
 }
 
 export interface Endpoint {
@@ -213,31 +214,51 @@ async function uploadChunk(supabase: any, chunk: Blob, file: FileStatus, qindex:
                     // console.log(data);
                     file.fileItem = data;
                 }
-                // if file was an image save a preview
+                let previewFile: File | undefined;
                 if (getFileType(file.file.name) === 'image') {
+                    previewFile = file.file;
+                } else if (getFileType(file.file.name) === 'video') {
+                    try {
+                        const thumbnail = await getThumbnailForVideo(file.file);
+                        if (thumbnail) {
+                            previewFile = thumbnail;
+                        }
+                    } catch (err) {
+                        console.error("Failed to get video thumbnail");
+                        console.error(err);
+                    }
+                }
+                // save file preview if it has one
+                if (previewFile) {
                     try {
                         // would have used jimp and i did but the implementation was terrible it has poor support for browsers i guess
-                        const compressedImage = await imageCompression(file.file, {
+                        const compressedImage = await imageCompression(previewFile, {
                             maxSizeMB: 0.05,
                             maxWidthOrHeight: 320,
                             useWebWorker: true
                         });
-                        console.log(compressedImage);
                         const uploadedPreviewId = await uploadChunkNoStatus(compressedImage);
                         const savedInfo = await supabase
                             .from('previews')
                             .insert({
                                 fileid: uploadedPreviewId,
                                 original: data.id
-                            });
+                            })
+                            .select()
+                            .single();
                         if (savedInfo.error) {
                             console.error('Failed to save image preview to DB');
                             console.error(savedInfo.error);
+                        } else if (file.fileItem) {
+                            file.fileItem.previews = savedInfo.data
                         }
                     } catch (err) {
                         console.error("failed to process image preview.");
                         console.error(err);
                     }
+                }
+                if (file.fileItem && file.onUploaded) {
+                    file.onUploaded(file.fileItem);
                 }
             }
             file.link = `/download/${chanid}/${fdataid}`;

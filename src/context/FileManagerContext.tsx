@@ -1,5 +1,5 @@
 import { downloadFile, getFileData, DownloadStatus } from "@/utils/FileDownload";
-import { Directory, VerifyHook, chunkSize, getHookLink } from "@/utils/FileFunctions";
+import { DirFile, Directory, UpFiles, VerifyHook, chunkSize, getHookLink } from "@/utils/FileFunctions";
 import { Endpoint, uploadFiles, FileStatus } from "@/utils/FileUploader";
 import { Dispatch, createContext, useContext, useEffect, useReducer, useState } from "react";
 import { useSupabaseClient, useUser, User, SupabaseClient, useSessionContext } from "@supabase/auth-helpers-react";
@@ -18,7 +18,8 @@ export interface Exposed {
     getDownloading: (fid: string) => DownloadStatus | null,
     setHook: (id: string, token: string) => Promise<boolean>,
     user: User | null,
-    isLoading: boolean
+    isLoading: boolean,
+    uploadToDir: (direc: Directory | undefined, event: any, updateDirs: (dirs: Directory[]) => void, getUserDirLocation: () => Directory | undefined, onUploaded?: (fileItem: DirFile) => void) => void,
 }
 
 export enum FileActionType {
@@ -27,7 +28,8 @@ export enum FileActionType {
 
 export interface FileToUpload {
     file: File,
-    directory?: Directory
+    directory?: Directory,
+    onUploaded?: (fileItem: DirFile) => void
 }
 
 export type FileAction = {
@@ -57,7 +59,7 @@ let interval: NodeJS.Timer | null = null;
 
 export const FileContext = createContext<Exposed | null>(null);
 
-export default function FileManagerProvider({ children }: any) {
+export function FileManagerProvider({ children }: any) {
     const [hook, sHook] = useState<Endpoint>();
     const supabase = useSupabaseClient();
     const user = useUser();
@@ -150,7 +152,8 @@ export default function FileManagerProvider({ children }: any) {
                             timeleft: 0,
                             errorTime: 0,
                             controller: new AbortController(),
-                            directory: el.directory
+                            directory: el.directory,
+                            onUploaded: el.onUploaded
                         })
                     else {
                         console.warn(`Did not add to upload file again: ${el.file.name}`)
@@ -283,8 +286,20 @@ export default function FileManagerProvider({ children }: any) {
         }
     }
 
+    function uploadToDir(direc: Directory | undefined, event: any, updateDirs: (dirs: Directory[]) => void, getUserDirLocation: () => Directory | undefined, onUploaded?: (fileItem: DirFile) => void) {
+        UpFiles(supabase, event, direc, getUserDirLocation, updateDirs, dispatch, onUploaded);
+    }
+
     return (
-        <FileContext.Provider value={{ state, dispatch, getDownloading, setHook, user, isLoading }}>
+        <FileContext.Provider value={{
+            state,
+            dispatch,
+            getDownloading,
+            setHook,
+            user,
+            isLoading,
+            uploadToDir
+        }}>
             {children}
             {/* <div className="bottom-0 fixed grid w-screen text-white justify-center gap-1">
                 <p>Uploading</p>
@@ -298,4 +313,8 @@ export default function FileManagerProvider({ children }: any) {
     )
 }
 
-export const useFileManager = () => useContext<Exposed | null>(FileContext);
+export default function useFileManager(): Exposed {
+    const context = useContext(FileContext);
+    if (!context) throw new Error("Missing FileContextProvider in parent!");
+    return context;
+}

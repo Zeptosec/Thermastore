@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import { FileActionType, useFileManager } from "@/context/FileManagerContext";
+import useFileManager, { FileActionType } from "@/context/FileManagerContext";
 import FileManager from "./FileManager/FileManager";
 import IconCloud from "@/icons/IconCloud";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -107,7 +107,7 @@ export default function navbar() {
                   Logout
                 </div>
               </button>
-              <Link href='/files'>
+              <Link href='/myfiles'>
                 <div className='lg:inline-flex lg:w-auto w-full px-3 py-2 rounded font-bold items-center justify-center hover:bg-secondary/30 hover:text-tertiary transition-colors duration-200'>
                   Files
                 </div>
