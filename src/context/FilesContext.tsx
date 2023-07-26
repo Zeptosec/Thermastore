@@ -170,7 +170,7 @@ export function FilesContextProvider(props: Props) {
         dirs: [],
         files: [],
         selected: [],
-        currPageSize: 10,
+        currPageSize: 50,
         canNext: false,
         searchStr: "",
         isGlobal: false,

@@ -1,10 +1,9 @@
-import BubbleBackground from "@/components/BubbleBackground";
 import CoolButton from "@/components/CoolButton";
 import CoolLoader from "@/components/CoolLoading2";
 import PreviewFile from "@/components/PreviewFile";
 import StrechableText from "@/components/StrechableText";
 import useFileManager, { FileActionType } from "@/context/FileManagerContext";
-import { downloadFile, DownloadStatus, getFileData } from "@/utils/FileDownload";
+import { DownloadStatus, getFileData } from "@/utils/FileDownload";
 import { BytesToReadable, TimeToReadable } from "@/utils/FileFunctions";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -16,7 +15,6 @@ export default function downloadPage() {
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
     const [fData, setFdata] = useState<DownloadStatus>({ started_at: 0, name: "", size: -1, chunks: [], downloadedBytes: 0, speed: 0, timeleft: 0, precentage: 0, channel_id: "1025526944776867952" });
-    const [downloading, setDownloading] = useState(false);
     const fm = useFileManager();
 
     useEffect(() => {
