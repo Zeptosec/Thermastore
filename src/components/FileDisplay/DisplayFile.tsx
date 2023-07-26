@@ -2,7 +2,6 @@ import { BytesToReadable, Directory, DirFile, equalDir, getFileIconName, getFile
 import Link from "next/link"
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
 import useFileManager, { FileActionType } from "@/context/FileManagerContext";
-import { PlayStatus } from "../ShowFiles";
 import useFiles, { SettingActionType } from "@/context/FilesContext";
 import SelectionBubble from "../SelectionBubble";
 import PlayCircle from "../PlayCircle";
@@ -10,6 +9,13 @@ import FlipCard from "../FlipCard";
 import StrechableText from "../StrechableText";
 import IconDownload from "@/icons/IconDownload";
 import PreviewFile from "../PreviewFile";
+
+export interface PlayStatus {
+    playFile: DirFile,
+    paused: boolean,
+    start: boolean,
+    percent: number
+}
 
 interface Props {
     file: DirFile,
