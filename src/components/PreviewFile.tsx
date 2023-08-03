@@ -19,7 +19,7 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
     const { streamers } = useFileManager();
     useEffect(() => {
         async function getFastestRespond() {
-            const fastestEnd = await getEarliestEnd(streamers, async (rs) => rs.status === 200)
+            const fastestEnd = await getEarliestEnd(streamers)
             const ind = streamers.indexOf(fastestEnd);
             if (ind !== -1) {
                 setSid(ind);
