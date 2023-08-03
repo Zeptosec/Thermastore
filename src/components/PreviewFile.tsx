@@ -85,7 +85,7 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
             {['video', 'audio'].includes(fileType) ?
                 <>
                     <div className="mb-2 text-black grid items-center justify-center">
-                        <select value={sid} onChange={w => setSid(parseInt(w.target.value))} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2">
+                        <select value={sid} onChange={w => setSid(parseInt(w.target.value))} className="bg-secondary border border-primary text-quaternary text-sm rounded-lg focus:ring-tertiary focus:border-tertiary block w-full p-2 outline-none">
                             {streamers.map((w, ind) => (
                                 <option key={ind} value={ind}>Stream server: {w.name}</option>
                             ))}
