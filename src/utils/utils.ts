@@ -1,6 +1,10 @@
 import { Files } from "@/context/FilesContext";
 import { NextRouter } from "next/router";
 
+export interface PropsWithClass {
+    className?: string
+}
+
 export function changeTheme(theme: string) {
     const htmls = document.getElementsByTagName('html');
     // assume first html in the collections is the one with theme attribute
@@ -103,4 +107,45 @@ export function getRouteParamsFromPath(path: string): RouteParams {
             rez.g = g === 'true';
     }
     return rez;
+}
+
+/**
+ * Checks if url string is a valid URL. Fails on special cases...
+ * @param url string of url to check
+ * @returns true if url is valid. Otherwise false.
+ */
+export function isValidUrl(url: string): boolean {
+    try {
+        const nurl = new URL(url);
+        return nurl.protocol === "http:" || nurl.protocol === "https:";
+    } catch (_) {
+        return false;
+    }
+
+}
+
+/**
+ * Extracts subdomain from streamer link to be used as name.
+ * @param url streamer link
+ * @returns subdomain or domain if subdomain is not defined.
+ */
+export function getStreamerName(url: string): string {
+    const lastDot = url.lastIndexOf('.');
+    const protocolInd = url.indexOf('://');
+    if (lastDot !== -1) {
+        const beforeLastDot = url.lastIndexOf('.', lastDot - 2);
+        if (beforeLastDot !== -1) {
+            return url.slice(beforeLastDot + 1, lastDot);
+        } else {
+            return url.slice(protocolInd + 3, lastDot);
+        }
+    } else {
+        // this should never fire
+        if (protocolInd !== -1) {
+            return url.slice(protocolInd + 3);
+        } else {
+            // could not find dot or slashes after protocal
+            return url;
+        }
+    }
 }

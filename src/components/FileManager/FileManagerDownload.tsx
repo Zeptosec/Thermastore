@@ -3,6 +3,7 @@ import StrechableText from "../StrechableText"
 import { BytesToReadable, TimeToReadable } from "@/utils/FileFunctions"
 import Link from "next/link"
 import { useState } from "react"
+import IconChevronDown from "@/icons/IconChevronDown"
 
 interface Props {
     status: DownloadStatus
@@ -23,8 +24,8 @@ export default function FileManagerDownload({ status }: Props) {
                 <div className="z-20 flex flex-row text-center sm:text-left gap-1 sm:gap-4 items-center justify-between sm:justify-end">
                     {status.precentage === 1 ? <p>Downloaded!</p> : <>
                         <p className="whitespace-nowrap">{TimeToReadable(status.timeleft)}</p>
-                        <div onClick={() => setOpen(w => !w)} className="relative w-[22px] h-[22px]">
-                            <i className={`gg-chevron-down z-10 w-[22px] h-[22px] cursor-pointer hover:text-tertiary transition-all ${open ? 'rotate-180' : ''}`}></i>
+                        <div onClick={() => setOpen(w => !w)} className={`relative w-6 h-6 cursor-pointer hover:text-tertiary transition-all ${open ? 'rotate-180' : ''}`}>
+                            <IconChevronDown className="z-10" />
                         </div>
                     </>}
                 </div>

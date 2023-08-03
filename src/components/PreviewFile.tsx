@@ -2,8 +2,8 @@ import { DownloadStatus, getEarliestEnd, getImage, getImageHref, getImagePreview
 import { getFileType, DirFile, FileType } from "@/utils/FileFunctions";
 import { Endpoint } from "@/utils/FileUploader";
 import { useEffect, useState } from "react";
-import { endPoints } from "@/utils/FileFunctions";
 import CoolLoader from "./CoolLoading2";
+import useFileManager from "@/context/FileManagerContext";
 
 interface Props {
     file?: DownloadStatus,
@@ -12,16 +12,15 @@ interface Props {
     cid: string
 }
 
-const streams: Endpoint[] = endPoints;
-
 export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
     const [sid, setSid] = useState(0);
     const [href, setHref] = useState<{ url?: string, loadState: 'loading' | 'loaded' | 'failed' | 'nopreview' }>({ loadState: 'loading' });
     const fileType: FileType = file ? getFileType(file.name) : dirFile ? getFileType(dirFile.name) : 'file';
+    const { streamers } = useFileManager();
     useEffect(() => {
         async function getFastestRespond() {
-            const fastestEnd = await getEarliestEnd(endPoints, async (rs) => rs.status === 200)
-            const ind = endPoints.indexOf(fastestEnd);
+            const fastestEnd = await getEarliestEnd(streamers, async (rs) => rs.status === 200)
+            const ind = streamers.indexOf(fastestEnd);
             if (ind !== -1) {
                 setSid(ind);
             }
@@ -32,7 +31,7 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
             if (dirFile) {
                 if (dirFile.size <= limit) {
                     try {
-                        const hr = await getImage(dirFile.chanid, dirFile.fileid);
+                        const hr = await getImage(dirFile.chanid, dirFile.fileid, streamers);
                         setHref({ url: hr, loadState: 'loaded' });
                         prevLoaded = true;
                     } catch (err) {
@@ -41,7 +40,7 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
                     }
                 } else if (dirFile.previews) {
                     try {
-                        const hr = await getImagePreviewHref(dirFile);
+                        const hr = await getImagePreviewHref(dirFile, streamers);
                         setHref({ url: hr, loadState: 'loaded' });
                         prevLoaded = true;
                     } catch (err) {
@@ -52,7 +51,7 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
             }
             if (!prevLoaded && file && file.size <= limit) {
                 try {
-                    const hr = await getImageHref(file, cid);
+                    const hr = await getImageHref(file, cid, streamers);
                     setHref({
                         url: hr,
                         loadState: 'loaded'
@@ -87,16 +86,16 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
                 <>
                     <div className="mb-2 text-black grid items-center justify-center">
                         <select value={sid} onChange={w => setSid(parseInt(w.target.value))} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2">
-                            {streams.map((w, ind) => (
+                            {streamers.map((w, ind) => (
                                 <option key={ind} value={ind}>Stream server: {w.name}</option>
                             ))}
                         </select>
                     </div>
                     {fileType === 'video' ? <div>
-                        <video crossOrigin="" className="w-full outline-none max-h-[800px]" controls controlsList="nodownload" src={`${streams[sid].link}/stream/${cid}/${fid}`}></video>
+                        <video crossOrigin="" className="w-full outline-none max-h-[800px]" controls controlsList="nodownload" src={`${streamers[sid].link}/stream/${cid}/${fid}`}></video>
                     </div> : ""}
                     {fileType === 'audio' ? <div>
-                        <audio crossOrigin="" className="w-full outline-none" controls controlsList="nodownload" src={`${streams[sid].link}/stream/${cid}/${fid}`}></audio>
+                        <audio crossOrigin="" className="w-full outline-none" controls controlsList="nodownload" src={`${streamers[sid].link}/stream/${cid}/${fid}`}></audio>
                     </div> : ""}
                 </> : ""}
             {(fileType === 'image') ? <div className="grid justify-center">

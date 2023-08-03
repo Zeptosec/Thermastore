@@ -1,3 +1,5 @@
+import IconPause from "@/icons/IconPause";
+import IconPlayButton from "@/icons/IconPlayButton";
 
 interface Props {
     percent?: number,
@@ -39,8 +41,8 @@ export default function PlayCircle({ percent, radius, stroke, paused, onClick, c
                 />
             </svg>
             {isPaused ?
-                <abbr className="absolute top-0 left-0" title="Play"><i className="gg-play-button"></i></abbr> :
-                <abbr className="absolute top-1.5 left-[7px]" title="Pause"><i className="gg-play-pause"></i></abbr>}
+                <abbr className="absolute top-0 left-0" title="Play"><IconPlayButton /></abbr> :
+                <abbr className="absolute top-1.5 left-[7px]" title="Pause"><IconPause /></abbr>}
         </div >
     )
 }

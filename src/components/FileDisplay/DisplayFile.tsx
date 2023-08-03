@@ -1,6 +1,6 @@
-import { BytesToReadable, Directory, DirFile, equalDir, getFileIconName, getFileType, getReadableDate, indexOfSelected, MinimizeName } from "@/utils/FileFunctions"
+import { BytesToReadable, DirFile, equalDir, getFileType, getReadableDate, indexOfSelected, MinimizeName } from "@/utils/FileFunctions"
 import Link from "next/link"
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import useFileManager, { FileActionType } from "@/context/FileManagerContext";
 import useFiles, { SettingActionType } from "@/context/FilesContext";
 import SelectionBubble from "../SelectionBubble";
@@ -9,6 +9,10 @@ import FlipCard from "../FlipCard";
 import StrechableText from "../StrechableText";
 import IconDownload from "@/icons/IconDownload";
 import PreviewFile from "../PreviewFile";
+import IconLink from "@/icons/IconLink";
+import FileIcon from "../FileIcon";
+import IconRename from "@/icons/IconRename";
+import IconChevronDown from "@/icons/IconChevronDown";
 
 export interface PlayStatus {
     playFile: DirFile,
@@ -110,20 +114,18 @@ export default function DisplayFile({ file, playing, togglePlay, selectable, Sel
             <div className="flex justify-between gap-1 overflow-hidden">
                 <SelectionBubble file={file} selected={fs.state.selected}>
                     <div className="flex gap-2 items-center overflow-hidden">
-                        <div className="min-w-[20px] min-h-[20px] w-5 h-5 m-auto block">
+                        <div className="min-w-[24px] min-h-[24px] w-5 h-5 m-auto block">
                             {getFileType(file.name) === 'audio' ? equalDir(playing?.playFile, file) ?
                                 <div onClick={() => togglePlay(file)} ref={audioBtn}>
                                     <PlayCircle className="cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200" radius={11} percent={playing?.percent} stroke={1} paused={playing?.paused} />
                                 </div> :
                                 <FlipCard>
-                                    <i className={`gg-${getFileIconName(file.name)} m-auto text-quaternary group-hover:text-tertiary transition-colors duration-200`}></i>
+                                    <FileIcon name={file.name} />
                                     <div onClick={() => togglePlay(file)} ref={audioBtn}>
                                         <PlayCircle className="cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200" radius={11} stroke={1} />
-                                        {/* <button className={playing?.playFile.created_at === file.created_at ? "hidden" : ""} onClick={() => togglePlay(file)}><i className="gg-play-button-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button>
-                                    <button className={playing?.playFile.created_at !== file.created_at ? "hidden" : ""} onClick={() => togglePlay(file)}><i className="gg-play-pause-o m-auto text-blue-900 group-hover:text-blue-700 transition-colors duration-200"></i></button> */}
                                     </div>
                                 </FlipCard> :
-                                <i className={`gg-${getFileIconName(file.name)} m-auto text-quaternary group-hover:text-tertiary transition-colors duration-200`}></i>
+                                <FileIcon name={file.name} />
                             }
 
                         </div>
@@ -138,8 +140,8 @@ export default function DisplayFile({ file, playing, togglePlay, selectable, Sel
                 </SelectionBubble>
                 <div className="flex gap-2 items-center">
                     <p className="whitespace-nowrap text-tertiary">{BytesToReadable(file.size)}</p>
-                    <div onClick={() => setOpen(w => !w)} ref={refCopy} className="relative w-[22px] h-[22px]">
-                        <i className={`gg-chevron-down z-10 text-quaternary w-[22px] h-[22px] cursor-pointer hover:text-tertiary transition-all ${open ? 'rotate-180' : ''}`}></i>
+                    <div onClick={() => setOpen(w => !w)} ref={refCopy} className={`relative w-6 h-6  text-quaternary cursor-pointer hover:text-tertiary transition-all ${open ? 'rotate-180' : ''}`}>
+                        <IconChevronDown className="z-10" />
                     </div>
                 </div>
             </div>
@@ -155,7 +157,7 @@ export default function DisplayFile({ file, playing, togglePlay, selectable, Sel
                                 <abbr
                                     title="Copy link"
                                     className="w-6 h-6 flex justify-center items-center">
-                                    <i className="gg-link "></i>
+                                    <IconLink />
                                 </abbr>
                             </div>
                             <div onClick={() => fm?.dispatch({ type: FileActionType.DOWNLOAD, cid: file.chanid, fid: file.fileid })} className="flex justify-end gap-2 items-center cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200">
@@ -166,7 +168,7 @@ export default function DisplayFile({ file, playing, togglePlay, selectable, Sel
                             </div>
                             {!isNaming && selectable ? <div onClick={() => setIsNaming(w => !w)} className="flex gap-2 items-center justify-end cursor-pointer mr-0.5 text-quaternary hover:text-tertiary transition-colors duration-200">
                                 <p>Rename</p>
-                                <abbr title="Rename"><i className="gg-rename"></i></abbr>
+                                <abbr title="Rename" className="w-6 h-6"><IconRename /></abbr>
                             </div> : ""}
                         </div>
                     </div>

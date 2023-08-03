@@ -1,5 +1,6 @@
 // Not used anywhere for whatever reason...
 
+import IconChevronDown from "@/icons/IconChevronDown";
 import { useEffect, useRef, useState } from "react"
 
 interface Props {
@@ -9,7 +10,7 @@ interface Props {
     markerClass?: string,
 }
 
-export default function OptionsDropdown({ children, markerClass = '', panelNames = '', dropdownClass = 'gg-chevron-down' }: Props) {
+export default function OptionsDropdown({ children, markerClass = '', panelNames = '' }: Props) {
     const [open, setOpen] = useState(false);
     const panel = useRef<HTMLDivElement>(null);
     const visible = useRef<HTMLDivElement>(null);
@@ -55,8 +56,8 @@ export default function OptionsDropdown({ children, markerClass = '', panelNames
 
     return (
         <div ref={panel} className="w-[22px] absolute">
-            <div onClick={() => drop()} className={`${markerClass} text-blue-900 w-[22px] h-[22px] cursor-pointer hover:text-blue-600 transition-all ${open ? `${Math.random() > 0.5 ? 'rotate-180' : '-rotate-180'}` : ''}`}>
-                <i className={`${dropdownClass} z-10`}></i>
+            <div onClick={() => drop()} className={`${markerClass} text-blue-900 w-6 h-6 cursor-pointer hover:text-blue-600 transition-all ${open ? 'rotate-180' : ''}`}>
+                <IconChevronDown className="z-10" />
             </div>
             <div ref={visible} className={`${panelNames} min-w-[150px] z-20 top-8 -right-2 absolute transition-all ease-in duration-300 overflow-hidden ${open ? 'max-h-32' : 'max-h-0'}`}>
                 <div className={` bg-cyan-400/[.9] rounded-xl p-2 grid gap-3`}>

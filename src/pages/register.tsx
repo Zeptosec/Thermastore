@@ -31,14 +31,14 @@ export default function registerPage() {
     }
 
     return (
-        <div className={styles.background + " pt-9"}>
+        <div className={styles.background + " text-quaternary pt-9"}>
             <Head>
                 <title>Register</title>
                 <meta property="og:description" content="Register for saving and searching through your uploaded files!" key="desc" />
             </Head>
             <div className={styles.formplace}>
                 <div className={styles.header}>
-                    <h2 className=" text-white text-2xl">Register</h2>
+                    <h2 className=" text-2xl">Register</h2>
                 </div>
                 <form className={styles.form} onSubmit={login}>
                     <input className={styles['form-input']} placeholder="Email" onChange={w => setEmail(w.target.value)} type="email" name="email" />

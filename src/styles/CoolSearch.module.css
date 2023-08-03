@@ -16,7 +16,7 @@
     font-size: 14px;
     transition: all 0.3s ease;
     cursor: pointer;
-    color: #fff;
+    color: rgb(var(--color-quaternary));
 }
 
 .search input+div {

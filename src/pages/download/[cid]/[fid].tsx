@@ -20,13 +20,15 @@ export default function downloadPage() {
     useEffect(() => {
         if (!fid || !cid) return;
         const fetchData = async () => {
-            const dt = fm?.getDownloading(fid as string);
+            const dt = fm.getDownloading(fid as string);
             if (dt) {
                 setFdata(dt);
             } else {
-                let data = await getFileData(fid as string, cid as string, setLoadError);
+                let data = await getFileData(fid as string, cid as string, fm.streamers, setLoadError);
                 if (data)
                     setFdata(w => ({ ...w, ...data }));
+                else
+                    setLoadError("Failed to get file data. All file download services are down! Consider running one locally from https://github.com/Zeptosec/Streamer")
             }
             setLoading(false);
         }
@@ -36,14 +38,14 @@ export default function downloadPage() {
     useEffect(() => {
         if (fData.started_at !== 0)
             return;
-        const dt = fm?.getDownloading(fid as string);
+        const dt = fm.getDownloading(fid as string);
         if (dt) {
             setFdata(dt);
         }
-    }, [fm?.state.downloading])
+    }, [fm.state.downloading])
 
     function download() {
-        fm?.dispatch({ type: FileActionType.DOWNLOAD, cid: cid as string, fid: fid as string, fData });
+        fm.dispatch({ type: FileActionType.DOWNLOAD, cid: cid as string, fid: fid as string, fData });
     }
 
     return (
@@ -56,7 +58,7 @@ export default function downloadPage() {
                 <meta property="og:description" key="desc" content="Download or preview this file" />
             </Head>
             {/* <BubbleBackground /> */}
-            <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[72px]">
+            <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[90px]">
                 <div className="grid gap-4">
                     {loading ? <>
                         <CoolLoader />

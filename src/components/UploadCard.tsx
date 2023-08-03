@@ -4,6 +4,8 @@ import { BytesToReadable, MinimizeName, TimeToReadable } from "@/utils/FileFunct
 import Link from "next/link";
 import useFileManager from "@/context/FileManagerContext";
 import { FileActionType } from "@/context/FileManagerContext";
+import IconPlayStopRounded from "@/icons/IconPlayStopRounded";
+import IconPlayButtonRounded from "@/icons/IconPlayButtonRounded";
 
 export default function UploadCard({ file, className }: { file: FileStatus, className?: string }) {
     const fm = useFileManager();
@@ -38,8 +40,8 @@ export default function UploadCard({ file, className }: { file: FileStatus, clas
                             <p className="whitespace-nowrap">{BytesToReadable(file.uploadedBytes)}/{BytesToReadable(file.file.size)}</p>
                         </>}
                         {file.controller.signal.aborted ?
-                            <abbr title="Continue upload" className="flex justify-center sm:block cursor-pointer transition-colors duration-200 hover:text-secondary" onClick={() => fm?.dispatch({ type: FileActionType.RESUME_UPLOAD, status: file })}><i className="gg-play-button-r"></i></abbr> :
-                            <abbr title="Pause upload" className="flex justify-center sm:block cursor-pointer transition-colors duration-200 hover:text-secondary" onClick={() => Stop(file, "Upload stopped by user")}><i className="gg-play-stop-r"></i></abbr>}
+                            <abbr title="Continue upload" className="flex justify-center sm:block cursor-pointer transition-colors duration-200 hover:text-secondary" onClick={() => fm?.dispatch({ type: FileActionType.RESUME_UPLOAD, status: file })}><IconPlayButtonRounded /></abbr> :
+                            <abbr title="Pause upload" className="flex justify-center sm:block cursor-pointer transition-colors duration-200 hover:text-secondary" onClick={() => Stop(file, "Upload stopped by user")}><IconPlayStopRounded /></abbr>}
                     </div>
                 </>}
         </div>

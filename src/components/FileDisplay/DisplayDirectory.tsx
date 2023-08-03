@@ -4,6 +4,13 @@ import SelectionBubble from "../SelectionBubble";
 import AnimatedDropZone from "../AnimatedDropZone";
 import StrechableText from "../StrechableText";
 import useFiles, { SettingActionType } from "@/context/FilesContext";
+import IconLink from "@/icons/IconLink";
+import IconAddRounded from "@/icons/IconAddRounded";
+import IconFolder from "@/icons/IconFolder";
+import IconRename from "@/icons/IconRename";
+import IconUnlocked from "@/icons/IconUnlocked";
+import IconLocked from "@/icons/IconLocked";
+import IconChevronDown from "@/icons/IconChevronDown";
 
 interface Props {
     dir: Directory,
@@ -123,8 +130,8 @@ export default function DisplayDirectory({ dir, selectable, SelectMultiple, drop
                 <div className="flex justify-between overflow-hidden">
                     <SelectionBubble file={dir} selected={fs.state.selected}>
                         <div className="flex gap-2 items-center justify-center overflow-hidden">
-                            <div className="w-5 h-4 m-auto block">
-                                <i className="gg-folder m-auto text-quaternary group-hover:text-tertiary transition-colors duration-200"></i>
+                            <div className="w-6 h-6 m-auto block text-quaternary group-hover:text-tertiary transition-colors duration-200">
+                                <IconFolder />
                             </div>
                             {isNaming ?
                                 <form onSubmit={w => { w.preventDefault(); saveName(); }}>
@@ -136,9 +143,9 @@ export default function DisplayDirectory({ dir, selectable, SelectMultiple, drop
                         </div>
                     </SelectionBubble>
                     <div ref={refExpand} className={`flex items-center gap-2`}>
-                        {fs.state.selected.length > 0 ? <abbr title="Move to this directory"><i onClick={moveSelected} className={`gg-add-r cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200`}></i></abbr> : ""}
-                        <div onClick={() => setOpen(w => !w)} className="relative w-[22px] h-[22px]">
-                            <i className={`gg-chevron-down z-10 text-quaternary w-[22px] h-[22px] cursor-pointer hover:text-tertiary transition-all ${open ? 'rotate-180' : ''}`}></i>
+                        {fs.state.selected.length > 0 ? <abbr className="cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200" onClick={moveSelected} title="Move to this directory"><IconAddRounded /></abbr> : ""}
+                        <div onClick={() => setOpen(w => !w)} className={`relative w-6 h-6 text-quaternary cursor-pointer hover:text-tertiary transition-all ${open ? 'rotate-180' : ''}`}>
+                            <IconChevronDown className="z-10" />
                         </div>
                     </div>
                 </div>
@@ -148,12 +155,12 @@ export default function DisplayDirectory({ dir, selectable, SelectMultiple, drop
                     </div>
                     <div ref={refOptions} className="grid gap-1">
                         {selectable ? <div onClick={() => shareManager()} className=" cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200">
-                            {shared ? <div className="flex gap-3 items-center mr-0.5">
+                            {shared ? <div className="flex gap-2 items-center">
                                 <p className="whitespace-nowrap">Stop sharing</p>
-                                <abbr title="Stop sharing" className="w-6 h-6"><i className="gg-lock-unlock m-auto ml-2"></i></abbr>
-                            </div> : <div className="flex gap-3 items-center mr-0.5">
+                                <abbr title="Stop sharing" className="w-6 h-6"><IconUnlocked /></abbr>
+                            </div> : <div className="flex gap-2 items-center">
                                 <p className="whitespace-nowrap">Start sharing</p>
-                                <abbr className="w-6 h-6" title="Start sharing"><i className="gg-lock m-auto ml-2"></i></abbr>
+                                <abbr className="w-6 h-6" title="Start sharing"><IconLocked /></abbr>
                             </div>}
                         </div> : ""}
                         {shared ? <div onClick={() => copyClipboard()} className="whitespace-nowrap flex gap-2 justify-end cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200">
@@ -161,12 +168,12 @@ export default function DisplayDirectory({ dir, selectable, SelectMultiple, drop
                             <abbr
                                 title="Copy link"
                                 className="w-6 h-6 ">
-                                <i className="gg-link mt-3 ml-2 "></i>
+                                <IconLink className="mt-0.5" />
                             </abbr>
                         </div> : ''}
                         {!isNaming && selectable ? <div onClick={() => setIsNaming(w => !w)} className="whitespace-nowrap flex justify-end gap-2 items-center cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200">
                             <p>Rename</p>
-                            <abbr className="w-6 h-6" title="Rename"><i className="gg-rename m-auto mt-1"></i></abbr>
+                            <abbr className="w-6 h-6" title="Rename"><IconRename /></abbr>
                         </div> : ''}
                     </div>
                 </div>

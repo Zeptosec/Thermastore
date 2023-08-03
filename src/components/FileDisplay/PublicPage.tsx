@@ -5,6 +5,11 @@ import Pathline from "../Pathline";
 import DisplayFiles from "./DisplayFiles";
 import { useState } from "react";
 import { Directory } from "@/utils/FileFunctions";
+import IconArrowLeft from "@/icons/IconArrowLeft";
+import IconAddRounded from "@/icons/IconAddRounded";
+import IconCloseRounded from "@/icons/IconCloseRounded";
+import IconArrowRight from "@/icons/IconArrowRight";
+import IconTrash from "@/icons/IconTrash";
 
 interface Props {
     rootDir?: Directory
@@ -36,12 +41,12 @@ export default function PublicPage(props: Props) {
                     <Pathline dirHistory={fs.state.dirHistory} pressedDir={fs.pressedDir} rootDir={props.rootDir} />
                     <div className="flex justify-between px-3 h-6">
                         <div className="flex gap-2 items-center">
-                            {fs.state.dirHistory.length > 0 ? <abbr title="Back" onClick={() => fs.pressedBack()}><i className="gg-arrow-left cursor-pointer transition-colors duration-200 hover:text-tertiary"></i></abbr> : ""}
+                            {fs.state.dirHistory.length > 0 ? <abbr className="cursor-pointer transition-colors duration-200 hover:text-tertiary" title="Back" onClick={() => fs.pressedBack()}><IconArrowLeft /></abbr> : ""}
                         </div>
                         {fs.state.selected.length > 0 ? <div className="flex gap-2 items-center">
-                            <abbr className="cursor-pointer transition-colors duration-200 hover:text-tertiary w-[22px] h-[22px] flex justify-center items-center" title="Move selected here"><i onClick={() => fs.moveSelected(fs.state.dirHistory.length > 0 ? fs.state.dirHistory[fs.state.dirHistory.length - 1].id : null)} className="gg-add-r"></i></abbr>
-                            <abbr className="cursor-pointer transition-colors duration-200 hover:text-tertiary w-[22px] h-[22px] flex justify-center items-center" onClick={() => fs.dispatch({ type: SettingActionType.SET_SELECTED, selected: [] })} title="Deselect all"><i className="gg-close-r"></i></abbr>
-                            <abbr className="cursor-pointer transition-colors duration-200 hover:text-tertiary w-[22px] h-[22px] flex justify-center items-center" onClick={() => fs.deleteSelected()} title="Delete selected"><i className="gg-trash"></i></abbr>
+                            <abbr className="cursor-pointer transition-colors duration-200 hover:text-tertiary w-[22px] h-[22px] flex justify-center items-center" onClick={() => fs.moveSelected(fs.state.dirHistory.length > 0 ? fs.state.dirHistory[fs.state.dirHistory.length - 1].id : null)} title="Move selected here"><IconAddRounded /></abbr>
+                            <abbr className="cursor-pointer transition-colors duration-200 hover:text-tertiary w-[22px] h-[22px] flex justify-center items-center" onClick={() => fs.dispatch({ type: SettingActionType.SET_SELECTED, selected: [] })} title="Deselect all"><IconCloseRounded /></abbr>
+                            <abbr className="cursor-pointer transition-colors duration-200 hover:text-tertiary w-[22px] h-[22px] flex justify-center items-center" onClick={() => fs.deleteSelected()} title="Delete selected"><IconTrash /></abbr>
                         </div> : ""}
                         <div className="flex items-center gap-2">
                             <abbr title="Search for files"><CoolSearch inputChanged={onSearchChanged} text={fs.state.searchStr} /></abbr>
@@ -55,15 +60,15 @@ export default function PublicPage(props: Props) {
                         {fs.state.currPage > 1 || fs.state.canNext ? <div className={`flex justify-between items-center px-3`}>
                             <div>
                                 {fs.state.currPage > 1 ? <div className=" cursor-pointer transition-colors duration-200 hover:text-tertiary">
-                                    <abbr title="Previous page">
-                                        <i onClick={() => fs.dispatch({ type: SettingActionType.GET_ITEMS, page: fs.state.currPage - 1 })} className="gg-arrow-left"></i>
+                                    <abbr onClick={() => fs.dispatch({ type: SettingActionType.GET_ITEMS, page: fs.state.currPage - 1 })} title="Previous page">
+                                        <IconArrowLeft />
                                     </abbr>
                                 </div> : ""}
                             </div>
                             <div>
                                 {fs.state.canNext ? <div className=" cursor-pointer transition-colors duration-200 hover:text-tertiary">
-                                    <abbr title="Next page">
-                                        <i onClick={() => fs.dispatch({ type: SettingActionType.GET_ITEMS, page: fs.state.currPage + 1 })} className="gg-arrow-right"></i>
+                                    <abbr title="Next page" onClick={() => fs.dispatch({ type: SettingActionType.GET_ITEMS, page: fs.state.currPage + 1 })} >
+                                        <IconArrowRight />
                                     </abbr>
                                 </div> : ""}
                             </div>

@@ -1,7 +1,7 @@
 .background {
     animation: move 10s ease infinite;
     transform: translate3d(0, 0, 0);
-    background: linear-gradient(45deg, #4cc997 10%, #84b7e0 90%);
+    background: linear-gradient(45deg, rgb(var(--color-primary)) 10%, rgb(var(--color-secondary)) 90%);
     height: 100vh;
 }
 
@@ -9,14 +9,14 @@
     width: 90%;
     max-width: 340px;
     margin: auto;
-    padding-top: 10vh;
+    padding-top: calc(10vh + 30px);
 }
 
 .header {
     text-align: center;
     opacity: 0;
     transform: translate3d(0, 0, 0);
-    animation: arrive 500ms ease-in-out 0.7s forwards;
+    animation: arrive 500ms ease-in-out 0.3s forwards;
 }
 
 .form-input {
@@ -27,8 +27,14 @@
     border: 0;
     outline: 0;
     transition: .3s;
-    color: black;
-    caret-color: black;
+    color: rgb(var(--color-quaternary));
+    background-color: rgb(var(--color-primary));
+    caret-color: rgb(var(--color-quaternary));
+}
+
+.form-input::placeholder {
+    color: rgb(var(--color-quaternary));
+    opacity: 0.5;
 }
 
 .button {
@@ -38,13 +44,13 @@
     -webkit-appearance: none;
     outline: 0;
     border: 0;
-    color: white;
-    background: #4c8bff;
+    color: rgb(var(--color-quaternary));
+    background: rgb(var(--color-secondary));
     transition: 0.3s;
 }
 
 .button:hover {
-    background:#3a70d4;
+    background:rgb(var(--color-tertiary));
 }
 
 .form-input:focus {
@@ -57,7 +63,13 @@
     overflow: hidden;
     opacity: 0;
     transform: translate3d(0, 0, 0);
-    animation: arrive 500ms ease-in-out 0.9s forwards;
+    animation: arrive 500ms ease-in-out 0.5s forwards;
+}
+.forgot {
+    margin: 10px 0;
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+    animation: arrive 500ms ease-in-out 0.7s forwards;
 }
 
 @keyframes arrive {

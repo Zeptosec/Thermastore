@@ -8,29 +8,29 @@ export const chunkSize = 25 * 1024 ** 2 - 256;
 
 const marks = ["B", "KB", "MB", "GB", "TB", "PB"];
 
-export const endPoints: Endpoint[] = [
-    {
-        link: 'https://thestr.onrender.com',
-        occupied: 0,
-        name: 'render'
-    },
-    {
-        link: 'https://unmarred-accidental-eel.glitch.me',
-        occupied: 0,
-        name: "glitch"
-    },
-    // {
-    //     link: 'https://streamer.teisingas.repl.co',
-    //     occupied: 0,
-    //     name: 'replit'
-    // },
-    {
-        link: 'https://next-streamer-nigerete123.koyeb.app',
-        occupied: 0,
-        name: 'koyeb'
-    },
-    { link: 'http://localhost:8000', occupied: 0, name: 'localhost' }
-]
+// export const endPoints: Endpoint[] = [
+//     {
+//         link: 'https://thestr.onrender.com',
+//         occupied: 0,
+//         name: 'render'
+//     },
+//     {
+//         link: 'https://unmarred-accidental-eel.glitch.me',
+//         occupied: 0,
+//         name: "glitch"
+//     },
+//     // {
+//     //     link: 'https://streamer.teisingas.repl.co',
+//     //     occupied: 0,
+//     //     name: 'replit'
+//     // },
+//     {
+//         link: 'https://next-streamer-nigerete123.koyeb.app',
+//         occupied: 0,
+//         name: 'koyeb'
+//     },
+//     { link: 'http://localhost:8000', occupied: 0, name: 'localhost' }
+// ]
 
 /**
  * 
@@ -136,175 +136,6 @@ export function equalDir(file1?: (DirFile | Directory) | null, file2?: (DirFile 
     return file1.created_at === file2.created_at && file1.id === file2.id;
 }
 
-async function getDirectories(supabase: SupabaseClient<any, "public", any>, from: number, to: number, dir: number | null, searchStr: string, isGlobal: boolean) {
-    const sortBy = 'name'
-    if (searchStr.length > 0) {
-        return isGlobal ?
-            await supabase
-                .from('directories')
-                .select('id, name, created_at, dir, shared', { count: 'estimated' })
-                .like('name', `%${searchStr}%`)
-                .order(sortBy, { ascending: true })
-                .range(from, to)
-            : dir === null ?
-                await supabase
-                    .from('directories')
-                    .select('id, name, created_at, dir, shared', { count: 'estimated' })
-                    .is('dir', null)
-                    .like('name', `%${searchStr}%`)
-                    .order(sortBy, { ascending: true })
-                    .range(from, to)
-                :
-                await supabase
-                    .from('directories')
-                    .select('id, name, created_at, dir, shared')
-                    .eq('dir', dir)
-                    .like('name', `%${searchStr}%`)
-                    .order(sortBy, { ascending: true })
-                    .range(from, to);
-    } else {
-        return dir === null ?
-            await supabase
-                .from('directories')
-                .select('id, name, created_at, dir, shared', { count: 'estimated' })
-                .is('dir', null)
-                .order(sortBy, { ascending: true })
-                .range(from, to)
-            :
-            await supabase
-                .from('directories')
-                .select('id, name, created_at, dir, shared', { count: 'estimated' })
-                .eq('dir', dir)
-                .order(sortBy, { ascending: true })
-                .range(from, to);
-    }
-}
-
-async function getFiles(supabase: SupabaseClient<any, "public", any>, from: number, to: number, dir: number | null, searchStr: string, isGlobal: boolean) {
-    const sortBy = 'name';
-    if (searchStr.length > 0) {
-        return isGlobal ?
-            await supabase
-                .from('files')
-                .select('id, name, created_at, size, chanid, fileid, dir')
-                .like('name', `%${searchStr}%`)
-                .order(sortBy, { ascending: true })
-                .range(from, to)
-            :
-            dir === null ?
-                await supabase
-                    .from('files')
-                    .select('id, name, created_at, size, chanid, fileid, dir')
-                    .is('dir', null)
-                    .like('name', `%${searchStr}%`)
-                    .order(sortBy, { ascending: true })
-                    .range(from, to) :
-                await supabase
-                    .from('files')
-                    .select('id, name, created_at, size, chanid, fileid, dir')
-                    .eq('dir', dir)
-                    .order(sortBy, { ascending: true })
-                    .like('name', `%${searchStr}%`)
-                    .range(from, to)
-
-    } else {
-        return dir === null ?
-            await supabase
-                .from('files')
-                .select('id, name, created_at, size, chanid, fileid, dir, previews(fileid)')
-                .is('dir', null)
-                .order(sortBy, { ascending: true })
-                .range(from, to) :
-            await supabase
-                .from('files')
-                .select('id, name, created_at, size, chanid, fileid, dir, previews(fileid)')
-                .eq('dir', dir)
-                .order(sortBy, { ascending: true })
-                .range(from, to)
-    }
-}
-/// remember what this function does and fix if i think its wrong..
-export async function fetchFilesFromDB(supabase: SupabaseClient<any, "public", any>, from: number, to: number, dir: number | null | object, prevDirsCount: number, pageSize: number, getDirsFunc: Function, getFilesFunc: Function, searchStr: string, isGlobal: boolean)
-    : Promise<{ arr: (Directory | DirFile)[], next: boolean, dirs: { count: number, data: Directory[], error: string | undefined, hasNext: boolean } }> {
-    let arr: (Directory | DirFile)[] = [];
-
-    let dirs = { count: 0, data: [], error: undefined, hasNext: false };
-    if (from === prevDirsCount) {
-        const dbdirs = await getDirsFunc(supabase, from, to, dir, searchStr, isGlobal);
-        dirs.data = dbdirs.data;
-        dirs.error = dbdirs.error;
-        dirs.count = dbdirs.data.length;
-    }
-    if (dirs.error) {
-        console.log(dirs.error);
-    } else {
-        dirs.count = dirs.data.length;
-        if (dirs.count > pageSize) {
-            dirs.hasNext = true;
-            dirs.data.pop();
-            dirs.count -= 1;
-        }
-        arr.push(...dirs.data);
-    }
-    // console.log(`before`, from, to, dirs.count, prevDirsCount)
-    if (dirs.count)
-        to -= dirs.count;
-    from -= prevDirsCount;
-    to -= prevDirsCount;
-    // console.log(`after`, from, to)
-
-
-    if (from <= to) {
-        const files = await getFilesFunc(supabase, from, to, dir, searchStr, isGlobal);
-        if (!files.error) {
-            arr.push(...files.data);
-        } else {
-            console.log(files.error);
-        }
-    }
-    let next = false;
-    if (arr.length === pageSize + 1) {
-        next = true;
-        arr.pop();
-    }
-    return { arr, next: next || dirs.hasNext, dirs };
-}
-
-export interface PageDirCountHistory {
-    counts: number[],
-    pageSize: number,
-    totalCnt: number,
-}
-
-export async function getFilesWithDir(supabase: SupabaseClient<any, "public", any>, dir: number | null, page: number, pageSize: number = 50, pageDirCountHistory: PageDirCountHistory, searchStr: string, isGlobal: boolean) {
-    //const prevDirsCount = prevFiles.filter(w => 'fileid' in w ? false : true).length;
-    if (page === 1) {
-        pageDirCountHistory.counts = [];
-        pageDirCountHistory.totalCnt = 0;
-    }
-    const isNextPage = page > pageDirCountHistory.counts.length;
-    const isPrevPage = page <= pageDirCountHistory.counts.length;
-
-    let from = (page - 1) * pageSize;
-    let to = page * pageSize;
-
-    if (isPrevPage) {
-        const val = pageDirCountHistory.counts.pop();
-        if (val) {
-            pageDirCountHistory.totalCnt -= val;
-        }
-    }
-
-    const { arr, next, dirs } = await fetchFilesFromDB(supabase, from, to, dir, pageDirCountHistory.totalCnt, pageSize, getDirectories, getFiles, searchStr, isGlobal);
-
-    if (isNextPage && dirs.count > 0) {
-        pageDirCountHistory.counts.push(dirs.count);
-        pageDirCountHistory.totalCnt += dirs.count;
-    }
-    // console.log(pageDirCountHistory, isNextPage, isPrevPage);
-    return { arr, next };
-}
-
 export function FileEndsWith(name: string, ends: string[]) {
     if (!name.includes('.')) return false;
     else {
@@ -343,22 +174,6 @@ export function getFileType(name: string): FileType {
     } else {
         return 'file';
     }
-}
-
-export function getFileIconName(name: string) {
-    switch (getFileType(name)) {
-        case 'audio':
-            return "music-note mt-1 ml-2";
-        case 'video':
-            return "film mt-05";
-        case 'image':
-            return "image mt-05 ml-05";
-        case 'text':
-            return "file-document mt-05";
-        default:
-            return "file mt-05 ml-05";
-    }
-
 }
 
 export async function AddFolder(supabase: SupabaseClient<any, "public", any>, dirHistory: Directory[], setFiles: Dispatch<SetStateAction<(Directory | DirFile)[]>>) {

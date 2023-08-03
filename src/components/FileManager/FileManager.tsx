@@ -1,6 +1,7 @@
 import { Exposed, FileActionType } from "@/context/FileManagerContext";
 import FileManagerWindow from "./FileManagerWindow";
 import { User } from "@supabase/supabase-js";
+import IconArrowsExchange from "@/icons/IconArrowsExchange";
 
 interface Props {
     fm: Exposed | null,
@@ -19,7 +20,7 @@ export default function FileManager({ fm, user }: Props) {
     return (
         <>
             <button onClick={() => fm?.dispatch({ type: FileActionType.TOGGLE_MENU })} className="relative outline-none text-quaternary px-2 hover:text-tertiary transition-colors">
-                <i className="gg-arrows-exchange"></i>
+                <IconArrowsExchange />
                 {totalCnt > 0 ? <div className="absolute top-3 left-4 text-green-800 rounded-full bg-red-400 w-4 h-4 -z-10 flex justify-center items-center font-bold text-xs">{totalCnt}</div> : ""}
             </button>
             <FileManagerWindow fileManager={fm?.state} user={user !== null} dispatch={fm?.dispatch}

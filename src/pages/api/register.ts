@@ -1,5 +1,5 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import { createServerSupabaseClient, User } from '@supabase/auth-helpers-nextjs'
+import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 type Data = {
@@ -25,18 +25,10 @@ export default async function handler(
     if (rs2.data[0].used) {
         return res.status(401).json({ error: "This email is already in use" });
     }
-    const rs3 = await supabase
+    await supabase
         .from('allowedEmails')
         .update({ used: true })
         .eq('id', rs2.data[0].id);
     const rs1 = await supabase.auth.signUp({ email, password })
-    if (!rs1.error) {
-        const rs = await supabase
-            .from('userPlans')
-            .insert({ plan: 1, userid: rs1?.data?.user?.id });
-        if (rs.error) {
-            return res.status(400).json({ error: rs.error.message });
-        }
-    }
     res.status(200).json({ error: rs1?.error?.message })
 }

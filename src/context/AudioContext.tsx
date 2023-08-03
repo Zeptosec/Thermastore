@@ -82,19 +82,7 @@ export default function AudioProvider({ children }: any) {
 
     return (
         <AudioContext.Provider value={exposed}>
-            {/* <div className="pb-[46px]"> */}
-                {children}
-                {/* <div className=" z-40 fixed bottom-0 px-5 py-3 w-screen bg-blue-900/80 backdrop-blur-md flex">
-                    <div className="flex gap-3 flex-1 items-center justify-center">
-                        <div className="flex-none">
-                            <i className="gg-play-button scale-150"></i>
-                        </div>
-                        <div className="flex-1">
-                            <input className="w-full" type="range" />
-                        </div>
-                    </div>
-                </div>
-            </div> */}
+            {children}
         </AudioContext.Provider>
     )
 }

@@ -3,6 +3,8 @@ import { DirFile, Directory, UpFiles, VerifyHook, chunkSize, getHookLink } from 
 import { Endpoint, uploadFiles, FileStatus } from "@/utils/FileUploader";
 import { Dispatch, createContext, useContext, useEffect, useReducer, useState } from "react";
 import { useSupabaseClient, useUser, User, SupabaseClient, useSessionContext } from "@supabase/auth-helpers-react";
+import { StoredStreams } from "@/components/SettingsComps/StreamersManager";
+import { getStreamerName } from "@/utils/utils";
 
 export interface FileManager {
     downloading: DownloadStatus[],
@@ -19,6 +21,8 @@ export interface Exposed {
     setHook: (id: string, token: string) => Promise<boolean>,
     user: User | null,
     isLoading: boolean,
+    setNewStreamers: (streams: string[], save?: boolean) => void,
+    streamers: Endpoint[],
     uploadToDir: (direc: Directory | undefined, event: any, updateDirs: (dirs: Directory[]) => void, getUserDirLocation: () => Directory | undefined, onUploaded?: (fileItem: DirFile) => void) => void,
 }
 
@@ -61,6 +65,7 @@ export const FileContext = createContext<Exposed | null>(null);
 
 export function FileManagerProvider({ children }: any) {
     const [hook, sHook] = useState<Endpoint>();
+    const [streamers, setStreamers] = useState<Endpoint[]>([]);
     const supabase = useSupabaseClient();
     const user = useUser();
     const { isLoading } = useSessionContext();
@@ -100,7 +105,7 @@ export function FileManagerProvider({ children }: any) {
             dt = fData;
         } else {
             if (fd.fid)
-                dt = await getFileData(fd.fid, fd.channel_id);
+                dt = await getFileData(fd.fid, fd.channel_id, streamers);
             else {
                 console.log("missing fid");
             }
@@ -115,7 +120,7 @@ export function FileManagerProvider({ children }: any) {
         fd.size = dt.size;
         if (dt.channel_id)
             fd.channel_id = dt.channel_id;
-        await downloadFile(fd, undefined, onStart, onFinished)
+        await downloadFile(fd, streamers, undefined, onStart, onFinished)
     }
 
     function reducer(state: FileManager, action: FileAction): FileManager {
@@ -131,7 +136,6 @@ export function FileManagerProvider({ children }: any) {
                 let status: DownloadStatus = {
                     started_at: 0, name: "", size: -1, chunks: [], downloadedBytes: 0, speed: 0, timeleft: 0, precentage: 0, channel_id: action.cid, fid: action.fid,
                 };
-                console.log(status);
                 downFile(status, action.fData);
                 return { ...state, downloading: [...state.downloading, status] };
 
@@ -198,10 +202,55 @@ export function FileManagerProvider({ children }: any) {
         }
     }
 
+    function setNewStreamers(streams: string[], save?: boolean) {
+        let newStreams: Endpoint[] = streams.map(w => ({
+            occupied: 0,
+            link: w,
+            name: getStreamerName(w)
+        }));
+        ['https://silent-tartan-giganotosaurus.glitch.me', 'https://unmarred-accidental-eel.glitch.me', 'https://thestr.onrender.com']
+            .forEach((w, ind) =>
+                newStreams.push({
+                    occupied: 0,
+                    link: w,
+                    name: `streamer ${ind + 1}`
+                })
+            );
+        newStreams.push({
+            occupied: 0,
+            link: 'http://localhost:8000',
+            name: 'localhost'
+        })
+        setStreamers(newStreams);
+        if (save) {
+            const streamersToStore: StoredStreams = {
+                links: streams,
+                time: new Date().getTime()
+            }
+            localStorage.setItem('streamers', JSON.stringify(streamersToStore));
+        }
+    }
+
+    async function resetStreamers(): Promise<string | undefined> {
+        const { data, error } = await supabase
+            .from('streamers')
+            .select('link');
+
+        if (error) {
+            return error.message;
+        } else {
+            setNewStreamers(data.map(w => w.link), true);
+        }
+    }
+
     const hookChangeInterval = 1000 * 60 * 60 * 24 * 6.66; // every 6.66 days get a new hook just because...
     // fetch hooks on app open
     useEffect(() => {
         if (isLoading) return;
+        if (!user) {
+            localStorage.removeItem('streamers');
+            localStorage.removeItem('theme');
+        }
         async function fetchNewHook() {
             if (user) {
                 const userHook = await supabase
@@ -225,6 +274,35 @@ export function FileManagerProvider({ children }: any) {
                 await setHook(data.hookurl, data.hookid);
             }
         }
+
+        async function fetchNewStreamers() {
+            if (!user) {
+                setNewStreamers([]);
+                return;
+            }
+            const localStreams = localStorage.getItem('streamers');
+            if (localStreams) {
+                try {
+                    const storedStreams: StoredStreams = JSON.parse(localStreams);
+                    if (storedStreams.time + hookChangeInterval < new Date().getTime()) {
+                        // enough time has passed. Need to refetch
+                        await resetStreamers();
+                    } else {
+                        // not enough time has passed.
+                        setNewStreamers(storedStreams.links);
+                    }
+                } catch (err: any) {
+                    console.log(err.message);
+                    localStorage.removeItem('streams');
+                    //fetch new streams
+                    await resetStreamers();
+                }
+            } else {
+                await resetStreamers();
+            }
+        }
+        fetchNewStreamers();
+
         const hookData = JSON.parse(localStorage.getItem('dhook') || '{}');
         const currTime = new Date().getTime();
         if (hookData.id && hookData.token && hookData.time && hookData.time + hookChangeInterval > currTime) {
@@ -290,6 +368,7 @@ export function FileManagerProvider({ children }: any) {
         UpFiles(supabase, event, direc, getUserDirLocation, updateDirs, dispatch, onUploaded);
     }
 
+
     return (
         <FileContext.Provider value={{
             state,
@@ -298,7 +377,9 @@ export function FileManagerProvider({ children }: any) {
             setHook,
             user,
             isLoading,
-            uploadToDir
+            uploadToDir,
+            streamers,
+            setNewStreamers
         }}>
             {children}
             {/* <div className="bottom-0 fixed grid w-screen text-white justify-center gap-1">

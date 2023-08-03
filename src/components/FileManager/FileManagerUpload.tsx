@@ -4,6 +4,9 @@ import { BytesToReadable, MinimizeName, TimeToReadable } from "@/utils/FileFunct
 import useFileManager, { FileActionType } from "@/context/FileManagerContext"
 import { useState } from "react"
 import Link from "next/link"
+import IconPlayStopRounded from "@/icons/IconPlayStopRounded"
+import IconPlayButtonRounded from "@/icons/IconPlayButtonRounded"
+import IconChevronDown from "@/icons/IconChevronDown"
 
 interface Props {
     status: FileStatus
@@ -38,8 +41,8 @@ export default function FileManagerUpload({ status, user, hook }: Props) {
                             status.finished ?
                                 <p className="whitespace-nowrap">{BytesToReadable(status.file.size)}</p> :
                                 <p className="whitespace-nowrap">{TimeToReadable(status.timeleft)}</p>}
-                    <div onClick={() => setOpen(w => !w)} className="relative w-[22px] h-[22px]">
-                        <i className={`gg-chevron-down z-10 w-[22px] h-[22px] cursor-pointer hover:text-tertiary transition-all ${open ? 'rotate-180' : ''}`}></i>
+                    <div onClick={() => setOpen(w => !w)} className={`relative w-6 h-6 cursor-pointer hover:text-tertiary transition-all ${open ? 'rotate-180' : ''}`}>
+                        <IconChevronDown className="z-10" />
                     </div>
                 </div>
             </div>
@@ -56,8 +59,8 @@ export default function FileManagerUpload({ status, user, hook }: Props) {
                         <p className="whitespace-nowrap">{BytesToReadable(status.speed)}/s</p>
                         <p className="whitespace-nowrap">{BytesToReadable(status.uploadedBytes)}/{BytesToReadable(status.file.size)}</p>
                         {status.controller.signal.aborted ?
-                            <abbr title="Continue upload" className="flex justify-center sm:block cursor-pointer transition-colors duration-200 hover:text-tertiary" onClick={() => ContinueDownload()}><i className="gg-play-button-r"></i></abbr> :
-                            <abbr title="Pause upload" className="flex justify-center sm:block cursor-pointer transition-colors duration-200 hover:text-tertiary" onClick={() => Stop(status, "Upload stopped by user")}><i className="gg-play-stop-r"></i></abbr>}
+                            <abbr title="Continue upload" className="flex justify-center sm:block cursor-pointer transition-colors duration-200 hover:text-tertiary" onClick={() => ContinueDownload()}><IconPlayButtonRounded /></abbr> :
+                            <abbr title="Pause upload" className="flex justify-center sm:block cursor-pointer transition-colors duration-200 hover:text-tertiary" onClick={() => Stop(status, "Upload stopped by user")}><IconPlayStopRounded /></abbr>}
                     </> : <>
                         <p>Uploaded to <span className="font-bold">{status.directory ? status.directory.name : "C:\\"}</span></p>
                     </>}

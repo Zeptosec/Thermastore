@@ -1,8 +1,3 @@
-import AnimatedDropZone from "@/components/AnimatedDropZone";
-import BubbleBackground from "@/components/BubbleBackground";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { useEffect, useState } from "react";
-
 export default function NotFound() {
 
     return (
