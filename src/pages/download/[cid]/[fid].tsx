@@ -3,6 +3,8 @@ import CoolLoader from "@/components/CoolLoading2";
 import PreviewFile from "@/components/PreviewFile";
 import StrechableText from "@/components/StrechableText";
 import useFileManager, { FileActionType } from "@/context/FileManagerContext";
+import IconPlayButtonRounded from "@/icons/IconPlayButtonRounded";
+import IconPlayStopRounded from "@/icons/IconPlayStopRounded";
 import { DownloadStatus, getFileData } from "@/utils/FileDownload";
 import { BytesToReadable, TimeToReadable } from "@/utils/FileFunctions";
 import Head from "next/head";
@@ -79,11 +81,11 @@ export default function downloadPage() {
                                 </> :
                                     <>
                                         <div className="card overflow-hidden flex sm:justify-between relative flex-col gap-2 sm:flex-row">
-                                            <div style={{ width: `${fData.precentage * 100}%` }} className="h-full duration-1000 bg-blue-400 opacity-60 top-0 left-0 absolute"></div>
-                                            <div className="flex justify-center z-10">
+                                            <div style={{ width: `${fData.precentage * 100}%` }} className="h-full duration-1000 bg-tertiary/40 top-0 left-0 absolute"></div>
+                                            <div className="flex justify-center z-10 overflow-hidden">
                                                 <StrechableText text={fData.name} />
                                             </div>
-                                            <div className="z-10 flex items-end gap-4 justify-center">
+                                            <div className="z-10 flex items-end gap-4 justify-between sm:flex-nowrap flex-wrap">
                                                 {fData.failed_text ? <p className=" text-red-700 whitespace-nowrap">
                                                     {fData.failed_text}
                                                 </p> : fData.timeleft < 0 ? <p className="whitespace-nowrap">
@@ -94,6 +96,11 @@ export default function downloadPage() {
                                                     <p className="whitespace-nowrap">{TimeToReadable(fData.timeleft)}</p>
                                                     <p className="whitespace-nowrap">{BytesToReadable(fData.speed)}/s</p>
                                                     <p className="whitespace-nowrap">{BytesToReadable(fData.downloadedBytes)}/{BytesToReadable(fData.size)}</p>
+                                                    {fData.abortController ?
+                                                        <div className="flex justify-center">{fData.abortController.signal.aborted ?
+                                                            <abbr title="Continue download" className="cursor-pointer transition-colors duration-200 hover:text-tertiary" onClick={() => fm.dispatch({ type: FileActionType.RESUME_DOWNLOAD, status: fData })}><IconPlayButtonRounded /></abbr> :
+                                                            <abbr title="Pause download" className="cursor-pointer transition-colors duration-200 hover:text-tertiary" onClick={() => fData.abortController?.abort()}><IconPlayStopRounded /></abbr>
+                                                        }</div> : ''}
                                                 </>}
                                             </div>
                                         </div>

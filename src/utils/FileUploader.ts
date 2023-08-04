@@ -32,21 +32,6 @@ export interface Endpoint {
 }
 let dook: Endpoint | null = null;
 
-// const uploadEndPoints: Array<Endpoint> = [
-//     {
-//         link: 'http://localhost:4000/api/upload',
-//         occupied: 0
-//     },
-//     {
-//         link: 'https://spangle-curly-seaplane.glitch.me/api/upload',
-//         occupied: 0
-//     },
-//     {
-//         link: 'https://receptive-large-tennis.glitch.me/api/upload',
-//         occupied: 0
-//     }
-// ];
-
 interface ChunkQueueObject {
     index: number,
     remaining?: string,
@@ -56,14 +41,16 @@ let chunkQueue: Array<Promise<ChunkQueueObject>> = [];
 const maxQueueSize = 5;
 let filesToUpload: Array<FileStatus> = []
 
-export async function getEndpoint(endPoints: Array<Endpoint>, maxSize: number) {
-    while (true) {
+export async function getEndpoint(endPoints: Array<Endpoint>, maxSize: number): Promise<Endpoint | undefined> {
+    let tryCount = 0;
+    while (tryCount < 42) {
         let endPt = endPoints.filter(w => w.occupied < maxSize);
         if (endPt.length === 0) {
             await new Promise(r => setTimeout(r, 1000));
         } else {
             return endPt[Math.floor(Math.random() * endPt.length)];
         }
+        tryCount++;
     }
 }
 
@@ -125,8 +112,6 @@ async function uploadChunk(supabase: any, chunk: Blob, file: FileStatus, qindex:
                         file.errorText = "";
                 }
             })
-            //console.log(`posted to ${endpoint.link} ${partIndex}`)
-            //if (endpoint.isHook) {
             json = {
                 fileid: res.data.attachments[0].id,
                 remaining: res.headers['x-ratelimit-remaining'],
@@ -134,8 +119,6 @@ async function uploadChunk(supabase: any, chunk: Blob, file: FileStatus, qindex:
                 after: res.headers['x-ratelimit-reset-after']
             }
             chanid = res.data.channel_id;
-            //} else
-            //    json = res.data;
         } catch (err: any) {
             console.log(err);
             if (file.controller.signal.aborted) {
@@ -250,7 +233,7 @@ async function uploadChunk(supabase: any, chunk: Blob, file: FileStatus, qindex:
                             console.error('Failed to save image preview to DB');
                             console.error(savedInfo.error);
                         } else if (file.fileItem) {
-                            file.fileItem.previews = savedInfo.data
+                            file.fileItem.preview = uploadedPreviewId.toString()
                         }
                     } catch (err) {
                         console.error("failed to process image preview.");
@@ -290,14 +273,7 @@ async function getReservedSlot() {
         }
     } else
         throw Error("No hook in reservation");
-    //endpoint = await getEndpoint(uploadEndPoints, maxQueueSize);
-
-    //if (chunkQueue.length >= maxQueueSize * uploadEndPoints.length) {
-    //    const rs = await Promise.any(chunkQueue);
-    //    return { index: rs.index, endpoint };
-    //} else {
     return { index: chunkQueue.length, endpoint }
-    //}
 }
 
 async function uploadFile(supabase: any, file: FileStatus, user: boolean) {

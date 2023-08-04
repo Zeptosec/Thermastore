@@ -1,5 +1,4 @@
 import axios from "axios";
-import { Endpoint } from "./FileUploader";
 import { Dispatch, SetStateAction } from "react";
 import { FileAction, FileActionType, FileToUpload } from "@/context/FileManagerContext";
 import { SupabaseClient } from "@supabase/auth-helpers-nextjs";
@@ -7,30 +6,6 @@ import { SupabaseClient } from "@supabase/auth-helpers-nextjs";
 export const chunkSize = 25 * 1024 ** 2 - 256;
 
 const marks = ["B", "KB", "MB", "GB", "TB", "PB"];
-
-// export const endPoints: Endpoint[] = [
-//     {
-//         link: 'https://thestr.onrender.com',
-//         occupied: 0,
-//         name: 'render'
-//     },
-//     {
-//         link: 'https://unmarred-accidental-eel.glitch.me',
-//         occupied: 0,
-//         name: "glitch"
-//     },
-//     // {
-//     //     link: 'https://streamer.teisingas.repl.co',
-//     //     occupied: 0,
-//     //     name: 'replit'
-//     // },
-//     {
-//         link: 'https://next-streamer-nigerete123.koyeb.app',
-//         occupied: 0,
-//         name: 'koyeb'
-//     },
-//     { link: 'http://localhost:8000', occupied: 0, name: 'localhost' }
-// ]
 
 /**
  * 
@@ -110,9 +85,7 @@ export interface DirFile {
     chanid: string,
     fileid: string,
     dir: number | null,
-    previews: {
-        fileid: string
-    } | null
+    preview: string | null
 }
 
 export interface FilesListSettings {
@@ -567,7 +540,7 @@ export async function getItems(supabase: SupabaseClient<any, "public", any>, dir
         chanid: w.chanid,
         fileid: w.fileid,
         dir: w.dir,
-        previews: w.previews
+        preview: w.preview
     }));
     return { dirs, files, hasNext };
 

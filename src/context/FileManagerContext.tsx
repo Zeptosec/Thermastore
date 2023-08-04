@@ -27,7 +27,7 @@ export interface Exposed {
 }
 
 export enum FileActionType {
-    'DOWNLOAD', 'UPLOAD', 'REFRESH', 'TOGGLE_MENU', 'RESUME_UPLOAD', 'SET_SUPABASE'
+    'DOWNLOAD', 'UPLOAD', 'REFRESH', 'TOGGLE_MENU', 'RESUME_UPLOAD', 'RESUME_DOWNLOAD', 'SET_SUPABASE'
 }
 
 export interface FileToUpload {
@@ -51,6 +51,9 @@ export type FileAction = {
 } | {
     type: FileActionType.RESUME_UPLOAD,
     status: FileStatus,
+} | {
+    type: FileActionType.RESUME_DOWNLOAD,
+    status: DownloadStatus
 } | {
     type: FileActionType.SET_SUPABASE,
     user: User | null,
@@ -192,6 +195,9 @@ export function FileManagerProvider({ children }: any) {
                     uploadFiles(state.supabase, [action.status], onStart, onFinished, state.user !== null, hook);
                 else
                     console.log('No hook to resume with');
+                return { ...state };
+            case FileActionType.RESUME_DOWNLOAD:
+                downFile(action.status, action.status);
                 return { ...state };
             case FileActionType.SET_SUPABASE:
                 return { ...state, user: action.user, supabase: action.supabase };

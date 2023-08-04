@@ -41,8 +41,8 @@ export default function PlayCircle({ percent, radius, stroke, paused, onClick, c
                 />
             </svg>
             {isPaused ?
-                <abbr className="absolute top-0 left-0" title="Play"><IconPlayButton /></abbr> :
-                <abbr className="absolute top-1.5 left-[7px]" title="Pause"><IconPause /></abbr>}
+                <abbr className="absolute -top-[1px] left-0" title="Play"><IconPlayButton /></abbr> :
+                <abbr className="absolute -top-[1px] -left-[1px]" title="Pause"><IconPause /></abbr>}
         </div >
     )
 }

@@ -1,6 +1,5 @@
 import { DownloadStatus, getEarliestEnd, getImage, getImageHref, getImagePreviewHref } from "@/utils/FileDownload"
 import { getFileType, DirFile, FileType } from "@/utils/FileFunctions";
-import { Endpoint } from "@/utils/FileUploader";
 import { useEffect, useState } from "react";
 import CoolLoader from "./CoolLoading2";
 import useFileManager from "@/context/FileManagerContext";
@@ -38,7 +37,7 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
                         console.error(err);
                         setHref(w => ({ ...w, loadState: 'failed' }));
                     }
-                } else if (dirFile.previews) {
+                } else if (dirFile.preview) {
                     try {
                         const hr = await getImagePreviewHref(dirFile, streamers);
                         setHref({ url: hr, loadState: 'loaded' });

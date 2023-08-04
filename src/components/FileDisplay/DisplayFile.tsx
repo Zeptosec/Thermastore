@@ -131,7 +131,7 @@ export default function DisplayFile({ file, playing, togglePlay, selectable, Sel
                         </div>
                         {isNaming ?
                             <form ref={lref} onSubmit={w => { w.preventDefault(); saveName(); }}>
-                                <input type="text" autoFocus value={name} onChange={w => setName(w.target.value)} onBlur={saveName} />
+                                <input className="bg-primary outline-none" type="text" autoFocus value={name} onChange={w => setName(w.target.value)} onBlur={saveName} />
                             </form> :
                             <Link className="flex transition-colors overflow-hidden text-quaternary hover:text-tertiary" ref={lref} href={`/download/${file.chanid}/${file.fileid}`}>
                                 <StrechableText text={name} />

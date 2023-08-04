@@ -12,10 +12,13 @@ export interface DownloadStatus {
     chunks: Array<string>,
     precentage: number,
     channel_id: string,
+    paused?: boolean,
+    pausedChunks?: Blob[],
+    abortController?: AbortController,
     fid?: string,
     started_at: number,
     failed_text?: string,
-    finished?: boolean
+    finished?: boolean,
 }
 
 const maxConns = 10;
@@ -122,11 +125,16 @@ export async function getFileData(fid: string, channel_id: string, endPoints: En
     return data;
 }
 
-async function downloadChunk(chunkId: string, chanId: string, arrayIndex: number, chunkIndex: number, downStatus?: DownloadStatus) {
-    let data = null;
-    while (!data) {
-        console.log(workingEnds);
+interface DownChunkRes {
+    arrayIndex: number,
+    data?: Blob,
+    chunkIndex: number
+}
+async function downloadChunk(chunkId: string, chanId: string, arrayIndex: number, chunkIndex: number, downStatus?: DownloadStatus): Promise<DownChunkRes> {
+    let data = undefined;
+    while (data === undefined) {
         const endpoint = await getEndpoint(workingEnds, maxConns);
+        if (!endpoint) return { arrayIndex, chunkIndex };
         endpoint.occupied += 1;
         try {
             let prev = 0;
@@ -137,10 +145,14 @@ async function downloadChunk(chunkId: string, chanId: string, arrayIndex: number
                     prev = w.loaded;
                     downStatus.downloadedBytes += diff;
                 },
-                responseType: 'blob'
+                responseType: 'blob',
+                signal: downStatus?.abortController?.signal
             });
             data = res.data;
         } catch (err) {
+            if (axios.isCancel(err)) {
+                return { arrayIndex, data, chunkIndex };
+            }
             console.log(err);
             await new Promise(r => setTimeout(r, 1000));
         } finally {
@@ -164,9 +176,11 @@ export function downloadBlob(file: Blob, name: string) {
 }
 
 export async function getImageHref(file: DownloadStatus, chanId: string, endPoints: Endpoint[]) {
-    checkEndpoints(endPoints);
-
-    const { chunkIndex, data, arrayIndex } = await downloadChunk(file.chunks[0], chanId, 0, 0, file);
+    const abortController = new AbortController();
+    checkEndpoints(endPoints, undefined, abortController);
+    const { data } = await downloadChunk(file.chunks[0], chanId, 0, 0, file);
+    abortController.abort();
+    if (!data) throw Error("Failed to download image");
     let dwnFile = new Blob([data]);
     const href = URL.createObjectURL(dwnFile);
     return href;
@@ -184,9 +198,12 @@ export async function getImage(cid: string, fid: string, endPoints: Endpoint[]) 
  * @returns Object url that can be used directly in element to display the image.
  */
 export async function getImagePreviewHref(file: DirFile, endPoints: Endpoint[]): Promise<string> {
-    if (!file.previews) throw Error("File has no previews");
-    checkEndpoints(endPoints);
-    const { data } = await downloadChunk(file.previews.fileid, file.chanid, 0, 0);
+    if (!file.preview) throw Error("File has no preview");
+    const abortController = new AbortController();
+    checkEndpoints(endPoints, undefined, abortController);
+    const { data } = await downloadChunk(file.preview, file.chanid, 0, 0);
+    abortController.abort();
+    if (!data) throw Error("Failed to download image preview data. Missing active endpoint");
     let dwnFile = new Blob([data]);
     return URL.createObjectURL(dwnFile);
 }
@@ -195,7 +212,7 @@ export async function downloadFileChunks(file: DownloadStatus, endPoints: Endpoi
     if (onStart) onStart();
     let speeds: Array<number> = [];
     let prevTime = Date.now();
-    let prevLoaded = 0;
+    let prevLoaded = file.downloadedBytes;
     let i = 0;
     const interval = setInterval(() => {
         speeds[i] = (file.downloadedBytes - prevLoaded) / (Date.now() - prevTime) * 1000;
@@ -219,39 +236,59 @@ export async function downloadFileChunks(file: DownloadStatus, endPoints: Endpoi
         prevTime = Date.now();
         i = (i + 1) % 8;
     }, 1000);
+    let paused = false;
+    function pauseDownload() {
+        if (!paused) {
+            if (setFile) setFile(w => ({ ...w, paused: true }));
+            else file.paused = true;
+            file.abortController?.abort();
+            paused = true;
+        }
+    }
 
-    let chunks: Array<any> = [];
-    let promises: Array<Promise<{ chunkIndex: number, data: any, arrayIndex: number }>> = [];
-
+    let chunks: Array<Blob> = file.pausedChunks ? file.pausedChunks : [];
+    let promises: Array<Promise<DownChunkRes>> = [];
     for (let i = 0; i < file.chunks.length; i++) {
-        let ind = i;
+        if (chunks[i] !== undefined) continue;
+        let ind = promises.length;
 
         if (promises.length >= maxConns * endPoints.length) {
-            const { chunkIndex, data, arrayIndex } = await Promise.any(promises);
-            chunks[chunkIndex] = data;
-            ind = arrayIndex;
+            const rez = await Promise.any(promises);
+            if (!rez || rez.data === undefined) {
+                pauseDownload();
+                break;
+            } else
+                chunks[rez.chunkIndex] = rez.data;
+            ind = rez.arrayIndex;
         }
-        promises[ind] = downloadChunk(file.chunks[i], file.channel_id
-            , ind, i, file);
+        promises[ind] = downloadChunk(file.chunks[i], file.channel_id, ind, i, file);
     }
-    (await Promise.all(promises)).forEach(w => chunks[w.chunkIndex] = w.data);
+    (await Promise.all(promises)).forEach(w => {
+        if (w && w.data !== undefined)
+            chunks[w.chunkIndex] = w.data
+        else
+            pauseDownload();
+    });
     clearInterval(interval);
-    if (onFinished) onFinished();
+    if (onFinished && !paused) onFinished();
     return chunks;
 }
 
-async function checkEndpoints(endPts: Endpoint[], setFile?: Dispatch<SetStateAction<DownloadStatus>>) {
+async function checkEndpoints(endPts: Endpoint[], setFile?: Dispatch<SetStateAction<DownloadStatus>>, abortController?: AbortController) {
     //check if current endpoints are working
     for (let i = 0; i < workingEnds.length; i++) {
         try {
-            const rs = await fetch(workingEnds[i].link)
-            if (!rs.ok) workingEnds.splice(i, 1)
+            const rs = await fetch(workingEnds[i].link, { signal: abortController?.signal });
+            if (!rs.ok) workingEnds.splice(i, 1);
         } catch (err) {
             console.log(err);
         }
     }
     const localEnd = endPts[endPts.length - 1];
-    if (await TestEndpoint(localEnd)) {
+    const localRes = await TestEndpoint(localEnd, abortController);
+    if (localRes) {
+        console.log(`Local is alive:`);
+        console.log(localRes);
         while (workingEnds.length > 0) workingEnds.pop();
         workingEnds.push(localEnd);
         console.log(workingEnds);
@@ -262,7 +299,7 @@ async function checkEndpoints(endPts: Endpoint[], setFile?: Dispatch<SetStateAct
     for (let i = 0; i < endPoints.length; i++) {
         if (workingEnds.includes(endPoints[i])) continue;
         (async () => {
-            if (await TestEndpoint(endPoints[i])) {
+            if (await TestEndpoint(endPoints[i], abortController)) {
                 workingEnds.push(endPoints[i]);
             } else {
                 cnt -= 1;
@@ -276,13 +313,43 @@ async function checkEndpoints(endPts: Endpoint[], setFile?: Dispatch<SetStateAct
     }
 }
 
+// setFile param is from older version i'll have to remove that later...
 export async function downloadFile(file: DownloadStatus, endPoints: Endpoint[], setFile?: Dispatch<SetStateAction<DownloadStatus>>, onStart: Function | null = null, onFinished: Function | null = null) {
     // check every 100s maybe localhost appeared or other services came up, or shutdown just cleanup.
+    file.abortController = new AbortController();
+    if (setFile) {
+        setFile(w => ({
+            ...w,
+            paused: false,
+        }))
+    } else {
+        file.paused = false;
+    }
     const int = setInterval(() => checkEndpoints(endPoints, setFile), 100 * 1000);
     checkEndpoints(endPoints, setFile);
     if (setFile) setFile(w => ({ ...w, finished: false }));
+    else file.finished = false;
     const chunks = await downloadFileChunks(file, endPoints, setFile, onStart, onFinished);
     clearInterval(int);
+    if (file.paused) {
+        for (let i = 0; i <= chunks.length; i++) {
+            if (chunks[i] === undefined) {
+                // maybe later add with order keeping for now discard everything over first gap
+                const downBytes = chunks.reduce((acc, curr) => curr ? acc + curr.size : acc, 0);
+                if (setFile) setFile(w => ({
+                    ...w,
+                    downloadedBytes: downBytes,
+                    pausedChunks: chunks
+                }));
+                else {
+                    file.downloadedBytes = downBytes;
+                    file.pausedChunks = chunks;
+                }
+                return;
+            }
+        }
+    }
+
     let dwnFile = new Blob(chunks);
     if (setFile) {
         setFile(w => ({
@@ -296,6 +363,7 @@ export async function downloadFile(file: DownloadStatus, endPoints: Endpoint[], 
         file.precentage = 1;
         file.downloadedBytes = file.size;
         file.timeleft = 0;
+        file.finished = true;
     }
     downloadBlob(dwnFile, file.name);
 }
