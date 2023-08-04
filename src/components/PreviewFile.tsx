@@ -14,6 +14,7 @@ interface Props {
 export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
     const [sid, setSid] = useState(0);
     const [href, setHref] = useState<{ url?: string, loadState: 'loading' | 'loaded' | 'failed' | 'nopreview' }>({ loadState: 'loading' });
+    const [videoPoster, setVideoPoster] = useState<string | undefined>();
     const fileType: FileType = file ? getFileType(file.name) : dirFile ? getFileType(dirFile.name) : 'file';
     const { streamers } = useFileManager();
     useEffect(() => {
@@ -66,8 +67,18 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
                 setHref(w => ({ ...w, loadState: 'nopreview' }))
             }
         }
+        async function getPoster() {
+            if (dirFile && dirFile.preview) {
+                const firstEnd = await getEarliestEnd(streamers);
+                setVideoPoster(`${firstEnd.link}/down/${dirFile.chanid}/${dirFile.preview}`);
+            }
+        }
+
         if (fileType === 'image')
             showImage();
+        else if (fileType === 'video') {
+            getPoster();
+        }
         if (['video', 'audio'].includes(fileType)) {
             getFastestRespond();
         }
@@ -91,7 +102,7 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
                         </select>
                     </div>
                     {fileType === 'video' ? <div>
-                        <video crossOrigin="" className="w-full outline-none max-h-[800px]" controls controlsList="nodownload" src={`${streamers[sid].link}/stream/${cid}/${fid}`}></video>
+                        <video crossOrigin="" className="w-full outline-none max-h-[800px]" poster={videoPoster ? videoPoster : ''} controls controlsList="nodownload" src={`${streamers[sid].link}/stream/${cid}/${fid}`}></video>
                     </div> : ""}
                     {fileType === 'audio' ? <div>
                         <audio crossOrigin="" className="w-full outline-none" controls controlsList="nodownload" src={`${streamers[sid].link}/stream/${cid}/${fid}`}></audio>

@@ -78,7 +78,7 @@ export default function FilesPage() {
             <title>{fs.state.dirHistory.length > 0 ? `${fs.state.dirHistory[fs.state.dirHistory.length - 1].name}` : 'MyFiles'}</title>
         </Head>
         {/* <BubbleBackground /> */}
-        <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[90px] text-quaternary">
+        <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 pt-[120px] text-quaternary">
             <div className="grid gap-4 pb-4">
                 {fs.state.isLoading ? <>
                     <CoolLoader />

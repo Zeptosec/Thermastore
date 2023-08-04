@@ -30,7 +30,7 @@ export default function PublicPage(props: Props) {
     }
 
     return (
-        <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[90px] text-quaternary">
+        <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[120px] text-quaternary">
             <div className="grid gap-4 pb-4">
                 {fs.state.error ? <>
                     <p className="pt-32 text-2xl text-center">{fs.state.error}</p>

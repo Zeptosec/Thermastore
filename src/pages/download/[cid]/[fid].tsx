@@ -60,7 +60,7 @@ export default function downloadPage() {
                 <meta property="og:description" key="desc" content="Download or preview this file" />
             </Head>
             {/* <BubbleBackground /> */}
-            <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[90px]">
+            <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 pt-[140px]">
                 <div className="grid gap-4">
                     {loading ? <>
                         <CoolLoader />

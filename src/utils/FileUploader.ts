@@ -347,7 +347,6 @@ export async function uploadFiles(supabase: any, files: Array<FileStatus>, onSta
             dook = {
                 link: `https://discordapp.com/api/webhooks/${data[0].hookNumber}/${data[0].hookId}`,
                 occupied: 0,
-                // isHook: true,
                 errCount: 0
             };
         }
