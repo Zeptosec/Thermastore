@@ -20,7 +20,7 @@ export default function downloadPage() {
     const fm = useFileManager();
 
     useEffect(() => {
-        if (!fid || !cid) return;
+        if (!fid || !cid || fm.isLoading) return;
         const fetchData = async () => {
             const dt = fm.getDownloading(fid as string);
             if (dt) {
@@ -35,7 +35,7 @@ export default function downloadPage() {
             setLoading(false);
         }
         fetchData();
-    }, [fid, cid]);
+    }, [fid, cid, fm.isLoading]);
 
     useEffect(() => {
         if (fData.started_at !== 0)

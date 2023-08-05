@@ -60,6 +60,12 @@ export type FileAction = {
     supabase: SupabaseClient<any, "public", any>
 }
 
+interface LoadingState {
+    cnt: number,
+    state: boolean,
+    msg?: string
+}
+
 // no other way tried with states, putting inside context nothing but global works.
 let counter = 0;
 let interval: NodeJS.Timer | null = null;
@@ -75,7 +81,18 @@ export function FileManagerProvider({ children }: any) {
     // kind of weird reducer thinks that supabase is undefined i guess you cant use context in another context and use in reducer
     const initialParams: FileManager = { downloading: [], uploading: [], showMenu: false, supabase, user }
     const [state, dispatch] = useReducer(reducer, initialParams);
+    const [loading, setLoading] = useState<LoadingState>({ cnt: 0, state: true });
 
+    function adjustLoading(msg?: string) {
+        setLoading(w => {
+            return ({
+                cnt: w.cnt + 1,
+                state: w.cnt + 1 < 2,
+                msg
+            })
+        }
+        )
+    }
 
     const confMsg = "You are still uploading/downloading files";
     function beforeUnloadHandler(e: BeforeUnloadEvent) {
@@ -228,6 +245,7 @@ export function FileManagerProvider({ children }: any) {
             name: 'localhost'
         })
         setStreamers(newStreams);
+        adjustLoading("Loading streamers");
         if (save) {
             const streamersToStore: StoredStreams = {
                 links: streams,
@@ -275,7 +293,6 @@ export function FileManagerProvider({ children }: any) {
             const { data, error } = await supabase.rpc('getfreehook').single();
             if (error) {
                 console.log(error);
-                return;
             } else {
                 await setHook(data.hookurl, data.hookid);
             }
@@ -312,6 +329,7 @@ export function FileManagerProvider({ children }: any) {
         const hookData = JSON.parse(localStorage.getItem('dhook') || '{}');
         const currTime = new Date().getTime();
         if (hookData.id && hookData.token && hookData.time && hookData.time + hookChangeInterval > currTime) {
+            adjustLoading("Loading webhook from localStorage");
             sHook({
                 link: getHookLink(hookData.id, hookData.token),
                 occupied: 0
@@ -339,6 +357,7 @@ export function FileManagerProvider({ children }: any) {
                 link: hooklink,
                 occupied: 0
             });
+            adjustLoading("Loading webhook from database");
             if (save) {
                 const thahook = { hookNumber: validation.hookNumber, hookId: validation.hookId }
                 const q1 = await supabase
@@ -382,7 +401,7 @@ export function FileManagerProvider({ children }: any) {
             getDownloading,
             setHook,
             user,
-            isLoading,
+            isLoading: loading.state,
             uploadToDir,
             streamers,
             setNewStreamers
