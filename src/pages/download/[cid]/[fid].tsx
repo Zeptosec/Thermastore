@@ -64,7 +64,7 @@ export default function downloadPage() {
                 <div className="grid gap-4">
                     {loading ? <>
                         <CoolLoader />
-                        <p className="text-center pt-32 text-2xl text-red-500">{loadError}</p>
+                        <p className="text-center pt-4 text-2xl text-red-500">{loadError}</p>
                     </> :
                         loadError.length > 0 ? <>
                             <div className="card justify-center">

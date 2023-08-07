@@ -30,14 +30,14 @@ export default function PublicPage(props: Props) {
     }
 
     return (
-        <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 py-[120px] text-quaternary">
+        <div className="grid items-center h-100vh max-w-[800px] m-auto px-4 gap-4 pt-[120px] text-quaternary">
             <div className="grid gap-4 pb-4">
                 {fs.state.error ? <>
                     <p className="pt-32 text-2xl text-center">{fs.state.error}</p>
-                </> : fs.state.isLoading ? <>
-                    <CoolLoader />
-                    <p className="pt-32 text-2xl text-center">Fetching files...</p>
-                </> : <>
+                </> : fs.state.isLoading ? <div className="relative">
+                    <p className="pt-8 text-2xl text-center">Fetching files...</p>
+                    <CoolLoader className="-mt-10" />
+                </div> : <>
                     <Pathline dirHistory={fs.state.dirHistory} pressedDir={fs.pressedDir} rootDir={props.rootDir} />
                     <div className="flex justify-between px-3 h-6">
                         <div className="flex gap-2 items-center">
