@@ -74,6 +74,7 @@ export default function HookManager({ className }: PropsWithClass) {
             if (error) {
                 setErr(error.message);
             } else {
+                setErr("");
                 if (count && count > 0) {
                     setHasHook(true);
                     setHookID(data[0].id);
