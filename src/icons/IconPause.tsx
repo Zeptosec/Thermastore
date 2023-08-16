@@ -1,12 +1,16 @@
+import { PropsWithClass } from "@/utils/utils";
 
-export default function IconPause({ className }: any) {
+interface Props extends PropsWithClass {
+    size?: number
+}
+export default function IconPause({ className, size }: Props) {
 
     return (
         <svg
             className={className}
             width="24"
             height="24"
-            viewBox="0 0 24 24"
+            viewBox={size ? `${size} ${size} ${24 - size * 2} ${24 - size * 2}` : `0 0 24 24`}
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
         >

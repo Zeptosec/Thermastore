@@ -4,7 +4,7 @@ interface Props extends PropsWithClass {
     size?: number,
     offsetx?: number
 }
-export default function IconPlayButton({ className, size, offsetx }: Props) {
+export default function IconNextTrack({ className, size, offsetx }: Props) {
 
     const ofx = offsetx ? offsetx : 0;
     return (
@@ -16,7 +16,9 @@ export default function IconPlayButton({ className, size, offsetx }: Props) {
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
         >
-            <path d="M15 12.3301L9 16.6603L9 8L15 12.3301Z" fill="currentColor" />
+            <path d="M6 17L14 12L6 7V17Z" fill="currentColor" />
+            <path d="M18 7H15V12V17H18V7Z" fill="currentColor" />
         </svg>
+
     )
 }
