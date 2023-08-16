@@ -149,3 +149,20 @@ export function getStreamerName(url: string): string {
         }
     }
 }
+
+export function formatSeconds(seconds: number) {
+    const min = Math.floor(seconds / 60);
+    const sec = Math.floor(seconds % 60);
+    return `${min}:${sec < 10 ? `0${sec}` : sec}`;
+}
+
+/**
+ * Clamps value between minimum and maximum.
+ * @param min Minimum value.
+ * @param max Maximum value.
+ * @param value Value to clamp between minimum and maximum.
+ * @returns Clamped value.
+ */
+export function Clamp(min: number, max: number, value: number) {
+    return Math.max(min, Math.min(max, value));
+}
