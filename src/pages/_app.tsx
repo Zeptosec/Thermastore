@@ -4,10 +4,10 @@ import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { SessionContextProvider } from '@supabase/auth-helpers-react'
 import { useEffect, useState } from 'react'
 import Layout from '@/components/Layout'
-import AudioContextProvider from '@/context/AudioContext'
 import { FileManagerProvider } from '@/context/FileManagerContext'
 import Head from 'next/head'
 import { changeTheme } from '@/utils/utils'
+import { AudioProvider } from '@/context/AudioContext'
 
 export const themes = ['default', 'neon', 'space3', 'teal'];
 
@@ -33,11 +33,11 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta key="desc" property='og:description' content='A free, simple and easy to use cloud storage for your files. Upload, backup and share your files with others!' />
       </Head>
       <FileManagerProvider >
-        <AudioContextProvider>
+        <AudioProvider>
           <Layout>
             <Component {...pageProps} />
           </Layout>
-        </AudioContextProvider>
+        </AudioProvider>
       </FileManagerProvider>
     </SessionContextProvider>
   )
