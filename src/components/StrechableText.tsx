@@ -9,7 +9,8 @@ export default function StrechableText({ text }: Props) {
 
     useEffect(() => {
         if (text.length <= 10) {
-            setLeftText(text); 
+            setLeftText(text);
+            setRightText("");
             return;
         }
         let ind = text.lastIndexOf(".");
