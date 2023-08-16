@@ -9,6 +9,7 @@
         --color-tertiary: 244 59 134;
         --color-quaternary: 255 228 89;
     }
+
     /* https://colorhunt.co/palette/071a5208697217b978a7ff83 */
     html[data-theme='neon'] {
         --color-primary: 7 26 82;
@@ -16,6 +17,7 @@
         --color-tertiary: 23 185 120;
         --color-quaternary: 167 255 131;
     }
+
     /* https://colorhunt.co/palette/1624471f40681b1b2fe43f5a */
     html[data-theme='teal'] {
         --color-primary: 29 91 121;
@@ -23,6 +25,7 @@
         --color-tertiary: 239 98 98;
         --color-quaternary: 243 170 96;
     }
+
     /* https://colorhunt.co/palette/203541374955f62a66ffd933 */
     html[data-theme='space3'] {
         --color-primary: 32 53 65;
@@ -124,10 +127,6 @@ body {
     100% {
         background-position: var(--border-anim-size) 0, calc(var(--border-anim-size)*(-1)) 100%, 0 calc(var(--border-anim-size)*(-1)), 100% var(--border-anim-size);
     }
-}
-
-.h-100vh {
-    height: 100vh;
 }
 
 .close {
