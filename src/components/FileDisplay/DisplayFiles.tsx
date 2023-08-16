@@ -13,17 +13,9 @@ interface Props {
     updateUploading?: () => void
 }
 
-export interface PlayStatus {
-    playFile: DirFile,
-    paused: boolean,
-    start: boolean,
-    percent: number
-}
-
 export default function DisplayFiles({ selectable, fs, dropped, updateUploading }: Props) {
-    const [currPlayingFile, setCurrPlayingFile] = useState<PlayStatus>();
     const audioRef = useRef<any>();
-    const fileSystem = useFiles()
+    const fileSystem = useFiles();
     async function SelectMultiple(endSelAt: DirFile | Directory, isSelected: boolean) {
         const hasSel = document.getSelection();
         if (hasSel) {
@@ -74,27 +66,6 @@ export default function DisplayFiles({ selectable, fs, dropped, updateUploading 
         }
     }
 
-    function playAudio(file: DirFile | undefined) {
-        if (!file) {
-            if (audioRef.current && !audioRef.current.paused)
-                audioRef.current.pause();
-            setCurrPlayingFile(undefined);
-        } else {
-            if (currPlayingFile && equalDir(file, currPlayingFile.playFile)) {
-                if (!audioRef.current) return;
-                if (audioRef.current.paused) {
-                    audioRef.current.play();
-                    setCurrPlayingFile(w => w ? { ...w, paused: false, start: false } : w);
-                } else {
-                    audioRef.current.pause();
-                    setCurrPlayingFile(w => w ? { ...w, paused: true, start: false } : w);
-                }
-            } else {
-                setCurrPlayingFile({ playFile: file, paused: false, start: true, percent: 0 });
-            }
-        }
-    }
-
     useEffect(() => {
         const keyDownHandler = (e: KeyboardEvent) => {
             if (!audioRef.current) return;
@@ -114,19 +85,9 @@ export default function DisplayFiles({ selectable, fs, dropped, updateUploading 
         };
     }, []);
 
-    useEffect(() => {
-        if (audioRef.current && audioRef.current.paused && currPlayingFile && currPlayingFile.start) audioRef.current.play();
-    }, [currPlayingFile]);
     return (
         <div className="grid gap-1 overflow-hidden">
-            {currPlayingFile ?
-                <audio
-                    onTimeUpdate={() => setCurrPlayingFile(w => w ? { ...w, percent: audioRef.current.currentTime / audioRef.current.duration * 100 } : w)}
-                    preload="none"
-                    onEnded={() => playAudio(undefined)}
-                    ref={audioRef}
-                    src={`https://next-streamer-nigerete123.koyeb.app/stream/${currPlayingFile.playFile.chanid}/${currPlayingFile.playFile.fileid}`} /> : ""}
-            {fs?.map((w, ind) => w.fileItem ? <DisplayFile key={`upfil${ind}`} file={w.fileItem} SelectMultiple={SelectMultiple} playing={currPlayingFile} togglePlay={playAudio} selectable={selectable} /> : <UploadCard key={`upc${ind}`} file={w} />)}
+            {fs?.map((w, ind) => w.fileItem ? <DisplayFile key={`upfil${ind}`} file={w.fileItem} SelectMultiple={SelectMultiple} selectable={selectable} /> : <UploadCard key={`upc${ind}`} file={w} />)}
             {(fileSystem.state.files && fileSystem.state.dirs && fileSystem.state.files.length + fileSystem.state.dirs.length > 0) || (fs && fs.length > 0) ? <>
                 {fileSystem.state.dirs.map((w, ind) => (
                     <DisplayDirectory
@@ -143,8 +104,6 @@ export default function DisplayFiles({ selectable, fs, dropped, updateUploading 
                         key={`${ind}fil${w.id}`}
                         file={w}
                         SelectMultiple={SelectMultiple}
-                        playing={currPlayingFile}
-                        togglePlay={playAudio}
                         selectable={selectable}
                     />
                 ))}

@@ -13,6 +13,7 @@ import IconLink from "@/icons/IconLink";
 import FileIcon from "../FileIcon";
 import IconRename from "@/icons/IconRename";
 import IconChevronDown from "@/icons/IconChevronDown";
+import useAudio, { ActionType } from "@/context/AudioContext";
 
 export interface PlayStatus {
     playFile: DirFile,
@@ -23,13 +24,11 @@ export interface PlayStatus {
 
 interface Props {
     file: DirFile,
-    playing: PlayStatus | undefined,
-    togglePlay: Function,
     selectable?: boolean,
     SelectMultiple?: Function,
 
 }
-export default function DisplayFile({ file, playing, togglePlay, selectable, SelectMultiple }: Props) {
+export default function DisplayFile({ file, selectable, SelectMultiple }: Props) {
     const lref = useRef<any>(null);
     const refCopy = useRef<any>(null);
     const refOptions = useRef<any>(null);
@@ -47,6 +46,7 @@ export default function DisplayFile({ file, playing, togglePlay, selectable, Sel
 
     const fm = useFileManager();
     const fs = useFiles();
+    const ac = useAudio();
     useEffect(() => {
         setName(file.name);
         setIsNaming(false);
@@ -108,20 +108,33 @@ export default function DisplayFile({ file, playing, togglePlay, selectable, Sel
         }
     }
 
+    function play() {
+        ac.dispatch({
+            type: ActionType.PLAY,
+            file: {
+                fid: file.fileid,
+                cid: file.chanid,
+                title: file.name
+            }
+        })
+    }
 
+    function togglePause() {
+        ac.dispatch({ type: ActionType.TOGGLE_PAUSE });
+    }
     return (
         <div onClick={w => clicked(w)} className="grid card group">
             <div className="flex justify-between gap-1 overflow-hidden">
                 <SelectionBubble file={file} selected={fs.state.selected}>
                     <div className="flex gap-2 items-center overflow-hidden">
                         <div className="min-w-[24px] min-h-[24px] w-5 h-5 m-auto block">
-                            {getFileType(file.name) === 'audio' ? equalDir(playing?.playFile, file) ?
-                                <div onClick={() => togglePlay(file)} ref={audioBtn}>
-                                    <PlayCircle className="cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200" radius={11} percent={playing?.percent} stroke={1} paused={playing?.paused} />
+                            {getFileType(file.name) === 'audio' ? ac.playingFileId === file.fileid ?
+                                <div onClick={() => togglePause()} ref={audioBtn}>
+                                    <PlayCircle className="cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200" radius={11} percent={ac.playedPrecentage} stroke={1} paused={ac.state.paused} />
                                 </div> :
                                 <FlipCard>
                                     <FileIcon name={file.name} />
-                                    <div onClick={() => togglePlay(file)} ref={audioBtn}>
+                                    <div onClick={() => play()} ref={audioBtn}>
                                         <PlayCircle className="cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200" radius={11} stroke={1} />
                                     </div>
                                 </FlipCard> :
