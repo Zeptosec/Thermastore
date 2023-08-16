@@ -3,6 +3,7 @@ import { getFileType, DirFile, FileType } from "@/utils/FileFunctions";
 import { useEffect, useState } from "react";
 import CoolLoader from "./CoolLoading2";
 import useFileManager from "@/context/FileManagerContext";
+import AudioPlayer from "./Audio/AudioPlayer";
 
 interface Props {
     file?: DownloadStatus,
@@ -89,7 +90,7 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
         }
     }, [])
 
-
+    const [repeat, setRepeat] = useState(false);
     return (
         <div>
             {['video', 'audio'].includes(fileType) ?
@@ -105,7 +106,11 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
                         <video crossOrigin="" className="w-full outline-none max-h-[800px]" poster={videoPoster ? videoPoster : ''} controls controlsList="nodownload" src={`${streamers[sid].link}/stream/${cid}/${fid}`}></video>
                     </div> : ""}
                     {fileType === 'audio' ? <div>
-                        <audio crossOrigin="" className="w-full outline-none" controls controlsList="nodownload" src={`${streamers[sid].link}/stream/${cid}/${fid}`}></audio>
+                        <AudioPlayer
+                            src={`${streamers[sid].link}/stream/${cid}/${fid}`}
+                            repeat={repeat}
+                            onRepeat={() => setRepeat(w => !w)} />
+                        {/* <audio crossOrigin="" className="w-full outline-none" controls controlsList="nodownload" src={`${streamers[sid].link}/stream/${cid}/${fid}`}></audio> */}
                     </div> : ""}
                 </> : ""}
             {(fileType === 'image') ? <div className="grid justify-center">
