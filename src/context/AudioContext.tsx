@@ -132,6 +132,7 @@ export function AudioProvider({ children }: any) {
                 if (nextInd >= state.list.length) {
                     if (state.loop) {
                         nextInd = 0;
+                        if (nextInd === state.currentIndex) setForceUrlIndex(w => w + 1);
                     }
                     else
                         return state;
@@ -203,7 +204,9 @@ export function AudioProvider({ children }: any) {
     function changeUrl(endpoint: Endpoint) {
         if (state.list.length === 0) return;
         const file = state.list[state.currentIndex];
-        setUrl(`${endpoint.link}/stream/${file.cid}/${file.fid}`);
+        // passing a function to force re-render in case the url is the same as previous.
+        // this is for audio looping in case the list contains only one clip.
+        setUrl(() => `${endpoint.link}/stream/${file.cid}/${file.fid}`);
         if (state.shouldPlay)
             dispatch({
                 type: ActionType.PAUSE,

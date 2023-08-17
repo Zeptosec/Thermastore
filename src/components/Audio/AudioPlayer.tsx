@@ -24,9 +24,8 @@ interface Props extends PropsWithClass {
     onPrecentageUpdated?: (precent: number) => void,
 }
 let audioWasNull = false;
-// let frameID: number | undefined = undefined;
 export default function AudioPlayer({ className, src, isPaused, repeat, onClose, onPrevious, onNext, onRepeat, onPauseChanged, onPrecentageUpdated, title }: Props) {
-    const [paused, setPaused] = useState(false);
+    const [paused, setPaused] = useState(true);
     const [currSeek, setCurrSeek] = useState(0);
     const [maxSeek, setMaxSeek] = useState(1);
     const [currBuff, setCurrBuff] = useState(0);
@@ -59,94 +58,66 @@ export default function AudioPlayer({ className, src, isPaused, repeat, onClose,
         }
     }
 
-    function onEnded(forcedPause?: boolean) {
-        const currPause = forcedPause ?? paused;
-        if (currPause) return;
-        togglePause(true);
+    /// pressing play and pause while audio is loading gives an error:
+    // The play() request was interrupted by a call to pause().
+    function pauseAudio() {
+        if (audioElem.current && !audioElem.current.paused)
+            audioElem.current.pause();
+    }
+
+    /// problem with audio load when loading and trying to play another
+    // would be easy solution if i could stop loading
+    // trying to play new audio while current is loading gives an error:
+    // The play() request was interrupted by a new load request.
+    function playAudio() {
+        if (audioElem.current && audioElem.current.paused) {
+            audioElem.current.play();
+        }
+    }
+    function onEnded() {
+        if (onNext) onNext();
         setCurrSeek(0);
         setCurrTimeText(formatSeconds(0));
-        // if (frameID)
-        //     cancelAnimationFrame(frameID);
-        if (onNext) {
-            onNext();
-            if (repeat) {
-                // have to wait for rerender because value is already false
-                setTimeout(() => togglePause(false), 10);
-            }
-        } else if (repeat) {
-            setTimeout(() => togglePause(false), 10);
+        if (repeat && !onNext) {
+            playAudio();
         }
     }
 
     useEffect(() => {
-        if (isPaused === undefined) {
-            setPaused(true);
-            if (onPauseChanged) onPauseChanged(true);
-        } else {
-            togglePause(isPaused);
+        const newPause = isPaused ?? true;
+        if (!newPause) {
+            if (audioElem.current) {
+                audioElem.current.currentTime = 0;
+                playAudio();
+            }
         }
-        setDurationText('00:00');
-        setCurrSeek(0);
         if (audioWasNull) {
             setVolume(currVol);
         }
         audioWasNull = audioElem.current === null;
-        // if (frameID) {
-        //     cancelAnimationFrame(frameID);
-        // }
-    }, [src]);
+    }, [src])
 
     useEffect(() => {
         if (onPrecentageUpdated && maxSeek > 0) {
             onPrecentageUpdated(Clamp(0, 100, currSeek / maxSeek * 100))
         }
     }, [currSeek])
+
     useEffect(() => {
-        if (isPaused !== undefined && isPaused !== paused) {
-            togglePause();
+        if (isPaused !== undefined && audioElem.current && isPaused !== audioElem.current.paused) {
+            if (audioElem.current.paused) {
+                playAudio();
+            } else {
+                pauseAudio();
+            }
         }
     }, [isPaused])
 
     function updatePlaying() {
         if (audioElem.current) {
-
             const seekValue = audioElem.current.currentTime;
-            setCurrSeek(seekValue);
+            setCurrSeek(Clamp(0, maxSeek, seekValue));
             setCurrTimeText(formatSeconds(seekValue));
-            //frameID = requestAnimationFrame(updatePlaying);
-        }
-    }
-
-    function togglePause(forcedState?: boolean) {
-        if (!audioElem.current) return;
-        const newState = forcedState ?? !paused;
-        // if user drags the knob to the end and starts, otherwise it's going to restart the current clip
-        // if (!newState && currSeek === Math.floor(maxSeek * 100) / 100) {
-        //     console.log("ended toggle");
-        //     onEnded(false);
-        //     return;
-        // }
-        setPaused(newState);
-        if (onPauseChanged) onPauseChanged(newState);
-        if (!newState) {
-            if (audioElem.current.paused)
-                audioElem.current.play().catch(err => console.error(err));
-            /// toggle pause usually gets called multiple times
-            /// weird checking is needed to prevent requestAnimationFrame from exploding
-            // if (frameID !== undefined && frameID !== -1) {
-            //     cancelAnimationFrame(frameID);
-            //     frameID = undefined;
-            // }
-            // if (frameID === undefined) {
-            //     frameID = -1;
-            //     requestAnimationFrame(updatePlaying);
-            // }
-        } else {
-            audioElem.current.pause();
-            // if (frameID) {
-            //     cancelAnimationFrame(frameID);
-            //     frameID = undefined;
-            // }
         }
     }
 
@@ -155,7 +126,8 @@ export default function AudioPlayer({ className, src, isPaused, repeat, onClose,
         setCurrSeek(seek);
         setCurrTimeText(formatSeconds(seek));
         if (audioElem.current) {
-            audioElem.current.currentTime = seek;
+            const seekRoof = maxSeek - 0.1;
+            audioElem.current.currentTime = Clamp(0, seekRoof < 10 ? maxSeek * .99 : seekRoof, seek);
         }
     }
 
@@ -171,6 +143,11 @@ export default function AudioPlayer({ className, src, isPaused, repeat, onClose,
         setVolume(vol);
     }
 
+    function changePause(newVal: boolean) {
+        setPaused(newVal);
+        if (onPauseChanged) onPauseChanged(newVal);
+    }
+
     function toggleVolume() {
         if (currVol > 0) {
             setVolume(0);
@@ -180,16 +157,30 @@ export default function AudioPlayer({ className, src, isPaused, repeat, onClose,
     }
 
     function audioError(event: SyntheticEvent<HTMLAudioElement, Event>) {
-        togglePause(true);
+        pauseAudio();
         setIsError(true);
     }
 
-    function onStart(forcedPause?: boolean) {
-        if (currSeek === Math.floor(maxSeek * 100) / 100) {
-            console.log("ended toggle");
-            onEnded(false);
-        } else {
-            togglePause(forcedPause);
+    function onPlay() {
+        changePause(false);
+    }
+
+    function pressedClose() {
+        pauseAudio();
+        if (onClose) onClose();
+    }
+
+    function onPaused() {
+        changePause(true);
+    }
+
+    function PlayButton() {
+        if (audioElem.current) {
+            if (audioElem.current.paused) {
+                playAudio();
+            } else {
+                pauseAudio();
+            }
         }
     }
 
@@ -200,8 +191,8 @@ export default function AudioPlayer({ className, src, isPaused, repeat, onClose,
                 onWaiting={() => setBuffering(true)}
                 onError={audioError}
                 onEnded={() => { onEnded() }}
-                onPause={() => { setTimeout(() => togglePause(true), 10) }}
-                onPlay={() => { onStart(false) }}
+                onPause={onPaused}
+                onPlay={onPlay}
                 onLoadedMetadata={OnMetadataLoad}
                 onProgress={recalculateBuffer}
                 ref={audioElem}
@@ -214,7 +205,7 @@ export default function AudioPlayer({ className, src, isPaused, repeat, onClose,
                 {onPrevious ? <button className="outline-none hover:text-tertiary transition-colors" onClick={onPrevious}>
                     <IconPreviousTrack />
                 </button> : ''}
-                <button className="outline-none hover:text-tertiary transition-colors relative" onClick={() => onStart()}>
+                <button className="outline-none hover:text-tertiary transition-colors relative" onClick={() => PlayButton()}>
                     {paused ? <IconPlayButton size={3} offsetx={-1} /> : <IconPause size={3} />}
                     {buffering && !paused ? <IconSpinner className="absolute -top-1 -left-1 w-8 h-8" /> : ''}
                 </button>
@@ -237,7 +228,7 @@ export default function AudioPlayer({ className, src, isPaused, repeat, onClose,
                 {onRepeat ? <button className={`outline-none ${repeat === undefined || !repeat ? 'hover:text-tertiary' : 'text-tertiary hover:text-quaternary'} transition-colors`} onClick={() => onRepeat()}>
                     <IconRepeat />
                 </button> : ''}
-                {onClose ? <button className="outline-none hover:text-tertiary transition-colors" onClick={() => onClose()}>
+                {onClose ? <button className="outline-none hover:text-tertiary transition-colors" onClick={pressedClose}>
                     <IconClose />
                 </button> : ''}
             </div>

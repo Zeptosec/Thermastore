@@ -150,10 +150,17 @@ export function getStreamerName(url: string): string {
     }
 }
 
+function numberToTime(num: number) {
+    return num < 10 ? `0${num}` : num.toString();
+}
+
 export function formatSeconds(seconds: number) {
-    const min = Math.floor(seconds / 60);
+    let min = Math.floor(seconds / 60);
     const sec = Math.floor(seconds % 60);
-    return `${min}:${sec < 10 ? `0${sec}` : sec}`;
+    const hou = Math.floor(min / 60);
+    if (hou > 0)
+        return `${numberToTime(hou)}:${numberToTime(min % 60)}:${numberToTime(sec)}`
+    return `${numberToTime(min)}:${numberToTime(sec)}`;
 }
 
 /**
