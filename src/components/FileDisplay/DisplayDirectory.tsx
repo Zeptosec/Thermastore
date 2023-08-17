@@ -135,7 +135,7 @@ export default function DisplayDirectory({ dir, selectable, SelectMultiple, drop
                             </div>
                             {isNaming ?
                                 <form onSubmit={w => { w.preventDefault(); saveName(); }}>
-                                    <input type="text" autoFocus value={name} onChange={w => setName(w.target.value)} onBlur={saveName} />
+                                    <input className="bg-primary outline-none" type="text" autoFocus value={name} onChange={w => setName(w.target.value)} onBlur={saveName} />
                                 </form> :
                                 <div onClick={() => openDir()} ref={refName} className="cursor-pointer hover:text-tertiary transition-colors whitespace-nowrap overflow-hidden">
                                     <StrechableText text={name} />
