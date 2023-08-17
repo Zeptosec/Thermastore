@@ -156,7 +156,7 @@ export default function AudioPlayer({ className, src, isPaused, repeat, onClose,
         }
     }
 
-    function audioError(event: SyntheticEvent<HTMLAudioElement, Event>) {
+    function audioError() {
         pauseAudio();
         setIsError(true);
     }
@@ -166,7 +166,6 @@ export default function AudioPlayer({ className, src, isPaused, repeat, onClose,
     }
 
     function pressedClose() {
-        pauseAudio();
         if (onClose) onClose();
     }
 
