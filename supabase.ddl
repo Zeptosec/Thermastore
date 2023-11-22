@@ -27,3 +27,105 @@ create table
     constraint files_userid_fkey foreign key (userid) references auth.users (id),
     constraint files_name_check check ((length(name) < 72))
   ) tablespace pg_default;
+  
+create or replace function get_items(direc int, search_str text, is_global boolean, from_num int, to_num int, order_column text, order_dir text)
+returns table(
+  id integer,
+  created_at timestamp with time zone,
+  name text,
+  size bigint,
+  fileid text,
+  userid uuid,
+  dir integer,
+  chanid text,
+  shared boolean,
+  preview text
+) as $$
+  begin
+    if order_column = 'id' then
+      if order_dir = 'desc' then
+        return query (select directories.id, directories.created_at, directories.name, null as size, null as fileid, directories.userid, directories.dir, null as chanid, directories.shared, null as preview
+        from directories 
+        where (is_global = true or directories.dir = direc or (direc is null and directories.dir is null)) and directories.name like CONCAT('%', search_str, '%') 
+        order by directories.id desc)
+        union all
+        (select files.id, files.created_at, files.name, files.size, files.fileid, files.userid, files.dir, files.chanid, null as shared, previews.fileid as preview
+        from files
+        left join public.previews
+          on public.previews.original = public.files.id
+        where (is_global = true or files.dir = direc or (direc is null and files.dir is null)) and files.name like CONCAT('%', search_str, '%')  order by files.id desc)
+        offset from_num
+        limit (to_num - from_num);
+      else
+        return query (select directories.id, directories.created_at, directories.name, null as size, null as fileid, directories.userid, directories.dir, null as chanid, directories.shared, null as preview
+        from directories 
+        where (is_global = true or directories.dir = direc or (direc is null and directories.dir is null)) and directories.name like CONCAT('%', search_str, '%') 
+        order by directories.id asc)
+        union all
+        (select files.id, files.created_at, files.name, files.size, files.fileid, files.userid, files.dir, files.chanid, null as shared, previews.fileid as preview
+        from files
+        left join public.previews
+          on public.previews.original = public.files.id
+        where (is_global = true or files.dir = direc or (direc is null and files.dir is null)) and files.name like CONCAT('%', search_str, '%')  order by files.id asc)
+        offset from_num
+        limit (to_num - from_num);
+      end if;
+    elsif order_column = 'size' then
+      if order_dir = 'desc' then
+        return query (select directories.id, directories.created_at, directories.name, null as size, null as fileid, directories.userid, directories.dir, null as chanid, directories.shared, null as preview
+        from directories 
+        where (is_global = true or directories.dir = direc or (direc is null and directories.dir is null)) and directories.name like CONCAT('%', search_str, '%') 
+        order by directories.name desc)
+        union all
+        (select files.id, files.created_at, files.name, files.size, files.fileid, files.userid, files.dir, files.chanid, null as shared, previews.fileid as preview
+        from files
+        left join public.previews
+          on public.previews.original = public.files.id
+        where (is_global = true or files.dir = direc or (direc is null and files.dir is null)) and files.name like CONCAT('%', search_str, '%')  order by files.size desc)
+        offset from_num
+        limit (to_num - from_num);
+      else
+        return query (select directories.id, directories.created_at, directories.name, null as size, null as fileid, directories.userid, directories.dir, null as chanid, directories.shared, null as preview
+        from directories 
+        where (is_global = true or directories.dir = direc or (direc is null and directories.dir is null)) and directories.name like CONCAT('%', search_str, '%') 
+        order by directories.name asc)
+        union all
+        (select files.id, files.created_at, files.name, files.size, files.fileid, files.userid, files.dir, files.chanid, null as shared, previews.fileid as preview
+        from files 
+        left join public.previews
+          on public.previews.original = public.files.id
+        where (is_global = true or files.dir = direc or (direc is null and files.dir is null)) and files.name like CONCAT('%', search_str, '%')  order by files.size asc)
+        offset from_num
+        limit (to_num - from_num);
+      end if;
+    else
+      if order_dir = 'desc' then
+        return query (select directories.id, directories.created_at, directories.name, null as size, null as fileid, directories.userid, directories.dir, null as chanid, directories.shared, null as preview
+        from directories 
+        where (is_global = true or directories.dir = direc or (direc is null and directories.dir is null)) and directories.name like CONCAT('%', search_str, '%') 
+        order by directories.name desc)
+        union all
+        (select files.id, files.created_at, files.name, files.size, files.fileid, files.userid, files.dir, files.chanid, null as shared, previews.fileid as preview
+        from files
+        left join public.previews
+          on public.previews.original = public.files.id
+        where (is_global = true or files.dir = direc or (direc is null and files.dir is null)) and files.name like CONCAT('%', search_str, '%')  order by files.name desc)
+        offset from_num
+        limit (to_num - from_num);
+      else
+        return query (select directories.id, directories.created_at, directories.name, null as size, null as fileid, directories.userid, directories.dir, null as chanid, directories.shared, null as preview
+        from directories 
+        where (is_global = true or directories.dir = direc or (direc is null and directories.dir is null)) and directories.name like CONCAT('%', search_str, '%') 
+        order by directories.name asc)
+        union all
+        (select files.id, files.created_at, files.name, files.size, files.fileid, files.userid, files.dir, files.chanid, null as shared, previews.fileid as preview
+        from files
+        left join public.previews
+          on public.previews.original = public.files.id
+        where (is_global = true or files.dir = direc or (direc is null and files.dir is null)) and files.name like CONCAT('%', search_str, '%')  order by files.name asc)
+        offset from_num
+        limit (to_num - from_num);
+      end if;
+    end if;
+  end;
+$$ language plpgsql;
