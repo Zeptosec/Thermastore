@@ -3,7 +3,7 @@ import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 type Data = {
-    error: string | undefined
+    error?: string
 }
 
 export default async function handler(
