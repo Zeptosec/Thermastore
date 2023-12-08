@@ -106,7 +106,8 @@ returns table(
   chanid text,
   shared boolean,
   preview text
-) as $$
+) 
+as $$
   begin
     if order_column = 'id' then
       if order_dir = 'desc' then
@@ -195,3 +196,55 @@ returns table(
     end if;
   end;
 $$ language plpgsql;
+
+-- for files
+alter table files ENABLE ROW LEVEL SECURITY;
+
+create policy files_control 
+    ON files
+    FOR ALL
+    TO authenticated 
+    USING (auth.uid() = userid);
+
+-- for directories
+alter table directories ENABLE ROW LEVEL SECURITY;
+
+create policy directories_control 
+    ON directories
+    FOR ALL
+    TO authenticated 
+    USING (auth.uid() = userid);
+
+-- for previews
+alter table previews ENABLE ROW LEVEL SECURITY;
+
+create policy previews_control
+    ON previews
+    FOR ALL
+    TO authenticated
+    USING ((
+        SELECT files.userid
+        FROM files
+        WHERE (previews.original = files.id)
+        LIMIT 1) = auth.uid());
+
+-- for streamers
+alter table streamers ENABLE ROW LEVEL SECURITY;
+
+create policy streamers_control 
+    ON streamers
+    FOR ALL
+    TO authenticated 
+    USING (auth.uid() = userid);
+
+-- for freehooks
+alter table freehooks ENABLE ROW LEVEL SECURITY;
+
+-- for webhooks
+alter table webhooks ENABLE ROW LEVEL SECURITY;
+
+create policy webhooks_control 
+    ON webhooks
+    FOR ALL
+    TO authenticated 
+    USING (auth.uid() = userid);
