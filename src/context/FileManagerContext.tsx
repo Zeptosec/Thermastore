@@ -231,7 +231,7 @@ export function FileManagerProvider({ children }: any) {
             link: w,
             name: getStreamerName(w)
         }));
-        ['https://silent-tartan-giganotosaurus.glitch.me', 'https://unmarred-accidental-eel.glitch.me', 'https://thestr.onrender.com']
+        ['https://pointed-gravel-dilophosaurus.glitch.me']
             .forEach((w, ind) =>
                 newStreams.push({
                     occupied: 0,
