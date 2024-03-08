@@ -26,8 +26,7 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
                 setSid(ind);
             }
         }
-        async function showImage() {
-            const limit = 300 * 1024;
+        async function showImage(limit = 300 * 1024) {
             let prevLoaded = false;
             if (dirFile) {
                 if (dirFile.size <= limit) {
@@ -75,10 +74,16 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
             }
         }
 
-        if (fileType === 'image')
-            showImage();
-        else if (fileType === 'video') {
-            getPoster();
+        switch (fileType) {
+            case 'pdf':
+                showImage(25 * 1024 ** 2);
+                break;
+            case 'image':
+                showImage();
+                break;
+            case 'video':
+                getPoster();
+                break;
         }
         if (['video', 'audio'].includes(fileType)) {
             getFastestRespond();
@@ -128,6 +133,22 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
                     <img src={href.url} />
                 </div>}
             </div> : ""}
+            {fileType === 'pdf' && <div>
+                {href.loadState === 'loading' ? <div>
+                    <p className="text-center text-2xl pb-4">Getting pdf url</p>
+                    <div className="relative min-h-[100px]">
+                        <CoolLoader />
+                    </div>
+                </div> : href.loadState === 'failed' ? <div>
+                    <p className="text-center text-2xl pb-4 text-tertiary">Failed to load preview</p>
+                </div> : href.loadState === 'nopreview' ? <div>
+                    <p className="text-center text-2xl pb-4 text-tertiary">PDF has no preview or is too big MAX 25MB</p>
+                </div> : <div>
+                    <p className="text-center text-2xl pb-4">Preview</p>
+                    <iframe width="100%" className="h-[min(600px,_calc(100vh-25px))] min-h-[200px]" src={`/pdf/web/viewer.html?q=${href.url}`}></iframe>
+                </div>}
+                {/* <embed src={`${streamers[sid].link}/stream/${cid}/${fid}`} width="100%" className="h-[min(600px,_calc(100vh-25px))] min-h-[200px]" type="application/pdf" /> */}
+            </div>}
         </div>
     )
 }
