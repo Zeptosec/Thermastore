@@ -133,7 +133,7 @@ export async function GetPreviousDir(currDirId: number, supabase: SupabaseClient
     }
 }
 
-export type FileType = 'audio' | 'video' | 'text' | 'image' | 'file';
+export type FileType = 'audio' | 'video' | 'text' | 'image' | 'file' | 'pdf';
 export function getFileType(name: string): FileType {
     if (!name.includes('.')) return "file";
     if (FileEndsWith(name, ['mp3', 'ogg', 'wav', 'm4a', 'wma', 'aac'])) {
@@ -142,7 +142,9 @@ export function getFileType(name: string): FileType {
         return 'image';
     } else if (FileEndsWith(name, ['mp4', 'mkv', 'mov', 'avi', 'webm', 'flv'])) {
         return 'video';
-    } else if (FileEndsWith(name, ['txt', 'doc', 'docx', 'pdf'])) {
+    } else if (FileEndsWith(name, ['pdf'])) {
+        return 'pdf';
+    } else if (FileEndsWith(name, ['txt', 'doc', 'docx'])) {
         return 'text';
     } else {
         return 'file';
