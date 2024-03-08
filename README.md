@@ -21,11 +21,12 @@ A list of features that have been implemented. You can always suggest a feature 
 | Moving directories  | ✔ |
 | Uploading multiple files  | ✔  |
 | Drag and Drop support  | ✔  |
-| Preview audio, video files (Streamer service)  | ✔  |
+| Preview audio, video files ([Streamer](https://github.com/Zeptosec/Streamer))  | ✔  |
+| Preview PDF <25 MB | ✔ |
 | Play audio files from menu  | ✔  |
-| Pause/resume an uploading file  | ✔ |
+| Upload pause/resume | ✔ |
 | File search | ✔ |
-| Uploading directories | ✔ |
+| Directory uploads | ✔ |
 
 ## Getting started
 To start clone this repository:
