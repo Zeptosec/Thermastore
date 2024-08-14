@@ -137,7 +137,7 @@ export default function StreamersManager({ className }: PropsWithClass) {
                     </button>
                 </div>)}
             </div>
-            <p>You can always run it on your own computer by downloading a built binary from the <Link className="underline hover:text-tertiary transition-colors" href="https://github.com/Zeptosec/Streamer">repository</Link>.</p>
+            <p>You can always run <Link className="underline hover:text-tertiary transition-colors" href="https://github.com/Zeptosec/Streamer">the streamer</Link> on your own computer.</p>
         </div>
     )
 }

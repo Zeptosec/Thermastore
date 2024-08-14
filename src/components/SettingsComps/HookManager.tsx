@@ -92,7 +92,6 @@ export default function HookManager({ className }: PropsWithClass) {
                 <p className="text-center text-tertiary">{err}</p>
             </> : <>
                 <div>
-                    <p className="m-0 text-tertiary">Disclaimer: Your hook won't be encrypted. Anyone with your account can access it.</p>
                     <p className="m-0">{hasHook ? "You have a hook and you can change or delete it here" : "You can set up a hook here"}</p>
                 </div>
                 <input className="w-64 m-auto text-quaternary bg-primary p-2 rounded-md text-xl placeholder:text-quaternary/50" onChange={w => setHook(w.target.value)} placeholder="https://discordapp.com/api/webhooks/..." value={hook} type="text" />

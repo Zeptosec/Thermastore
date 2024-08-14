@@ -54,24 +54,17 @@ async function TestEndpoint(endPoint: Endpoint, abortController?: AbortControlle
 export async function getEarliestEnd(endPoints: Endpoint[]): Promise<Endpoint> {
     const abortController = new AbortController();
     setTimeout(() => abortController.abort(), 8000);
-    const localEndPoint = endPoints[endPoints.length - 1];
-    // try to prioritize localhost
-    if (await TestEndpoint(localEndPoint, abortController)) {
-        return localEndPoint;
-    }
 
-    const endpts = endPoints.slice(0, -1);
-    if (endpts.length === 0) return localEndPoint;
     let reqs: Promise<Endpoint>[] = [];
     let failCnt = 0;
-    endpts.forEach(el => {
+    endPoints.forEach(el => {
         reqs.push(
             new Promise(async (resolve, reject) => {
                 if (await TestEndpoint(el, abortController)) {
                     resolve(el);
                 } else {
                     failCnt++;
-                    if (failCnt === endpts.length) {
+                    if (failCnt === endPoints.length) {
                         // if all rejected then return last one rejected to not get stuck on Promise.any
                         resolve(el)
                     }
@@ -100,8 +93,7 @@ export async function getFileData(fid: string, channel_id: string, endPoints: En
     let failCnt = 0;
     while (!data && failCnt < 5) {
         try {
-            const res: AxiosResponse = await axios.get(`${endpoint.link}/down/${channel_id
-                }/${fid}`);
+            const res: AxiosResponse = await axios.get(`${endpoint.link}/down/${channel_id}/${fid}`);
             data = res.data;
             if (!data.size || !data.name || !data.chunks) {
                 failCnt = 1000;

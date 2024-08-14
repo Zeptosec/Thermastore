@@ -231,19 +231,11 @@ export function FileManagerProvider({ children }: any) {
             link: w,
             name: getStreamerName(w)
         }));
-        ['https://pointed-gravel-dilophosaurus.glitch.me']
-            .forEach((w, ind) =>
-                newStreams.push({
-                    occupied: 0,
-                    link: w,
-                    name: `streamer ${ind + 1}`
-                })
-            );
-        newStreams.push({
-            occupied: 0,
-            link: 'http://localhost:8000',
-            name: 'localhost'
-        })
+        // newStreams.push({
+        //     occupied: 0,
+        //     link: 'http://localhost:8000',
+        //     name: 'localhost'
+        // })
         setStreamers(newStreams);
         adjustLoading("Loading streamers");
         if (save) {
@@ -256,14 +248,26 @@ export function FileManagerProvider({ children }: any) {
     }
 
     async function resetStreamers(): Promise<string | undefined> {
-        const { data, error } = await supabase
+        const streamers = await supabase
             .from('streamers')
             .select('link');
 
-        if (error) {
-            return error.message;
+        const freeProxies = await supabase
+            .from('FreeProxies')
+            .select('url');
+
+        if (streamers.error) {
+            return streamers.error.message;
         } else {
-            setNewStreamers(data.map(w => w.link), true);
+            const result = streamers.data.map(w => w.link);
+
+            if (!freeProxies.error) {
+                result.push(...freeProxies.data.map(w => w.url));
+            } else {
+                console.error(`FreeProxies error: `, freeProxies.error);
+            }
+
+            setNewStreamers(result, true);
         }
     }
 
