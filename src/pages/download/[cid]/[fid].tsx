@@ -26,11 +26,15 @@ export default function downloadPage() {
             if (dt) {
                 setFdata(dt);
             } else {
-                let data = await getFileData(fid as string, cid as string, fm.streamers, setLoadError);
-                if (data)
-                    setFdata(w => ({ ...w, ...data }));
-                else
-                    setLoadError("Failed to get file data. All file download services are down! Consider running one locally from https://github.com/Zeptosec/Streamer")
+                if (fm.streamers.length === 0) {
+                    setLoadError('There are no streamers to use for downloading the file!');
+                } else {
+                    let data = await getFileData(fid as string, cid as string, fm.streamers, setLoadError);
+                    if (data)
+                        setFdata(w => ({ ...w, ...data }));
+                    else
+                        setLoadError("Failed to get file data. All file download services are down! Consider running one locally from https://github.com/Zeptosec/Streamer")
+                }
             }
             setLoading(false);
         }
