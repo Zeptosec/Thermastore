@@ -8,9 +8,7 @@ Discord has CORS setup. So to download files, watch videos and listen to audio y
 When uploading a file it is split up into pieces (around 25 MB) then each piece is uploaded to Discord server using webhook and attachment file id and channel id to which it was uploaded is stored into file and uploaded using the same webhook.
 
 ## Caveats
-Storing files like this is not as safe as storing links to pieces into other database but this way it takes much less space in the database. Sadly uploaded files are accessible to anyone if they know file and channel ids which is very unlikely unless they have access to channel where the files were uploaded or you have shared the file with them.  
-  
-Deleting files is not possible webhooks can only send messages it can not delete messages. Possible solution to this problem is to create a bot which would delete the data file and other file specified in data file
+Storing files like this is not as safe as storing links to pieces directly into database, but this way it takes much less space in the database. Sadly uploaded files are accessible to anyone if they know file and channel ids which is very unlikely unless they have access to channel where the files were uploaded or you have shared the file with them.  
 
 ## Features
 A list of features that have been implemented. You can always suggest a feature in the [issues](https://github.com/Zeptosec/Thermastore/issues) tab.
@@ -37,7 +35,7 @@ Then install required npm packages with:
 ```sh
 npm install
 ```
-Rename **env.local.example** to **env.local** and set the required values. You will need to setup a Supabase database with the required tables specified in [supabase.ddl](supabase.ddl)  
+Rename **env.local.example** to **env.local** and set the required values. You will need to setup a Supabase database with the required tables specified in [supabase.sql](supabase.sql)  
 After all of that is done you can finally start the project and hope for the best:
 ```sh
 npm run dev
