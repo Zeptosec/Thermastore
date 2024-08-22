@@ -1,7 +1,7 @@
 import { downloadFile, getFileData, DownloadStatus } from "@/utils/FileDownload";
 import { DirFile, Directory, UpFiles, VerifyHook, chunkSize, getHookLink } from "@/utils/FileFunctions";
 import { Endpoint, uploadFiles, FileStatus } from "@/utils/FileUploader";
-import { Dispatch, createContext, useContext, useEffect, useReducer, useState } from "react";
+import { Dispatch, createContext, useContext, useEffect, useMemo, useReducer, useState } from "react";
 import { useSupabaseClient, useUser, User, SupabaseClient, useSessionContext } from "@supabase/auth-helpers-react";
 import { StoredStreams } from "@/components/SettingsComps/StreamersManager";
 import { getStreamerName } from "@/utils/utils";
@@ -74,7 +74,8 @@ export const FileContext = createContext<Exposed | null>(null);
 
 export function FileManagerProvider({ children }: any) {
     const [hook, sHook] = useState<Endpoint>();
-    const [streamers, setStreamers] = useState<Endpoint[]>([]);
+    const [streams, setStreamers] = useState<Endpoint[]>([]);
+    const [freeStreamers, setFreeStreamers] = useState<Endpoint[]>([]);
     const supabase = useSupabaseClient();
     const user = useUser();
     const { isLoading } = useSessionContext();
@@ -83,11 +84,13 @@ export function FileManagerProvider({ children }: any) {
     const [state, dispatch] = useReducer(reducer, initialParams);
     const [loading, setLoading] = useState<LoadingState>({ cnt: 0, state: true });
 
+    const streamers = useMemo<Endpoint[]>(() => [...streams, ...freeStreamers], [freeStreamers, streams]);
+
     function adjustLoading(msg?: string) {
         setLoading(w => {
             return ({
                 cnt: w.cnt + 1,
-                state: w.cnt + 1 < 2,
+                state: w.cnt + 1 < 3,
                 msg
             })
         }
@@ -252,20 +255,10 @@ export function FileManagerProvider({ children }: any) {
             .from('streamers')
             .select('link');
 
-        const freeProxies = await supabase
-            .from('FreeProxies')
-            .select('url');
-
         if (streamers.error) {
             return streamers.error.message;
         } else {
             const result = streamers.data.map(w => w.link);
-
-            if (!freeProxies.error) {
-                result.push(...freeProxies.data.map(w => w.url));
-            } else {
-                console.error(`FreeProxies error: `, freeProxies.error);
-            }
 
             setNewStreamers(result, true);
         }
@@ -301,6 +294,24 @@ export function FileManagerProvider({ children }: any) {
                 await setHook(data.hookurl, data.hookid);
             }
         }
+
+        async function fetchFreeStreamers() {
+            const freeProxies = await supabase
+                .from('FreeProxies')
+                .select('url, name');
+
+            if (!freeProxies.error) {
+                setFreeStreamers(freeProxies.data.map(w => ({
+                    link: w.url,
+                    name: w.name,
+                    occupied: 0
+                })));
+            } else {
+                console.error(`FreeProxies error: `, freeProxies.error);
+            }
+            adjustLoading("fetched free streamers");
+        }
+        fetchFreeStreamers();
 
         async function fetchNewStreamers() {
             if (!user) {
