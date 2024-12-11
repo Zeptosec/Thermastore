@@ -51,7 +51,13 @@ export default function downloadPage() {
     }, [fm.state.downloading])
 
     function download() {
-        fm.dispatch({ type: FileActionType.DOWNLOAD, cid: cid as string, fid: fid as string, fData });
+        fm.dispatch({
+            type: FileActionType.DOWNLOAD,
+            cid: cid as string,
+            fid: fid as string,
+            fData,
+            streamers: fm.streamers
+        });
     }
 
     return (
@@ -102,7 +108,7 @@ export default function downloadPage() {
                                                     <p className="whitespace-nowrap">{BytesToReadable(fData.downloadedBytes)}/{BytesToReadable(fData.size)}</p>
                                                     {fData.abortController ?
                                                         <div className="flex justify-center">{fData.abortController.signal.aborted ?
-                                                            <abbr title="Continue download" className="cursor-pointer transition-colors duration-200 hover:text-tertiary" onClick={() => fm.dispatch({ type: FileActionType.RESUME_DOWNLOAD, status: fData })}><IconPlayButtonRounded /></abbr> :
+                                                            <abbr title="Continue download" className="cursor-pointer transition-colors duration-200 hover:text-tertiary" onClick={() => fm.dispatch({ type: FileActionType.RESUME_DOWNLOAD, status: fData, streamers: fm.streamers })}><IconPlayButtonRounded /></abbr> :
                                                             <abbr title="Pause download" className="cursor-pointer transition-colors duration-200 hover:text-tertiary" onClick={() => fData.abortController?.abort()}><IconPlayStopRounded /></abbr>
                                                         }</div> : ''}
                                                 </>}
