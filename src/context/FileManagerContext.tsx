@@ -40,6 +40,7 @@ export type FileAction = {
     type: FileActionType.DOWNLOAD,
     cid: string,
     fid: string,
+    streamers: Endpoint[],
     fData?: DownloadStatus
 } | {
     type: FileActionType.UPLOAD,
@@ -53,7 +54,8 @@ export type FileAction = {
     status: FileStatus,
 } | {
     type: FileActionType.RESUME_DOWNLOAD,
-    status: DownloadStatus
+    status: DownloadStatus,
+    streamers: Endpoint[]
 } | {
     type: FileActionType.SET_SUPABASE,
     user: User | null,
@@ -122,7 +124,7 @@ export function FileManagerProvider({ children }: any) {
         counter += 1;
     }
 
-    async function downFile(fd: DownloadStatus, fData?: DownloadStatus) {
+    async function downFile(fd: DownloadStatus, streamers: Endpoint[], fData?: DownloadStatus) {
         let dt;
         if (fData) {
             dt = fData;
@@ -143,7 +145,7 @@ export function FileManagerProvider({ children }: any) {
         fd.size = dt.size;
         if (dt.channel_id)
             fd.channel_id = dt.channel_id;
-        await downloadFile(fd, streamers, undefined, onStart, onFinished)
+        await downloadFile(fd, [streamers[0]], undefined, onStart, onFinished)
     }
 
     function reducer(state: FileManager, action: FileAction): FileManager {
@@ -159,7 +161,9 @@ export function FileManagerProvider({ children }: any) {
                 let status: DownloadStatus = {
                     started_at: 0, name: "", size: -1, chunks: [], downloadedBytes: 0, speed: 0, timeleft: 0, precentage: 0, channel_id: action.cid, fid: action.fid,
                 };
-                downFile(status, action.fData);
+
+                downFile(status, action.streamers, action.fData);
+
                 return { ...state, downloading: [...state.downloading, status] };
 
             case FileActionType.UPLOAD:
@@ -217,7 +221,7 @@ export function FileManagerProvider({ children }: any) {
                     console.log('No hook to resume with');
                 return { ...state };
             case FileActionType.RESUME_DOWNLOAD:
-                downFile(action.status, action.status);
+                downFile(action.status, action.streamers, action.status);
                 return { ...state };
             case FileActionType.SET_SUPABASE:
                 return { ...state, user: action.user, supabase: action.supabase };
