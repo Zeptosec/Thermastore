@@ -34,7 +34,10 @@ export async function VerifyHook(hook: string) {
             return { isValid: false };
         }
         const lhook = `https://discordapp.com/api/webhooks/${parts[parts.length - 2]}/${parts[parts.length - 1]}`
-        await axios.post(lhook, { content: "This message was sent to verify hook." });
+        // chrome blocks requests to other origins. Can't validate the hook using requests.
+        // one way would be create a proxy and validate through it or just an api that would make the request and validate it.
+        // for now lets assume that the hook is valid.
+        // await axios.post(lhook, { content: "This message was sent to verify hook." });
         return { isValid: true, hookNumber: parts[parts.length - 2], hookId: parts[parts.length - 1], lhook };
     } catch (err) {
         console.log(err);
