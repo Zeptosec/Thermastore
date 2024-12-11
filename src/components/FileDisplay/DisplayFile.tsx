@@ -173,7 +173,7 @@ export default function DisplayFile({ file, selectable, SelectMultiple }: Props)
                                     <IconLink />
                                 </abbr>
                             </div>
-                            <div onClick={() => fm?.dispatch({ type: FileActionType.DOWNLOAD, cid: file.chanid, fid: file.fileid })} className="flex justify-end gap-2 items-center cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200">
+                            <div onClick={() => fm?.dispatch({ type: FileActionType.DOWNLOAD, cid: file.chanid, fid: file.fileid, streamers: fm.streamers })} className="flex justify-end gap-2 items-center cursor-pointer text-quaternary hover:text-tertiary transition-colors duration-200">
                                 <p className="whitespace-nowrap">Download</p>
                                 <abbr title="Download">
                                     <IconDownload />
