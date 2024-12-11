@@ -43,7 +43,7 @@ export default function FileManagerDownload({ status }: Props) {
                     <abbr title="Continue download" className="flex justify-center sm:block cursor-pointer transition-colors duration-200 hover:text-tertiary" onClick={() => {
                         console.log("resume download " + status.name);
 
-                        fm.dispatch({ type: FileActionType.RESUME_DOWNLOAD, status })
+                        fm.dispatch({ type: FileActionType.RESUME_DOWNLOAD, status, streamers: fm.streamers })
                     }}><IconPlayButtonRounded /></abbr> :
                     <abbr title="Pause download" className="flex justify-center sm:block cursor-pointer transition-colors duration-200 hover:text-tertiary" onClick={() => {
                         console.log('abort download ' + status.name);
