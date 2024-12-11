@@ -228,12 +228,7 @@ export function AudioProvider({ children }: any) {
             })
         }
     }, []);
-    const firstUpdate = useRef(true);
     useEffect(() => {
-        if (firstUpdate.current) {
-            firstUpdate.current = false;
-            return;
-        }
         saveToStorage();
     }, [state.list, state.loop, state.currentIndex]);
 
@@ -245,7 +240,7 @@ export function AudioProvider({ children }: any) {
             changeUrl(endpoint);
         }
         if (fm.isLoading || state.currentIndex === -1) return;
-        const currTime = new Date().getTime()
+        const currTime = Date.now();
         if (streamerPreviousTime + 10 * 60 * 1000 < currTime) {
             setStreamerPreviousTime(currTime);
             fetchEnd();

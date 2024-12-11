@@ -21,7 +21,7 @@ export interface DownloadStatus {
     finished?: boolean,
 }
 
-const maxConns = 10;
+const maxConns = 2;
 
 let workingEnds: Endpoint[] = []
 
