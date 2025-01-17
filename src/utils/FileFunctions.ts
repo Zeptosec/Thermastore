@@ -3,7 +3,7 @@ import { Dispatch, SetStateAction } from "react";
 import { FileAction, FileActionType, FileToUpload } from "@/context/FileManagerContext";
 import { SupabaseClient } from "@supabase/auth-helpers-nextjs";
 
-export const chunkSize = 25 * 1024 ** 2 - 256;
+export const chunkSize = 10 * 1024 ** 2 - 256;
 
 const marks = ["B", "KB", "MB", "GB", "TB", "PB"];
 

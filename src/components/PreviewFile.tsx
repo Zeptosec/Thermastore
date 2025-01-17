@@ -1,5 +1,5 @@
 import { DownloadStatus, getEarliestEnd, getImage, getImageHref, getImagePreviewHref } from "@/utils/FileDownload"
-import { getFileType, DirFile, FileType } from "@/utils/FileFunctions";
+import { getFileType, DirFile, FileType, chunkSize } from "@/utils/FileFunctions";
 import { useEffect, useState } from "react";
 import CoolLoader from "./CoolLoading2";
 import useFileManager from "@/context/FileManagerContext";
@@ -76,7 +76,8 @@ export default function PreviewFile({ file, fid, cid, dirFile }: Props) {
 
         switch (fileType) {
             case 'pdf':
-                showImage(25 * 1024 ** 2);
+                // dont know the file chunk size
+                showImage(chunkSize);
                 break;
             case 'image':
                 showImage();
